@@ -21,19 +21,16 @@ public class BukkitToastSender implements ToastSender {
     private final Set<NamespacedKey> advancementKeys = ConcurrentHashMap.newKeySet();
 
     public BukkitToastSender() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                int size = advancementKeys.size();
-                advancementKeys.removeIf(key -> {
-                    Bukkit.getUnsafe().removeAdvancement(key);
-                    return true;
-                });
-                if (size > 0) {
-                    Bukkit.reloadData();
-                }
+        Scheduler.runTimer(() -> {
+            int size = advancementKeys.size();
+            advancementKeys.removeIf(key -> {
+                Bukkit.getUnsafe().removeAdvancement(key);
+                return true;
+            });
+            if (size > 0) {
+                Bukkit.reloadData();
             }
-        }.runTaskTimer(ItsMyConfig.getInstance(), 20 * 60 * 20, 20 * 60 * 20); // every 20 minutes
+        }, 20 * 60 * 20, 20 * 60 * 20); // every 20 minutes
     }
 
     /**
