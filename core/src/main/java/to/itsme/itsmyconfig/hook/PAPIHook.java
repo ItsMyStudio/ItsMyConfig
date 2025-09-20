@@ -167,7 +167,7 @@ public final class PAPIHook extends PlaceholderExpansion {
         String content = contentBuilder.toString();
         
         // Check if there's a format specification at the end (e.g., _legacy, _mini, _console)
-        String format = "mini"; // default format
+        String format = "legacy"; // default format
         String[] formatParts = content.split("_");
         if (formatParts.length > 0) {
             String lastPart = formatParts[formatParts.length - 1].toLowerCase();
