@@ -188,7 +188,7 @@ public final class PAPIHook extends PlaceholderExpansion {
             
             return switch (format) {
                 case "legacy", "l" -> BukkitComponentSerializer.legacy().serialize(component);
-                case "console", "c" -> BukkitComponentSerializer.legacySection().serialize(component);
+                case "console", "c" -> BukkitComponentSerializer.legacy().serialize(component);
                 case "mini", "m" -> IMCSerializer.toMiniMessage(component);
                 default -> IMCSerializer.toMiniMessage(component);
             };
