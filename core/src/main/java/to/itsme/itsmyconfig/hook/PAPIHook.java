@@ -2,6 +2,7 @@ package to.itsme.itsmyconfig.hook;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -9,7 +10,10 @@ import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.font.MappedFont;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
+import to.itsme.itsmyconfig.tag.TagManager;
+import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
+import to.itsme.itsmyconfig.util.Utilities;
 
 /**
  * DynamicPlaceHolder class is a PlaceholderExpansion that handles dynamic placeholders for the ItsMyConfig plugin.
@@ -108,6 +112,9 @@ public final class PAPIHook extends PlaceholderExpansion {
         }
 
         final String firstParam = splitParams[0].toLowerCase();
+        if ("parse".equals(firstParam)) {
+            return handleParse(splitParams, player);
+        }
         if (("font".equals(firstParam) || "f".equals(firstParam)) && splitParams.length >= 3) {
             return handleFont(splitParams);
         }
@@ -134,6 +141,61 @@ public final class PAPIHook extends PlaceholderExpansion {
             return MappedFont.SMALL_CAPS.apply(message);
         }
         return "ERROR";
+    }
+
+    /**
+     * Handles the imc_parse_ placeholder that processes text with tags and placeholders.
+     * 
+     * @param splitParams The array of parameters, where the content to parse starts at index 1.
+     * @param player The player for whom the placeholder is being processed.
+     * @return The parsed text with tags and placeholders processed.
+     */
+    private String handleParse(final String[] splitParams, final Player player) {
+        if (splitParams.length < 2) {
+            return ILLEGAL_ARGUMENT_MSG;
+        }
+
+        // Join all parameters after "parse" to reconstruct the content
+        final StringBuilder contentBuilder = new StringBuilder();
+        for (int i = 1; i < splitParams.length; i++) {
+            if (i > 1) {
+                contentBuilder.append("_");
+            }
+            contentBuilder.append(splitParams[i]);
+        }
+        
+        String content = contentBuilder.toString();
+        
+        // Check if there's a format specification at the end (e.g., _legacy, _mini, _console)
+        String format = "mini"; // default format
+        String[] formatParts = content.split("_");
+        if (formatParts.length > 0) {
+            String lastPart = formatParts[formatParts.length - 1].toLowerCase();
+            if (lastPart.equals("legacy") || lastPart.equals("mini") || lastPart.equals("console") || 
+                lastPart.equals("l") || lastPart.equals("m") || lastPart.equals("c")) {
+                format = lastPart;
+                // Remove the format part from content
+                content = content.substring(0, content.lastIndexOf("_" + lastPart));
+            }
+        }
+
+        try {
+            // Process tags first
+            String processedContent = TagManager.process(player, content);
+            
+            // Parse with MiniMessage and convert to desired format
+            var component = Utilities.translate(processedContent, player);
+            
+            return switch (format) {
+                case "legacy", "l" -> BukkitComponentSerializer.legacy().serialize(component);
+                case "console", "c" -> BukkitComponentSerializer.legacySection().serialize(component);
+                case "mini", "m" -> IMCSerializer.toMiniMessage(component);
+                default -> IMCSerializer.toMiniMessage(component);
+            };
+            
+        } catch (Exception e) {
+            return "Parse Error: " + e.getMessage();
+        }
     }
 
     /**
