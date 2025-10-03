@@ -155,7 +155,8 @@ public abstract class Placeholder {
      */
     private String getColorTranslatedMessage(final @Nullable OfflinePlayer player, final String[] args) {
         final String deny = this.plugin.getRequirementManager().getDenyMessage(this, player, args);
-        return deny != null ? ChatColor.translateAlternateColorCodes('&', deny) : null;
+        if (deny == null) return null;
+        return ChatColor.translateAlternateColorCodes('&', PlaceholderAPI.setPlaceholders(player, deny));
     }
 
     /**
