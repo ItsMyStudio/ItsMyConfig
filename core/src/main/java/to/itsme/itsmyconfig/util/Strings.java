@@ -123,6 +123,7 @@ public final class Strings {
 
         final boolean ignoreColors = properties.contains("ignorecolors");
         final boolean ignoreDecorations = properties.contains("ignoredecorations");
+        final boolean ignoreClickables = properties.contains("ignoreclickables");
         while (matcher.find()) {
             final String found = matcher.group();
             final String content = found.substring(1, found.length() - 1);
@@ -131,6 +132,8 @@ public final class Strings {
             if (ignoreColors && isColor(content)) {
                 skip = true;
             } else if (ignoreDecorations && isDecoration(content)) {
+                skip = true;
+            } else if (ignoreClickables && content.toLowerCase().startsWith("click")) {
                 skip = true;
             }
 
