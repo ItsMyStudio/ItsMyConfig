@@ -49,7 +49,7 @@ public abstract class Placeholder {
     /**
      * Represents a set of requirement data.
      */
-    private final Set<RequirementData> requirements = new HashSet<>();
+    private final Set<RequirementData> requirements = new LinkedHashSet<>();
     /**
      * Represents a list of dependancy arguments.
      */
