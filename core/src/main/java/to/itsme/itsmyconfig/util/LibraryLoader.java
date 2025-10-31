@@ -44,25 +44,6 @@ public enum LibraryLoader {
             "adventure-text-serializer-gson",
             BuildParameters.ADVENTURE_VERSION,
             () -> !Reflections.findClass("net{}kyori{}adventure{}text.serializer.gson.GsonSerializer")
-    ),
-    PACKET_EVENTS(
-            "com{}github{}retrooper",
-            "packetevents-spigot",
-            "2.10.0",
-            "https://repo.codemc.io/repository/maven-releases/",
-            () -> true,
-            new Relocation(
-                    String.join(".", "com", "github", "retrooper", "packetevents"),
-                    BuildParameters.SHADE_PATH + "packetevents"
-            ),
-            new Relocation(
-                    String.join(".", "io", "github", "retrooper", "packetevents"),
-                    BuildParameters.SHADE_PATH + "iopacketevents"
-            ),
-            new Relocation(
-                    String.join(".", "net", "kyori"),
-                    BuildParameters.SHADE_PATH + "kyori"
-            )
     );
 
     private static final LibraryManager MANAGER = new BukkitLibraryManager(ItsMyConfig.getInstance());
