@@ -9,7 +9,6 @@ import com.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import to.itsme.itsmyconfig.api.ItsMyConfigAPI;
 import to.itsme.itsmyconfig.command.CommandManager;
-import to.itsme.itsmyconfig.listener.PlayerListener;
 import to.itsme.itsmyconfig.processor.PacketListener;
 import to.itsme.itsmyconfig.processor.ProcessorManager;
 import to.itsme.itsmyconfig.hook.PAPIHook;
@@ -21,7 +20,6 @@ import to.itsme.itsmyconfig.placeholder.type.*;
 import to.itsme.itsmyconfig.placeholder.type.ProgressbarPlaceholder;
 import to.itsme.itsmyconfig.requirement.RequirementManager;
 import to.itsme.itsmyconfig.util.IMCSerializer;
-import to.itsme.itsmyconfig.util.SerializerType;
 import to.itsme.itsmyconfig.util.LibraryLoader;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Versions;
@@ -70,10 +68,8 @@ public final class ItsMyConfig extends JavaPlugin {
     public void onLoad() {
         instance = this;
         LibraryLoader.loadLibraries();
-        if (LibraryLoader.PACKET_EVENTS.shouldLoad()) {
-            PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
-            PacketEvents.getAPI().load();
-        }
+        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
+        PacketEvents.getAPI().load();
     }
 
     @Override
