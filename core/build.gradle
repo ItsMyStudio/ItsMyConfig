@@ -56,7 +56,7 @@ dependencies {
     implementation "com.github.Redempt:Crunch:2.0.3"
     implementation "com.github.technicallycoded:FoliaLib:0.4.3"
     implementation "com.alessiodp.libby:libby-bukkit:2.0.0-SNAPSHOT"
-	implementation "com.github.retrooper:packetevents-spigot:2.10.0"
+	implementation "com.github.retrooper:packetevents-spigot:2.10.1"
 
     compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
     compileOnly "net.dmulloy2:ProtocolLib:5.4.0"
