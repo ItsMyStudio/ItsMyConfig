@@ -83,7 +83,11 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
             return;
         }
 
-        assert packet != null;
+        if (packet == null || packet.isEmpty()) {
+            Utilities.debug(() -> "Packet is null or empty\n" + Strings.DEBUG_HYPHEN);
+            return;
+        }
+
         final String message = packet.message();
         Utilities.debug(() -> "Found message: " + message);
 
