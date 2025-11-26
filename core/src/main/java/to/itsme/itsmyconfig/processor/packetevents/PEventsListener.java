@@ -73,12 +73,17 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
         }
 
         // Unpack the wrapped packet
-        final PacketContent<?> packet = ((PacketProcessor<Object>) processor).unpack(wrappedPacket);
-        if (packet == null || packet.isEmpty()) {
-            Utilities.debug(() -> "Packet is null or empty\n" + Strings.DEBUG_HYPHEN);
+        final PacketContent<?> packet;
+
+        try {
+            packet = ((PacketProcessor<Object>) processor).unpack(wrappedPacket);
+        } catch (final Exception ex) {
+            Utilities.debug(() -> "Exception while unpacking the packet: ", ex);
+            Utilities.debug(() -> Strings.DEBUG_HYPHEN);
             return;
         }
 
+        assert packet != null;
         final String message = packet.message();
         Utilities.debug(() -> "Found message: " + message);
 
@@ -89,7 +94,7 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
         }
 
         final Optional<String> parsed = Strings.parsePrefixedMessage(message);
-        if (!parsed.isPresent()) {
+        if (parsed.isEmpty()) {
             Utilities.debug(() -> "Message doesn't start w/ the symbol-prefix: " + message + "\n" + Strings.DEBUG_HYPHEN);
             return;
         }
