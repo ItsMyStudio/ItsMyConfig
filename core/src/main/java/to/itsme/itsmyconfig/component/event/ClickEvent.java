@@ -21,6 +21,10 @@ public class ClickEvent {
             this.value = textPayload.value();
         } else if (payload instanceof Payload.Int intPayload) {
             this.value = String.valueOf(intPayload.integer());
+        } else if (payload instanceof Payload.Dialog dialogPayload) {
+            this.value = String.valueOf(dialogPayload.dialog()); // incorrect handling, but prevents errors
+        } else if (payload instanceof Payload.Custom customPayload) {
+            this.value = customPayload.nbt().string();
         } else {
             this.value = event.value();
         }
