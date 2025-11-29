@@ -32,7 +32,8 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
- * The Utilities class provides various utility methods for performing common tasks.
+ * The Utilities class provides various utility methods for performing common
+ * tasks.
  */
 public final class Utilities {
 
@@ -56,12 +57,14 @@ public final class Utilities {
                         TagResolver.builder()
                                 .resolvers(
                                         StandardTags.defaults(),
-                                        FONT_RESOLVER
-                                ).build()
-                ).build();
+                                        FONT_RESOLVER)
+                                .build())
+                .build();
         EMPTY_MM = MiniMessage.builder().tags(TagResolver.empty()).build();
         try {
-            final Class<?> textComponentImpClazz = Component.empty().getClass(); // Should be net.kyori.adventure.text.TextComponentImpl class
+            final Class<?> textComponentImpClazz = Component.empty().getClass(); // Should be
+                                                                                 // net.kyori.adventure.text.TextComponentImpl
+                                                                                 // class
             final Field contentField = textComponentImpClazz.getDeclaredField("content");
             contentField.setAccessible(true);
             TEXT_COMPONENT_CONTENT = contentField;
@@ -85,9 +88,10 @@ public final class Utilities {
     }
 
     /**
-     * Logs debug information along with an exception stack trace to the console if the debug mode is enabled.
+     * Logs debug information along with an exception stack trace to the console if
+     * the debug mode is enabled.
      *
-     * @param supplier The supplier that provides the debug information to log.
+     * @param supplier  The supplier that provides the debug information to log.
      * @param exception The Exception object representing the exception to log.
      */
     public static void debug(final Supplier<String> supplier, final Throwable exception) {
@@ -104,14 +108,12 @@ public final class Utilities {
      */
     public static @NotNull Component translate(
             final String text,
-            final TagResolver... placeholders
-    ) {
+            final TagResolver... placeholders) {
         final Component translated = EMPTY_MM.deserialize(
                 Strings.quote(text),
                 emptyItsMyConfigTag(),
                 FONT_RESOLVER, StandardTags.defaults(),
-                TagResolver.resolver(placeholders)
-        );
+                TagResolver.resolver(placeholders));
 
         applyChatColors(translated);
         return cleanUp(translated);
@@ -120,15 +122,14 @@ public final class Utilities {
     /**
      * Translates a String into a {@link Component}
      *
-     * @param text The text to translate.
+     * @param text   The text to translate.
      * @param player The player translated-for.
      * @return The translated {@link Component}.
      */
     public static @NotNull Component translate(
             final String text,
             final OfflinePlayer player,
-            final TagResolver... placeholders
-    ) {
+            final TagResolver... placeholders) {
         if (player.isOnline()) {
             return translate(text, player.getPlayer(), placeholders);
         }
@@ -137,8 +138,7 @@ public final class Utilities {
                 Strings.quote(text),
                 itsMyConfigTag(player), papiTag(player),
                 FONT_RESOLVER, StandardTags.defaults(),
-                TagResolver.resolver(placeholders)
-        );
+                TagResolver.resolver(placeholders));
 
         applyChatColors(translated);
         return cleanUp(translated);
@@ -147,23 +147,20 @@ public final class Utilities {
     /**
      * Translates a String into a {@link Component}
      *
-     * @param text The text to translate.
+     * @param text   The text to translate.
      * @param player The player translated-for.
      * @return The translated {@link Component}.
      */
     public static @NotNull Component translate(
             final String text,
             final Player player,
-            final TagResolver... placeholders
-    ) {
+            final TagResolver... placeholders) {
         final Component translated = EMPTY_MM.deserialize(
                 TagManager.process(
-                        player, Strings.quote(text)
-                ),
+                        player, Strings.quote(text)),
                 itsMyConfigTag(player), papiTag(player),
                 FONT_RESOLVER, StandardTags.defaults(),
-                TagResolver.resolver(placeholders)
-        );
+                TagResolver.resolver(placeholders));
 
         applyChatColors(translated);
         return cleanUp(translated);
@@ -251,7 +248,8 @@ public final class Utilities {
     }
 
     /**
-     * Cleans up a Component by removing all decorations that are explicitly set to false.
+     * Cleans up a Component by removing all decorations that are explicitly set to
+     * false.
      * This is applied recursively to all children.
      *
      * @param component The Component to clean up.
@@ -281,7 +279,8 @@ public final class Utilities {
     @Deprecated(forRemoval = true)
     public static void applyChatColors(final Component rootComponent) {
         if (rootComponent instanceof TextComponent textComponent) {
-            final String translateAlternateColorCodes = ChatColor.translateAlternateColorCodes('&', textComponent.content());
+            final String translateAlternateColorCodes = ChatColor.translateAlternateColorCodes('&',
+                    textComponent.content());
             modifyTextComponent(textComponent, translateAlternateColorCodes);
             for (final Component component : rootComponent.children()) {
                 applyChatColors(component);
@@ -293,12 +292,11 @@ public final class Utilities {
      * Modifies the content of a TextComponent instance.
      *
      * @param component The TextComponent instance to modify.
-     * @param content       The new content for the TextComponent.
+     * @param content   The new content for the TextComponent.
      */
     private static void modifyTextComponent(
             final @NotNull TextComponent component,
-            final @Nullable String content
-    ) {
+            final @Nullable String content) {
         try {
             TEXT_COMPONENT_CONTENT.set(component, content);
         } catch (IllegalAccessException e) {

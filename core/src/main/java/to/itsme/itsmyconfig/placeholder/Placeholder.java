@@ -14,15 +14,18 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * The PlaceholderData class is an abstract class that represents the basic structure of a placeholder data object.
- * It provides methods for registering requirements, obtaining the placeholder type, and generating the placeholder result.
+ * The PlaceholderData class is an abstract class that represents the basic
+ * structure of a placeholder data object.
+ * It provides methods for registering requirements, obtaining the placeholder
+ * type, and generating the placeholder result.
  */
 @SuppressWarnings("deprecation")
 public abstract class Placeholder {
 
     /**
      * Represents the plugin variable for ItsMyConfig.
-     * ItsMyConfig is a JavaPlugin that manages configuration, placeholders, and requirements.
+     * ItsMyConfig is a JavaPlugin that manages configuration, placeholders, and
+     * requirements.
      *
      * @see ItsMyConfig
      */
@@ -62,8 +65,7 @@ public abstract class Placeholder {
             final ConfigurationSection section,
             final String filePath,
             final PlaceholderType type,
-            final PlaceholderDependancy... dependancies
-    ) {
+            final PlaceholderDependancy... dependancies) {
         this.type = type;
         this.section = section;
         this.filePath = filePath;
@@ -83,21 +85,19 @@ public abstract class Placeholder {
                         identifier,
                         section.getString("input"),
                         section.getString("output"),
-                        section.getString("deny")
-                )
-        );
+                        section.getString("deny")));
     }
 
     /**
      * Registers the arguments for a given configuration section and argument name.
      *
-     * @param section       the ConfigurationSection to retrieve the argument value from
-     * @param argumentName  the name of the argument in the ConfigurationSection
+     * @param section      the ConfigurationSection to retrieve the argument value
+     *                     from
+     * @param argumentName the name of the argument in the ConfigurationSection
      */
     private void registerArgumentsFor(
             final ConfigurationSection section,
-            final String argumentName
-    ) {
+            final String argumentName) {
         final String argumentValue = section.getString(argumentName);
         this.registerArguments(argumentValue);
     }
@@ -105,12 +105,12 @@ public abstract class Placeholder {
     /**
      * Converts the given Player and arguments to a formatted string.
      *
-     * @param args   The array of strings.
+     * @param args The array of strings.
      * @return The formatted string.
      */
     @SuppressWarnings("unused")
     public String asString(final String[] args) {
-        if (this.hasDependency(PlaceholderDependancy.NONE)) {
+        if (!this.hasDependency(PlaceholderDependancy.NONE)) {
             throw new RuntimeException("This method requires a player / offline player to be used.");
         }
 
@@ -155,7 +155,8 @@ public abstract class Placeholder {
      */
     private String getColorTranslatedMessage(final @Nullable OfflinePlayer player, final String[] args) {
         final String deny = this.plugin.getRequirementManager().getDenyMessage(this, player, args);
-        if (deny == null) return null;
+        if (deny == null)
+            return null;
         return ChatColor.translateAlternateColorCodes('&', PlaceholderAPI.setPlaceholders(player, deny));
     }
 
@@ -166,7 +167,7 @@ public abstract class Placeholder {
      * @return The result of the placeholder evaluation as a string.
      */
     @SuppressWarnings("unused")
-    public String getResult(final String[] args)  {
+    public String getResult(final String[] args) {
         throw new RuntimeException("Placeholder " + this.type.name() + " does not accept empty requirements");
     }
 
@@ -186,15 +187,15 @@ public abstract class Placeholder {
      * @param args The arguments used for the placeholder evaluation.
      * @return The result of the placeholder evaluation as a string.
      */
-    public String getResult(final OfflinePlayer player, final String[] args)  {
+    public String getResult(final OfflinePlayer player, final String[] args) {
         throw new RuntimeException("Placeholder " + this.type.name() + " does not accept OfflinePlayer");
     }
 
     /**
      * Replaces arguments in a given message string.
      *
-     * @param params     The array of parameters to use for replacement.
-     * @param message    The message string to replace arguments in.
+     * @param params  The array of parameters to use for replacement.
+     * @param message The message string to replace arguments in.
      * @return The message string with replaced arguments.
      */
     public String replaceArguments(final String[] params, final String message) {
@@ -204,15 +205,15 @@ public abstract class Placeholder {
     /**
      * Replaces placeholders in a given message with the provided arguments.
      *
-     * @param params     The array of parameters to replace the placeholders with.
-     * @param message    The message string containing the placeholders.
-     * @return The updated message string with placeholders replaced by the corresponding parameters.
+     * @param params  The array of parameters to replace the placeholders with.
+     * @param message The message string containing the placeholders.
+     * @return The updated message string with placeholders replaced by the
+     *         corresponding parameters.
      */
     public String replaceArguments(
             final String[] params,
             final String message,
-            final int skippedParams
-    ) {
+            final int skippedParams) {
         if (this.arguments.isEmpty() || params.length == 0) {
             return message;
         }
@@ -220,7 +221,8 @@ public abstract class Placeholder {
         String output = message;
         for (final Integer argument : this.arguments) {
             final int index = argument + skippedParams;
-            if (index >= params.length) continue;
+            if (index >= params.length)
+                continue;
             // Dollar signs are quoted before using replaceAll
             output = output.replaceAll(Pattern.quote("{" + argument + "}"), params[index].replace("$", "\\$"));
         }
@@ -229,7 +231,8 @@ public abstract class Placeholder {
     }
 
     /**
-     * Retrieves a list of RequirementData objects representing the requirements for a PlaceholderData object.
+     * Retrieves a list of RequirementData objects representing the requirements for
+     * a PlaceholderData object.
      *
      * @return a list of RequirementData objects representing the requirements
      */
@@ -239,7 +242,8 @@ public abstract class Placeholder {
 
     /**
      * Registers arguments for the PlaceholderData object.
-     * This method adds the arguments obtained from the given string to the existing list of arguments.
+     * This method adds the arguments obtained from the given string to the existing
+     * list of arguments.
      *
      * @param string The string containing the arguments to be registered.
      */
@@ -250,7 +254,8 @@ public abstract class Placeholder {
     /**
      * Retrieves a specific section from the YAML document.
      *
-     * @return the {@link ConfigurationSection} object representing the specified section.
+     * @return the {@link ConfigurationSection} object representing the specified
+     *         section.
      */
     public ConfigurationSection getConfigurationSection() {
         return this.section;
