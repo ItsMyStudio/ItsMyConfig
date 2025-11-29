@@ -33,6 +33,10 @@ import java.util.*;
  * It extends the JavaPlugin class and provides methods to manage the plugin configuration.
  * It also holds instances of PlaceholderManager, ProgressBarBucket, RequirementManager, and BukkitAudiences.
  */
+import org.apache.logging.log4j.LogManager;
+
+import to.itsme.itsmyconfig.processor.ConsoleFilter;
+
 public final class ItsMyConfig extends JavaPlugin {
 
     private static ItsMyConfig instance;
@@ -45,6 +49,7 @@ public final class ItsMyConfig extends JavaPlugin {
     private boolean debug;
 
     ProcessorManager processorManager;
+    private ConsoleFilter consoleFilter;
 
     /**
      * Gets the instance of ItsMyConfig.
@@ -87,8 +92,7 @@ public final class ItsMyConfig extends JavaPlugin {
                 ItsMyConfigAPI.class,
                 api,
                 this,
-                org.bukkit.plugin.ServicePriority.Normal
-        );
+                org.bukkit.plugin.ServicePriority.Normal);
         AudienceResolver.load(this);
         List.of("imc", "itsmyconfig").forEach(alias -> new PAPIHook(this, alias).register());
         new CommandManager(this);
@@ -109,22 +113,40 @@ public final class ItsMyConfig extends JavaPlugin {
         this.getLogger().info("Using packet listener: " + listener.name());
         this.processorManager.load();
 
-        //if (Versions.IS_PAPER && Versions.isOrOver(1, 17, 2) && Versions.isBelow(1, 21, 6)) {
-            //this.getLogger().info("Registering Kick Listener");
-            //this.getServer().getPluginManager().registerEvents(new PlayerListener(),this);
-        //}
+        // Register Console Filter
+        this.consoleFilter = new ConsoleFilter();
+        final org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager
+                .getContext(false);
+        final org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
+        config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME).addFilter(this.consoleFilter);
+        ctx.updateLoggers();
+
+        // if (Versions.IS_PAPER && Versions.isOrOver(1, 17, 2) && Versions.isBelow(1,
+        // 21, 6)) {
+        // this.getLogger().info("Registering Kick Listener");
+        // this.getServer().getPluginManager().registerEvents(new
+        // PlayerListener(),this);
+        // }
 
         this.getLogger().info("ItsMyConfig loaded in " + (System.currentTimeMillis() - start) + "ms");
     }
 
     @Override
     public void onDisable() {
+        if (this.consoleFilter != null) {
+            final org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager
+                    .getContext(false);
+            final org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
+            config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME).removeFilter(this.consoleFilter);
+            ctx.updateLoggers();
+        }
         AudienceResolver.close();
         this.processorManager.close();
     }
 
     /**
-     * The loadConfig method is responsible for loading the configuration file and initializing various settings and data.
+     * The loadConfig method is responsible for loading the configuration file and
+     * initializing various settings and data.
      * It performs the following steps:
      * <p>
      * 0. Cache time before loading placeholders.
@@ -133,9 +155,12 @@ public final class ItsMyConfig extends JavaPlugin {
      * 5. Save the default configuration file if it does not exist
      * 6. Reload the configuration from the file.
      * 7. Loads the symbol prefix from the configuration.
-     * 8-9. Maps to keep track of registered placeholders and progress bars to avoid duplicates.
-     * 10-11. Load and register placeholders and progress bars from the main configuration file.
-     * 12. Load and register placeholders and progress bars from additional custom .yml files.
+     * 8-9. Maps to keep track of registered placeholders and progress bars to avoid
+     * duplicates.
+     * 10-11. Load and register placeholders and progress bars from the main
+     * configuration file.
+     * 12. Load and register placeholders and progress bars from additional custom
+     * .yml files.
      * 13 - 14. Print all info about duplicated placeholders and bars.
      * 15 - 16. Print all info about deleted placeholders and bars.
      * 17. Clear maps from the cache to save memory.
@@ -158,22 +183,28 @@ public final class ItsMyConfig extends JavaPlugin {
         this.reloadConfigParams();
 
         this.getLogger().info("Using packet serializer: " + IMCSerializer.currentSerializerType().name());
-        /* Disable warning temporarily till MM_COPY is stable
-        if (IMCSerializer.currentSerializerType() != SerializerType.MM_COPY) {
-            this.getLogger().warning("Your server is running with an outdated version of the Adventure library. This may be caused by an old server jar or a plugin that includes Adventure without properly relocating it. This can lead to compatibility issues with serialization.");
-        }*/
-    
-        // 8 - 9:  Maps to keep track of registered placeholders and progress bars
+        /*
+         * Disable warning temporarily till MM_COPY is stable
+         * if (IMCSerializer.currentSerializerType() != SerializerType.MM_COPY) {
+         * this.getLogger().
+         * warning("Your server is running with an outdated version of the Adventure library. This may be caused by an old server jar or a plugin that includes Adventure without properly relocating it. This can lead to compatibility issues with serialization."
+         * );
+         * }
+         */
+
+        // 8 - 9: Maps to keep track of registered placeholders and progress bars
         final Map<String, List<String>> placeholderPaths = new HashMap<>();
 
-        // 10 - 11: Load and register placeholders and progress bars from the main configuration file
-        // 12: Load and register placeholders and progress bars from additional custom .yml files
+        // 10 - 11: Load and register placeholders and progress bars from the main
+        // configuration file
+        // 12: Load and register placeholders and progress bars from additional custom
+        // .yml files
         final File folder = new File(this.getDataFolder(), "placeholders");
         if (folder.mkdirs()) {
             this.saveResource("placeholders/default.yml", false);
             this.saveResource("placeholders/example.yml", false);
         }
-        
+
         this.migrateConfig(folder);
         this.loadFolder(folder, placeholderPaths);
 
@@ -187,15 +218,16 @@ public final class ItsMyConfig extends JavaPlugin {
             paths.sort(comparator);
             if (paths.size() > 1) {
                 this.getLogger().warning(
-                        "Placeholder \"" + name + "\" is duplicated in the following files:" + listSeparator + String.join(listSeparator, paths)
-                );
+                        "Placeholder \"" + name + "\" is duplicated in the following files:" + listSeparator
+                                + String.join(listSeparator, paths));
             }
         }
 
         // 15 - 16: Print all info about deleted placeholders and bars
         previousPlaceholders.removeAll(placeholderManager.getPlaceholderKeys());
         for (final String identifier : previousPlaceholders) {
-            this.getLogger().info(String.format("Unregistering placeholder %s as it no longer exists in the configuration.", identifier));
+            this.getLogger().info(String
+                    .format("Unregistering placeholder %s as it no longer exists in the configuration.", identifier));
         }
 
         // 17: delete all cache from memory
@@ -204,12 +236,10 @@ public final class ItsMyConfig extends JavaPlugin {
 
         // 18: Send the placeholders loaded message
         this.getLogger().info(
-                 String.format(
-                         "Loaded all %d Placeholders in %dms",
-                         placeholderManager.getPlaceholderKeys().size(),
-                         System.currentTimeMillis() - time
-                 )
-        );
+                String.format(
+                        "Loaded all %d Placeholders in %dms",
+                        placeholderManager.getPlaceholderKeys().size(),
+                        System.currentTimeMillis() - time));
     }
 
     /**
@@ -224,15 +254,15 @@ public final class ItsMyConfig extends JavaPlugin {
 
     /**
      * Recursively loads .yml files from the specified folder.
-     * It iterates through the files in the folder, loading each .yml file using the `loadCustomYml` method if it meets the criteria.
+     * It iterates through the files in the folder, loading each .yml file using the
+     * `loadCustomYml` method if it meets the criteria.
      *
-     * @param folder                 The folder from which to load .yml files.
-     * @param placeholderPaths       A map of registered placeholders to avoid duplicates.
+     * @param folder           The folder from which to load .yml files.
+     * @param placeholderPaths A map of registered placeholders to avoid duplicates.
      */
     private void loadFolder(
             final File folder,
-            final Map<String, List<String>> placeholderPaths
-    ) {
+            final Map<String, List<String>> placeholderPaths) {
         if (folder == null || !folder.isDirectory()) {
             return;
         }
@@ -253,15 +283,15 @@ public final class ItsMyConfig extends JavaPlugin {
 
     /**
      * Loads custom data from a .yml file.
-     * It reads the file using `YamlConfiguration` and extracts custom progress bars and placeholders if they exist.
+     * It reads the file using `YamlConfiguration` and extracts custom progress bars
+     * and placeholders if they exist.
      *
-     * @param file                   The .yml file to load custom data from.
-     * @param placeholderPaths       A map of registered placeholders to avoid duplicates.
+     * @param file             The .yml file to load custom data from.
+     * @param placeholderPaths A map of registered placeholders to avoid duplicates.
      */
     private void loadYAMLFile(
             final File file,
-            final Map<String, List<String>> placeholderPaths
-    ) {
+            final Map<String, List<String>> placeholderPaths) {
         final YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
         if (config.isConfigurationSection("custom-placeholder")) {
             loadPlaceholdersSection(config.getConfigurationSection("custom-placeholder"), file, placeholderPaths);
@@ -286,9 +316,8 @@ public final class ItsMyConfig extends JavaPlugin {
             this.saveConfig();
         }
 
-        final boolean needsMigration = 
-            this.config.isConfigurationSection("custom-placeholder")
-            || this.config.isConfigurationSection("custom-progress");
+        final boolean needsMigration = this.config.isConfigurationSection("custom-placeholder")
+                || this.config.isConfigurationSection("custom-progress");
         if (needsMigration) {
             File migratedConfig = new File(directory, "migrated-config.yml");
             if (migratedConfig.exists()) {
@@ -303,14 +332,17 @@ public final class ItsMyConfig extends JavaPlugin {
                 final YamlConfiguration migratedConf = YamlConfiguration.loadConfiguration(migratedConfig);
                 final ConfigurationSection newSection = migratedConf.createSection("custom-placeholder");
                 if (this.config.isConfigurationSection("custom-placeholder")) {
-                    for (final String name : Objects.requireNonNull(this.config.getConfigurationSection("custom-placeholder")).getKeys(false)) {
+                    for (final String name : Objects
+                            .requireNonNull(this.config.getConfigurationSection("custom-placeholder")).getKeys(false)) {
                         newSection.set(name, this.config.get("custom-placeholder." + name));
                     }
                 }
 
                 if (this.config.isConfigurationSection("custom-progress")) {
-                    for (final String name : Objects.requireNonNull(this.config.getConfigurationSection("custom-progress")).getKeys(false)) {
-                        final ConfigurationSection section = this.config.getConfigurationSection("custom-progress." + name);
+                    for (final String name : Objects
+                            .requireNonNull(this.config.getConfigurationSection("custom-progress")).getKeys(false)) {
+                        final ConfigurationSection section = this.config
+                                .getConfigurationSection("custom-progress." + name);
                         section.set("value", section.getString("symbol"));
                         section.set("type", "progress_bar");
                         section.set("symbol", null);
@@ -330,19 +362,21 @@ public final class ItsMyConfig extends JavaPlugin {
 
     /**
      * Loads custom placeholders from a YAML configuration section.
-     * It iterates over each placeholder defined in the section, constructs a corresponding `PlaceholderData` object, and registers it with the `placeholderManager`.
+     * It iterates over each placeholder defined in the section, constructs a
+     * corresponding `PlaceholderData` object, and registers it with the
+     * `placeholderManager`.
      * Additionally, it registers any associated requirements for each placeholder.
      *
-     * @param section                The YAML configuration section containing placeholder data.
-     * @param paths                  A map of registered placeholders to avoid duplicates.
+     * @param section The YAML configuration section containing placeholder data.
+     * @param paths   A map of registered placeholders to avoid duplicates.
      */
     @SuppressWarnings("ConstantConditions")
     private void loadPlaceholdersSection(
             final ConfigurationSection section,
             final File file,
-            final Map<String, List<String>> paths
-    ) {
-        final String filePath = formatPath("ItsMyConfig\\" + file.getPath().replace("/", "\\").replace(getDataFolder().getPath() + "\\", ""));
+            final Map<String, List<String>> paths) {
+        final String filePath = formatPath(
+                "ItsMyConfig\\" + file.getPath().replace("/", "\\").replace(getDataFolder().getPath() + "\\", ""));
         if (section == null) {
             getLogger().warning(String.format("No custom placeholders found in file %s", filePath));
             return;
@@ -356,7 +390,8 @@ public final class ItsMyConfig extends JavaPlugin {
 
             final ConfigurationSection placeholderSection = section.getConfigurationSection(identifier);
             if (placeholderSection == null) {
-                getLogger().warning(String.format("Invalid placeholder configuration for %s in file %s", identifier, filePath));
+                getLogger().warning(
+                        String.format("Invalid placeholder configuration for %s in file %s", identifier, filePath));
                 continue;
             }
 
@@ -365,13 +400,16 @@ public final class ItsMyConfig extends JavaPlugin {
 
             // Load requirements if they exist
             if (placeholderSection.isConfigurationSection("requirements")) {
-                final ConfigurationSection requirementsSection = placeholderSection.getConfigurationSection("requirements");
+                final ConfigurationSection requirementsSection = placeholderSection
+                        .getConfigurationSection("requirements");
                 for (final String reqIdentifier : requirementsSection.getKeys(false)) {
                     final ConfigurationSection reqSection = requirementsSection.getConfigurationSection(reqIdentifier);
                     if (reqSection != null) {
                         placeholder.registerRequirement(reqSection);
                     } else {
-                        getLogger().warning(String.format("Invalid requirement configuration for %s in placeholder %s from file %s", reqIdentifier, identifier, filePath));
+                        getLogger().warning(
+                                String.format("Invalid requirement configuration for %s in placeholder %s from file %s",
+                                        reqIdentifier, identifier, filePath));
                     }
                 }
             }
@@ -382,7 +420,8 @@ public final class ItsMyConfig extends JavaPlugin {
     }
 
     /**
-     * Retrieves the placeholder data based on the provided configuration section and identifier.
+     * Retrieves the placeholder data based on the provided configuration section
+     * and identifier.
      *
      * @param filePath The path of the file config is from
      * @param section  The configuration section containing the placeholder data.
@@ -403,7 +442,8 @@ public final class ItsMyConfig extends JavaPlugin {
     }
 
     /**
-     * Formats a file path to start with "ItsMyConfig" and shortens it if it contains more than 5 directories.
+     * Formats a file path to start with "ItsMyConfig" and shortens it if it
+     * contains more than 5 directories.
      *
      * @param path The original file path.
      * @return The formatted file path.
@@ -418,7 +458,8 @@ public final class ItsMyConfig extends JavaPlugin {
             for (int i = 2; i < parts.length - 2; i++) {
                 shortenedPath.append(separator).append("..");
             }
-            shortenedPath.append(separator).append(parts[parts.length - 2]).append(separator).append(parts[parts.length - 1]);
+            shortenedPath.append(separator).append(parts[parts.length - 2]).append(separator)
+                    .append(parts[parts.length - 1]);
             return shortenedPath.toString();
         }
         return path;
@@ -472,7 +513,8 @@ public final class ItsMyConfig extends JavaPlugin {
     }
 
     /**
-     * Returns the RequirementManager object. The RequirementManager class is responsible for managing requirements
+     * Returns the RequirementManager object. The RequirementManager class is
+     * responsible for managing requirements
      * and validating them.
      *
      * @return the RequirementManager object
