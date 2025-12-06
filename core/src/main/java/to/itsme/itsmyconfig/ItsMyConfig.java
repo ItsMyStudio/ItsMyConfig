@@ -23,6 +23,7 @@ import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.LibraryLoader;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Versions;
+import to.itsme.itsmyconfig.processor.ConsoleFilter;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,6 +46,7 @@ public final class ItsMyConfig extends JavaPlugin {
     private boolean debug;
 
     ProcessorManager processorManager;
+    private ConsoleFilter consoleFilter;
 
     /**
      * Gets the instance of ItsMyConfig.
@@ -109,6 +111,13 @@ public final class ItsMyConfig extends JavaPlugin {
         this.getLogger().info("Using packet listener: " + listener.name());
         this.processorManager.load();
 
+        // Register Console Filter
+        this.consoleFilter = new ConsoleFilter();
+        final org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
+        final org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
+        config.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME).addFilter(this.consoleFilter);
+        ctx.updateLoggers();
+
         //if (Versions.IS_PAPER && Versions.isOrOver(1, 17, 2) && Versions.isBelow(1, 21, 6)) {
             //this.getLogger().info("Registering Kick Listener");
             //this.getServer().getPluginManager().registerEvents(new PlayerListener(),this);
@@ -119,6 +128,12 @@ public final class ItsMyConfig extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (this.consoleFilter != null) {
+            final org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
+            final org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
+            config.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME).removeFilter(this.consoleFilter);
+            ctx.updateLoggers();
+        }
         AudienceResolver.close();
         this.processorManager.close();
     }

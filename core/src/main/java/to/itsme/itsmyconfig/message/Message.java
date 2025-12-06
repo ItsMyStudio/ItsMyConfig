@@ -35,7 +35,7 @@ public enum Message {
 
     public void send(final BukkitSource source, final TagResolver... replacers) {
         if (source.isConsole()) {
-            AudienceResolver.resolve(source).sendMessage(Utilities.MM.deserialize(toString(), replacers));
+            AudienceResolver.resolve(source).sendMessage(Utilities.translate(toString(), replacers));
         } else {
             send(source.asPlayer(), replacers);
         }
