@@ -16,8 +16,6 @@ import java.util.Optional;
 
 public class ConsoleFilter extends AbstractFilter {
 
-    private final ThreadLocal<Boolean> processing = ThreadLocal.withInitial(() -> false);
-
     @Override
     public Result filter(LogEvent event) {
         return checkMessage(event.getMessage());
@@ -46,16 +44,11 @@ public class ConsoleFilter extends AbstractFilter {
             return Result.NEUTRAL;
         }
 
-        if (processing.get()) {
-            return Result.NEUTRAL;
-        }
-
         String content = message.getFormattedMessage();
         Optional<String> parsed = Strings.parsePrefixedMessage(content);
 
         if (parsed.isPresent()) {
             try {
-                processing.set(true);
                 // Translate the parsed message (which has the prefix removed)
                 Component translated = Utilities.translate(parsed.get());
 
@@ -66,8 +59,7 @@ public class ConsoleFilter extends AbstractFilter {
 
                 // Deny the original message to prevent it from being logged in its raw form
                 return Result.DENY;
-            } finally {
-                processing.set(false);
+            } catch (Exception ignored) {
             }
         }
 
