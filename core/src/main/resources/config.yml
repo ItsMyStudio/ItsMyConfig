@@ -20,6 +20,10 @@ debug: false
 # This is used to identify the config symbols in the code.
 symbol-prefix: $
 
+# If true, all console messages will be translated using the translation system.
+# This includes messages from the plugin as well as messages from other plugins.
+translate-console: false
+
 listeners:
   PacketEvents:
     priority: 1 # Lower number = higher priority. This will run before ProtocolLib.

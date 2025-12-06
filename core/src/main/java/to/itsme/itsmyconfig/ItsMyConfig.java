@@ -111,12 +111,14 @@ public final class ItsMyConfig extends JavaPlugin {
         this.getLogger().info("Using packet listener: " + listener.name());
         this.processorManager.load();
 
-        // Register Console Filter
-        this.consoleFilter = new ConsoleFilter();
-        final org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
-        final org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
-        config.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME).addFilter(this.consoleFilter);
-        ctx.updateLoggers();
+        if (getConfig().getBoolean("translate-console")) {
+            // Register Console Filter
+            this.consoleFilter = new ConsoleFilter();
+            final org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
+            final org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
+            config.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME).addFilter(this.consoleFilter);
+            ctx.updateLoggers();
+        }
 
         //if (Versions.IS_PAPER && Versions.isOrOver(1, 17, 2) && Versions.isBelow(1, 21, 6)) {
             //this.getLogger().info("Registering Kick Listener");
