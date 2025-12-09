@@ -23,6 +23,7 @@ import to.itsme.itsmyconfig.util.Utilities;
 import java.io.IOException;
 
 @Command("itsmyconfig")
+@Permission("itsmyconfig.admin")
 @SuppressWarnings("deprecation")
 public final class ItsMyConfigCommand {
 
