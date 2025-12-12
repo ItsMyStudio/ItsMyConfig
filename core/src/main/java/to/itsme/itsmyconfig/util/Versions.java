@@ -19,16 +19,8 @@ public final class Versions {
         PATCH = versions.length > 2 ? Integer.parseInt(versions[2]) : 0;
     }
 
-    public static boolean is(final int minor) {
-        return MINOR == minor;
-    }
-
     public static boolean is(final int major, final int minor, final int patch) {
         return MAJOR == major && MINOR == minor && PATCH == patch;
-    }
-
-    public static boolean isOver(final int minor) {
-        return MINOR > minor;
     }
 
     public static boolean isOver(final int major, final int minor, final int patch) {
@@ -44,16 +36,8 @@ public final class Versions {
         return false;
     }
 
-    public static boolean isOrOver(final int minor) {
-        return MINOR >= minor;
-    }
-
     public static boolean isOrOver(final int major, final int minor, final int patch) {
         return is(major, minor, patch) || isOver(major, minor, patch);
-    }
-
-    public static boolean isBelow(final int minor) {
-        return MINOR < minor;
     }
 
     public static boolean isBelow(final int major, final int minor, final int patch) {
@@ -67,10 +51,6 @@ public final class Versions {
             }
         }
         return false;
-    }
-
-    public static boolean isOrBelow(final int minor) {
-        return MINOR <= minor;
     }
 
     public static boolean isOrBelow(final int major, final int minor, final int patch) {

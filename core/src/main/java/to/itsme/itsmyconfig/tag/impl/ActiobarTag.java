@@ -34,7 +34,7 @@ public class ActiobarTag extends ArgumentsTag {
         final String bar = arguments[0];
         final Component component = Utilities.translate(bar, player);
 
-        if (Versions.isOver(19)) {
+        if (Versions.isOver(1, 19, 0)) {
             player.spigot().sendMessage(
                     ChatMessageType.ACTION_BAR,
                     Utilities.BUNGEE_SERIALIZER.serialize(component)
