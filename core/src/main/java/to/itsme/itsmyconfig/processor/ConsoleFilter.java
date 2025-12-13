@@ -47,10 +47,14 @@ public class ConsoleFilter extends AbstractFilter {
         String content = message.getFormattedMessage();
         Optional<String> parsed = Strings.parsePrefixedMessage(content);
 
-        if (parsed.isPresent()) {
+        // Also check if message contains ItsMyConfig placeholders even without prefix
+        boolean hasPlaceholders = content.contains("<p:");
+
+        if (parsed.isPresent() || hasPlaceholders) {
             try {
-                // Translate the parsed message (which has the prefix removed)
-                Component translated = Utilities.translate(parsed.get());
+                // Use the parsed message if available, otherwise use original content
+                String messageToProcess = parsed.isPresent() ? parsed.get() : content;
+                Component translated = Utilities.translate(messageToProcess);
 
                 // Use AudienceResolver on both Paper and Spigot
                 // Note: Gradients will be converted to single colors in console output
