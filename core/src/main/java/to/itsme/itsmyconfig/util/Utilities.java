@@ -21,7 +21,6 @@ import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.font.Font;
 import to.itsme.itsmyconfig.font.FontTag;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
-import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.type.ColorPlaceholder;
 import to.itsme.itsmyconfig.tag.TagManager;
 
@@ -193,10 +192,6 @@ public final class Utilities {
             final List<String> args = new LinkedList<>();
             while (argumentQueue.hasNext()) {
                 args.add(argumentQueue.pop().value());
-            }
-
-            if (!data.hasDependency(PlaceholderDependancy.NONE)) {
-                return Tag.preProcessParsed("");
             }
 
             final String parsed = data.asString(args.toArray(new String[0]));

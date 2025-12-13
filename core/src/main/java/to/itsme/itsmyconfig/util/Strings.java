@@ -348,7 +348,10 @@ public final class Strings {
                     char c = message.charAt(j);
                     sb.append(c == '§' ? '&' : c);
                 }
-                return Optional.of(sb.toString().replace(incognitoPrefix, ""));
+                String result = sb.toString().replace(incognitoPrefix, "");
+                // Remove all remaining symbol prefixes to handle cases like "$ERROR | $ERROR"
+                result = symbolPrefixPattern.matcher(result).replaceAll("");
+                return Optional.of(result);
             } else {
                 return Optional.empty();
             }
