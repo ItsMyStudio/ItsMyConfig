@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 public final class ChatResendDetector {
 
     private static final long BURST_WINDOW_MS = 100; // 100ms window for detecting rapid packet bursts
-    private static final int BURST_THRESHOLD = 10; // 10+ packets in 100ms = resend pattern detected
+    private static final int BURST_THRESHOLD = 6; // 6+ packets in 100ms = resend pattern detected
     
     private static final Map<String, BurstTracker> trackers = new ConcurrentHashMap<>();
     
