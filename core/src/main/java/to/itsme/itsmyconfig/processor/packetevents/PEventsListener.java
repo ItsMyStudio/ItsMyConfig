@@ -17,6 +17,7 @@ import to.itsme.itsmyconfig.processor.PacketProcessor;
 import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Utilities;
+import to.itsme.itsmyconfig.util.ChatResendDetector;
 
 import java.util.Map;
 import java.util.Optional;
@@ -52,13 +53,20 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
         if (!(type instanceof PacketType.Play.Server server)) {
             return;
         }
+        
+        // Record EVERY packet for burst detection (including blank lines)
+        final Player player = event.getPlayer();
+        final String playerIdentifier = player.getUniqueId().toString();
+        ChatResendDetector.recordPacket(playerIdentifier);
+        
+        final boolean isInBurst = ChatResendDetector.isInBurst(playerIdentifier);
+        Utilities.debug(() -> "################# CHAT PACKET #################\nProcessing packet " + server.name() + 
+            (isInBurst ? " (RESEND DETECTED)" : ""));
 
         final PacketProcessor<?> processor = packetTypeMap.get(server);
         if (processor == null) {
             return;
         }
-
-        Utilities.debug(() -> "################# CHAT PACKET #################\nProcessing packet " + server.name());
 
         // Convert to wrapped packet only once
         Object wrappedPacket = switch (server) {
@@ -89,7 +97,12 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
         }
 
         final String message = packet.message();
-        Utilities.debug(() -> "Found message: " + message);
+        final boolean hasInvisibleUnicode = ChatResendDetector.containsInvisibleUnicode(message);
+        final boolean isChatClear = isInBurst || hasInvisibleUnicode;
+        
+        Utilities.debug(() -> "Found message: " + message + 
+            (hasInvisibleUnicode ? " [INVISIBLE UNICODE]" : "") +
+            (isChatClear ? " [CHAT CLEAR DETECTED]" : ""));
 
         if (message.startsWith(FAIL_MESSAGE_PREFIX)) {
             Utilities.debug(() -> "Message send failure message, cancelling...");
@@ -98,13 +111,18 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
         }
 
         final Optional<String> parsed = Strings.parsePrefixedMessage(message);
-        if (parsed.isEmpty()) {
-            Utilities.debug(() -> "Message doesn't start w/ the symbol-prefix: " + message + "\n" + Strings.DEBUG_HYPHEN);
+        
+        // Also check if message contains ItsMyConfig placeholders even without prefix (like console does)
+        final boolean hasPlaceholders = message.contains("<p:");
+        
+        if (parsed.isEmpty() && !hasPlaceholders) {
+            Utilities.debug(() -> "Message doesn't start w/ the symbol-prefix and has no <p: placeholders: " + message + "\n" + Strings.DEBUG_HYPHEN);
             return;
         }
 
-        final Player player = event.getPlayer();
-        final Component translated = Utilities.translate(parsed.get(), player);
+        // Use the parsed message if available, otherwise use original message
+        final String messageToProcess = parsed.isPresent() ? parsed.get() : message;
+        final Component translated = Utilities.translate(messageToProcess, player);
         if (translated.equals(Component.empty())) {
             event.setCancelled(true);
             Utilities.debug(() -> "Component is empty, cancelling...\n" + Strings.DEBUG_HYPHEN);

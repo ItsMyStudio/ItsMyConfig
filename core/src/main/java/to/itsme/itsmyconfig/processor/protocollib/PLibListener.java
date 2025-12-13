@@ -14,6 +14,7 @@ import to.itsme.itsmyconfig.processor.PacketListener;
 import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Utilities;
+import to.itsme.itsmyconfig.util.ChatResendDetector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +54,15 @@ public final class PLibListener extends PacketAdapter implements PacketListener 
     public void onPacketSending(final PacketEvent event) {
         final PacketContainer container = event.getPacket();
         final PacketType type = container.getType();
-        Utilities.debug(() -> "################# CHAT PACKET #################\nProccessing packet " + type.name());
+        
+        // Record EVERY packet for burst detection (including blank lines)
+        final String playerIdentifier = event.getPlayer().getUniqueId().toString();
+        ChatResendDetector.recordPacket(playerIdentifier);
+        
+        final boolean isInBurst = ChatResendDetector.isInBurst(playerIdentifier);
+        Utilities.debug(() -> "################# CHAT PACKET #################\nProccessing packet " + type.name() + 
+            (isInBurst ? " (RESEND DETECTED)" : ""));
+        
         final PacketContent<PacketContainer> packet = this.processPacket(container);
         if (packet == null || packet.isEmpty()) {
             Utilities.debug(() -> "Packet is null or empty\n" + Strings.DEBUG_HYPHEN);
@@ -61,16 +70,19 @@ public final class PLibListener extends PacketAdapter implements PacketListener 
         }
 
         final String message = packet.message();
-        Utilities.debug(() -> "Found message: " + message);
+        final boolean hasInvisibleUnicode = ChatResendDetector.containsInvisibleUnicode(message);
+        final boolean isChatClear = isInBurst || hasInvisibleUnicode;
+        
+        Utilities.debug(() -> "Found message: " + message + 
+            (hasInvisibleUnicode ? " [INVISIBLE UNICODE]" : "") +
+            (isChatClear ? " [CHAT CLEAR DETECTED]" : ""));
 
         final Optional<String> parsed = Strings.parsePrefixedMessage(message);
-        if (parsed.isEmpty()) {
-            Utilities.debug(() -> "Message doesn't start w/ the symbol-prefix: " + message + "\n" + Strings.DEBUG_HYPHEN);
-            return;
-        }
-
+        
         final Player player = event.getPlayer();
-        final Component translated = Utilities.translate(parsed.get(), player);
+        // Use the parsed message if available, otherwise use original message
+        final String messageToProcess = parsed.isPresent() ? parsed.get() : message;
+        final Component translated = Utilities.translate(messageToProcess, player);
         if (translated.equals(Component.empty())) {
             event.setCancelled(true);
             Utilities.debug(() -> "Component is empty, cancelling...\n" + Strings.DEBUG_HYPHEN);

@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import to.itsme.itsmyconfig.util.ChatResendDetector;
 
 public final class TagManager {
 
@@ -51,6 +52,10 @@ public final class TagManager {
             final Player player,
             @NotNull String text
     ) {
+        // Check if player is currently in burst mode (packet flood already detected by listener)
+        final String playerIdentifier = player.getUniqueId().toString();
+        final boolean isChatClearBurst = ChatResendDetector.isInBurst(playerIdentifier);
+        
         Matcher matcher = ARG_TAG_PATTERN.matcher(text);
         while (matcher.find()) {
             final int start = matcher.start();
@@ -65,6 +70,16 @@ public final class TagManager {
             final Tag tag = tags.get(tagName);
             if (!(tag instanceof ArgumentsTag argumentsTag)) {
                 continue; // unknown tag — skip safely, do NOT replace
+            }
+
+            // During chat clear bursts, filter out sound and actionbar tags
+            if (isChatClearBurst && (tagName.equals("sound") || tagName.equals("actionbar"))) {
+                // For both actionbar and sound during burst: remove entirely
+                // - Actionbar messages should be cancelled completely (if message becomes empty, packet is cancelled)
+                // - Sound tags should be stripped so sound doesn't play
+                text = text.substring(0, start) + text.substring(end);
+                matcher = ARG_TAG_PATTERN.matcher(text);
+                continue;
             }
 
             final String arguments = matcher.group(2);
