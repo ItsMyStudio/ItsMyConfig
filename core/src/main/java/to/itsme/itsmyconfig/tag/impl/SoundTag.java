@@ -47,7 +47,7 @@ public class SoundTag extends ArgumentsTag {
     private String getSound(final String input) {
         try {
             final Sound sound = Sound.valueOf(input);
-            return sound.key().value();
+            return sound.getKey().toString();
         } catch (final Throwable ignored) {
             return input.replace("/", ".");
         }
