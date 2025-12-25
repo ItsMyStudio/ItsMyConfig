@@ -17,6 +17,7 @@ import to.itsme.itsmyconfig.processor.PacketProcessor;
 import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Utilities;
+import to.itsme.itsmyconfig.util.ChatResendDetector;
 
 import java.util.Map;
 import java.util.Optional;
@@ -89,7 +90,14 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
         }
 
         final String message = packet.message();
-        Utilities.debug(() -> "Found message: " + message);
+        final Player player = event.getPlayer();
+        final String playerIdentifier = player.getUniqueId().toString();
+        
+        // Check message for resend patterns (blank lines, invisible unicode)
+        // This also updates burst state for this player
+        final boolean isInBurst = ChatResendDetector.checkMessage(playerIdentifier, message);
+        
+        Utilities.debug(() -> "Found message: " + message + (isInBurst ? " [RESEND DETECTED]" : ""));
 
         if (message.startsWith(FAIL_MESSAGE_PREFIX)) {
             Utilities.debug(() -> "Message send failure message, cancelling...");
@@ -98,13 +106,18 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
         }
 
         final Optional<String> parsed = Strings.parsePrefixedMessage(message);
-        if (parsed.isEmpty()) {
-            Utilities.debug(() -> "Message doesn't start w/ the symbol-prefix: " + message + "\n" + Strings.DEBUG_HYPHEN);
+        
+        // Also check if message contains ItsMyConfig placeholders even without prefix
+        final boolean hasPlaceholders = message.contains("<p:");
+        
+        if (parsed.isEmpty() && !hasPlaceholders) {
+            Utilities.debug(() -> "Message doesn't start w/ the symbol-prefix and has no <p: placeholders: " + message + "\n" + Strings.DEBUG_HYPHEN);
             return;
         }
 
-        final Player player = event.getPlayer();
-        final Component translated = Utilities.translate(parsed.get(), player);
+        // Use the parsed message if available, otherwise use original message
+        final String messageToProcess = parsed.isPresent() ? parsed.get() : message;
+        final Component translated = Utilities.translate(messageToProcess, player);
         if (translated.equals(Component.empty())) {
             event.setCancelled(true);
             Utilities.debug(() -> "Component is empty, cancelling...\n" + Strings.DEBUG_HYPHEN);
