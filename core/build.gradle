@@ -14,6 +14,10 @@ repositories {
         url = "https://repo.codemc.io/repository/maven-releases/"
     }
     maven {
+        name = "codemc-snapshots"
+        url = "https://repo.codemc.io/repository/maven-snapshots/"
+    }
+    maven {
         name = "papermc-repo"
         url = "https://repo.papermc.io/repository/maven-public/"
     }
@@ -56,7 +60,7 @@ dependencies {
     implementation "com.github.Redempt:Crunch:2.0.3"
     implementation "com.github.technicallycoded:FoliaLib:0.4.3"
     implementation "com.alessiodp.libby:libby-bukkit:2.0.0-SNAPSHOT"
-	implementation "com.github.retrooper:packetevents-spigot:2.11.1"
+	implementation "com.github.retrooper:packetevents-spigot:2.11.2-SNAPSHOT"
 
     compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
     compileOnly "org.apache.logging.log4j:log4j-core:2.17.1"
