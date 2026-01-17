@@ -411,6 +411,8 @@ public final class ItsMyConfig extends JavaPlugin {
             case MATH -> new MathPlaceholder(filePath, section);
             case RANDOM -> new RandomPlaceholder(filePath, section);
             case LIST -> new ListPlaceholder(filePath, section);
+            case MAP -> new MapPlaceholder(filePath, section);
+            case RANGE -> new RangePlaceholder(filePath, section);
             case ANIMATION -> new AnimatedPlaceholder(filePath, section);
             case COLOR -> new ColorPlaceholder(filePath, section);
             case COLORED_TEXT -> new ColoredTextPlaceholder(filePath, section);
