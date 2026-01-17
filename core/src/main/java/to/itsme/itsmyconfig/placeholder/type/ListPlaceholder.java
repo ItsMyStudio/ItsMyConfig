@@ -31,7 +31,7 @@ public final class ListPlaceholder extends Placeholder {
         }
 
         final int line = Strings.intOrDefault(args[0], 1) - 1;
-        if (line >= list.size()) {
+        if (line >= list.size() || line < 0) {
             return "";
         }
 
