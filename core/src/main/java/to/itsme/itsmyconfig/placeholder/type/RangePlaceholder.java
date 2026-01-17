@@ -1,14 +1,13 @@
 package to.itsme.itsmyconfig.placeholder.type;
 
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
+import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
 
 import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * YAML:
@@ -19,19 +18,19 @@ import java.util.logging.Logger;
  *     values:
  *       "1-90":   "someCommand {0} %some_placeholder%"
  *       "91-120": "otherCommand {0} %another_placeholder%"
- *
+ * <p>
  * Supported keys (inclusive):
  *  - "A-B"  (A..B)
  *  - "-B"   (MIN..B)
  *  - "A-"   (A..MAX)
- *
+ * <p>
  * Usage:
  * %itsmyconfig_range-example_<number>::<arg1>::<arg2>...%
- *
+ * <p>
  * Notes:
  *  - args[0] = <number> (used for interval selection)
  *  - args[1] -> {0}, args[2] -> {1}, etc.
- *
+ * <p>
  * Example:
  * %itsmyconfig_range-example_95::PlayerName%
  * args[0]=95, args[1]=PlayerName -> returns: "otherCommand PlayerName %another_placeholder%"
@@ -39,8 +38,7 @@ import java.util.logging.Logger;
 
 public final class RangePlaceholder extends Placeholder {
 
-    private static final Logger LOGGER = Bukkit.getLogger();
-
+    private final ItsMyConfig plugin = ItsMyConfig.getInstance();
     private final String defaultValue;
     private final long[] starts;
     private final long[] ends;
@@ -223,31 +221,11 @@ public final class RangePlaceholder extends Placeholder {
         return out;
     }
 
-    private static void warn(final ConfigurationSection section, final String msg) {
-        LOGGER.warning("[ItsMyConfig] Range placeholder misconfig at '" + section.getCurrentPath() + "': " + msg);
+    private void warn(final ConfigurationSection section, final String msg) {
+        plugin.getLogger().warning("Range placeholder misconfig at '" + section.getCurrentPath() + "': " + msg);
     }
 
-    private static final class Range {
-        final long start;
-        final long end;
+    private record Range(long start, long end) {}
 
-        Range(final long start, final long end) {
-            this.start = start;
-            this.end = end;
-        }
-    }
-
-    private static final class Entry {
-        final long start;
-        final long end;
-        final String value;
-        final String originalKey;
-
-        Entry(final long start, final long end, final String value, final String originalKey) {
-            this.start = start;
-            this.end = end;
-            this.value = value;
-            this.originalKey = originalKey;
-        }
-    }
+    private record Entry(long start, long end, String value, String originalKey) {}
 }

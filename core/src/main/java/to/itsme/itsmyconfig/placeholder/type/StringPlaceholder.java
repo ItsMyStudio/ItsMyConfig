@@ -16,7 +16,7 @@ public final class StringPlaceholder extends Placeholder {
     /**
      * The message string for the placeholder data.
      */
-    private final String message;
+    private String message;
 
     /**
      * Represents a placeholder data object for strings.
@@ -41,6 +41,17 @@ public final class StringPlaceholder extends Placeholder {
     @Override
     public String getResult(final OfflinePlayer player, final String[] params) {
         return this.replaceArguments(params, this.message);
+    }
+
+    /**
+     * Reloads the placeholder data from the configuration section.
+     *
+     * @return true if the reload was successful, false otherwise.
+     */
+    @Override
+    public boolean reloadFromSection() {
+        this.message = this.getConfigurationSection().getString("value", "");
+        return true;
     }
 
 }

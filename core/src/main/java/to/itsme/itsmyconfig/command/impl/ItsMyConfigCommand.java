@@ -199,7 +199,7 @@ public final class ItsMyConfigCommand {
         }
 
         AudienceResolver.send(source, Utilities.MM.deserialize("<green>Placeholder <yellow>" + section.getName() + "</yellow>'s value was updated successfully!</green>"));
-        this.reload(source);
+        if (!placeholder.reloadFromSection()) this.reload(source);
     }
 
     @Command("message")

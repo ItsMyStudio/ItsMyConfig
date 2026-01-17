@@ -276,4 +276,13 @@ public abstract class Placeholder {
         return this.dependancies.contains(dependancy);
     }
 
+    /**
+     * Reloads the placeholder data from its configuration section.
+     *
+     * @return true if the reload was successful, false otherwise.
+     */
+    public boolean reloadFromSection() {
+        return false;
+    }
+
 }
