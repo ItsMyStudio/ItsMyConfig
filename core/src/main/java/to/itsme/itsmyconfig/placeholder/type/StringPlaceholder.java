@@ -6,6 +6,8 @@ import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
 
+import java.util.List;
+
 /**
  * The StringPlaceholderData class represents a placeholder data object for strings.
  * It extends the PlaceholderData class and provides methods for registering arguments,
@@ -27,8 +29,18 @@ public final class StringPlaceholder extends Placeholder {
             final String filePath,
             final ConfigurationSection section
     ) {
+
         super(section, filePath, PlaceholderType.STRING, PlaceholderDependancy.NONE);
-        this.message = section.getString("value", "");
+
+        final Object value = section.get("value");
+        if (value instanceof List<?>) {
+            this.message = String.join("\n", section.getStringList("value"));
+        } else if (value instanceof String) {
+            this.message = (String) value;
+        } else {
+            this.message = "";
+        }
+
         this.registerArguments(this.message);
     }
 
@@ -50,7 +62,16 @@ public final class StringPlaceholder extends Placeholder {
      */
     @Override
     public boolean reloadFromSection() {
-        this.message = this.getConfigurationSection().getString("value", "");
+
+        final Object value = this.getConfigurationSection().get("value");
+        if (value instanceof List<?>) {
+            this.message = String.join("\n", getConfigurationSection().getStringList("value"));
+        } else if (value instanceof String) {
+            this.message = (String) value;
+        } else {
+            this.message = "";
+        }
+
         return true;
     }
 
