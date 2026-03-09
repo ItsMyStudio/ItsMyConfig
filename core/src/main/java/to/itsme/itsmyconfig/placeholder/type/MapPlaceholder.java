@@ -8,6 +8,7 @@ import to.itsme.itsmyconfig.placeholder.PlaceholderType;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,7 +56,7 @@ public final class MapPlaceholder extends Placeholder {
         final Map<String, String> tmp = new HashMap<>(Math.max(16, capacity));
         for (final String key : values.getKeys(false)) {
             final Object raw = values.get(key);
-            final String value = raw == null ? "" : String.valueOf(raw);
+            final String value = convertToString(raw);
             tmp.put(normalizeKey(key), value);
         }
 
@@ -88,6 +89,18 @@ public final class MapPlaceholder extends Placeholder {
     private String normalizeKey(final String key) {
         if (key == null) return "";
         return ignoreCase ? key.toLowerCase(java.util.Locale.ROOT) : key;
+    }
+
+    private String convertToString(final Object value) {
+        if (value instanceof List<?>) {
+            return String.join("\n", ((List<?>) value).stream()
+                    .map(String::valueOf)
+                    .toArray(String[]::new));
+        } else if (value instanceof String) {
+            return (String) value;
+        } else {
+            return value == null ? "" : String.valueOf(value);
+        }
     }
 
     private static String applyArgs(final String template, final String[] args) {
