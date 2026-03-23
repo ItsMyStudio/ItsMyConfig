@@ -58,3 +58,221 @@ custom-placeholder:
       - "Paper"
       - "Scissors"
     type: random
+
+  # ── Requirement examples ──
+
+  # AND mode (default): all requirements must pass.
+  # Usage: %itsmyconfig_req-and-example%
+  req-and-example:
+    type: string
+    value: "&aYou meet all conditions"
+    requirements:
+      has-money:
+        type: ">="
+        input: "%vault_eco_balance%"
+        output: "100"
+        deny: "&cYou need at least 100 coins"
+      has-level:
+        type: ">="
+        input: "%player_level%"
+        output: "10"
+        deny: "&cYou need at least level 10"
+
+  # OR mode: at least one requirement must pass.
+  # Usage: %itsmyconfig_req-or-example%
+  req-or-example:
+    type: string
+    value: "&aAccess granted"
+    requirements:
+      mode: or
+      is-vip:
+        type: string equals
+        input: "%luckperms_has_permission_vip.access%"
+        output: "true"
+        deny: "&cYou are not VIP"
+      is-admin:
+        type: string equals
+        input: "%luckperms_has_permission_admin.access%"
+        output: "true"
+        deny: "&cYou are not Admin"
+
+  # XOR mode: exactly one requirement must pass.
+  # Usage: %itsmyconfig_req-xor-example%
+  req-xor-example:
+    type: string
+    value: "&aExactly one condition met"
+    requirements:
+      mode: xor
+      is-op:
+        type: string equals
+        input: "%player_is_op%"
+        output: "true"
+        deny: "&cCondition not met"
+      is-vip:
+        type: string equals
+        input: "%luckperms_has_permission_vip.access%"
+        output: "true"
+        deny: "&cCondition not met"
+
+  # Negate: inverts the result of a requirement.
+  # Here "not banned" means the player must NOT match output "true".
+  # Usage: %itsmyconfig_req-negate-example%
+  req-negate-example:
+    type: string
+    value: "&aYou are not banned"
+    requirements:
+      not-banned:
+        type: string equals
+        input: "%player_is_banned%"
+        output: "true"
+        negate: true
+        deny: "&cYou are banned"
+
+  # Combined: OR mode with negate.
+  # Pass if VIP or not banned.
+  # Usage: %itsmyconfig_req-combined-example%
+  req-combined-example:
+    type: string
+    value: "&aWelcome!"
+    requirements:
+      mode: or
+      is-vip:
+        type: string equals
+        input: "%luckperms_has_permission_vip.access%"
+        output: "true"
+        deny: "&cAccess denied"
+      not-banned:
+        type: string equals
+        input: "%player_is_banned%"
+        output: "true"
+        negate: true
+        deny: "&cYou are banned"
+
+  # Example of a list placeholder with default value and argument substitution.
+  # Usage: %itsmyconfig_example-list-args_1::Steve% -> "Hello Steve, welcome"
+  example-list-args:
+    type: list
+    default: "Value not found"
+    values:
+      - "Hello {0}, welcome"
+      - "Goodbye {0}"
+
+  # Example of a string placeholder using values list format.
+  # Each entry becomes a line separated by \n.
+  example-string-multiline:
+    type: string
+    values:
+      - "&aLine 1"
+      - "&bLine 2"
+      - "&cLine 3"
+
+  # Example of a map placeholder with multiline values.
+  # Each value can be a list of strings joined by \n.
+  example-map-multiline:
+    type: map
+    default: "&7Unknown"
+    values:
+      admin:
+        - "&c[Admin]"
+        - "&7Administrative rank"
+      vip:
+        - "&a[VIP]"
+        - "&7Premium rank"
+
+  old-requirement-example:
+    value: "&aRequirement passed !"
+    requirements:
+      haveMoney:
+        type: ">="
+        input: "%vault_eco_balance%"
+        output: "100"
+        deny: "Don't have enought money"
+
+  # Example of a switch placeholder.
+  # Evaluates an input (can include PAPI placeholders) and returns the matching value.
+  # Usage: %itsmyconfig_example-switch% -> evaluates %vault_prefix% and returns matching color.
+  example-switch:
+    type: switch
+    input: "%vault_prefix%"
+    ignorecase: true
+    default: "&7"
+    values:
+      "[Admin]": "&c"
+      "[VIP]": "&a"
+      "[Mod]": "&b"
+
+  # Example of a requirement placeholder.
+  # This checks if a player meets certain conditions.
+  example-requirement:
+    value: "<green>Requirement passed !"
+    type: string # Default type
+    requirements:
+      haveMoney:
+        type: ">="
+        input: "%vault_eco_balance%"
+        output: "100"
+        deny: "<red>Don't have enough money"
+
+  # Example of requirements with OR mode and negate.
+  # OR mode: at least one requirement must pass.
+  # negate: inverts the condition result.
+  example-requirement-or:
+    type: string
+    value: "&aAccess granted"
+    requirements:
+      mode: or
+      is-vip:
+        type: string equals
+        input: "%luckperms_has_permission_vip.access%"
+        output: "true"
+        deny: "&cYou are not VIP"
+      is-admin:
+        type: string equals
+        input: "%luckperms_has_permission_admin.access%"
+        output: "true"
+        deny: "&cYou are not Admin"
+      not-banned:
+        type: string equals
+        input: "%player_is_banned%"
+        output: "true"
+        negate: true
+        deny: "&cYou are banned"
+
+  # Example of a progress bar with custom symbols.
+  # Uses symbol-based rendering instead of pattern-based.
+  # Usage: %itsmyconfig_example-progressbar_50::100%
+  example-progressbar:
+    type: progress_bar
+    length: 20
+    completed-symbol: "█"
+    progress-symbol: "▓"
+    remaining-symbol: "░"
+    completed-color: "&a"
+    progress-color: "&e"
+    remaining-color: "&8"
+
+  # Example of a reusable progress bar.
+  # Config defines default symbols and colors, but they can be overridden via args.
+  # Args: value::max::length::completed-symbol::progress-symbol::remaining-symbol::completed-color::progress-color::remaining-color
+  # Skip an arg with empty (::) to keep the config default.
+  #
+  # Usage with defaults:            %itsmyconfig_reusable-bar_50::100%
+  # Override colors only:           %itsmyconfig_reusable-bar_50::100::::::&b::&3::&8%
+  # Override length and colors:     %itsmyconfig_reusable-bar_50::100::10::::&c::&6::&7%
+  # Override everything:            %itsmyconfig_reusable-bar_50::100::15::#::>::-::&a::&e::&8%
+  reusable-bar:
+    type: progress_bar
+    length: 20
+    completed-symbol: "█"
+    progress-symbol: "▓"
+    remaining-symbol: "░"
+    completed-color: "&a"
+    progress-color: "&e"
+    remaining-color: "&8"
+
+  old-progressbar-example: 
+    value: ⦁●⚫●⚫●⚫●⚫●⚫●⚫●⚫●⚫●⚫●⚫●⦁
+    type: progress_bar
+    completed-color: '&a'
+    progress-color: '&e'
+    remaining-color: '&7'

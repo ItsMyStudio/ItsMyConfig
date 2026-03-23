@@ -8,6 +8,7 @@ import to.itsme.itsmyconfig.requirement.type.NumberRequirement;
 import to.itsme.itsmyconfig.requirement.type.RegexRequirement;
 import to.itsme.itsmyconfig.requirement.type.StringRequirement;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -51,13 +52,51 @@ public final class RequirementManager {
             final @Nullable OfflinePlayer player,
             final String[] params
     ) {
-        for (final RequirementData requirement : placeholder.getRequirements()) {
-            final String deny = processRequirementData(requirement, placeholder, player, params);
-            if (deny != null) {
-                return deny;
+        final String mode = placeholder.getRequirementMode();
+        final Collection<RequirementData> requirements = placeholder.getRequirements();
+
+        if (requirements.isEmpty()) return null;
+
+        switch (mode.toLowerCase()) {
+            case "or": {
+                // OR mode: at least one requirement must pass. If ALL fail, return the last deny.
+                String lastDeny = null;
+                for (final RequirementData requirement : requirements) {
+                    final String deny = processRequirementData(requirement, placeholder, player, params);
+                    if (deny == null) {
+                        return null; // at least one passed
+                    }
+                    lastDeny = deny;
+                }
+                return lastDeny; // all failed
+            }
+            case "xor": {
+                // XOR mode: exactly one requirement must pass.
+                int passCount = 0;
+                String lastDeny = null;
+                for (final RequirementData requirement : requirements) {
+                    final String deny = processRequirementData(requirement, placeholder, player, params);
+                    if (deny == null) {
+                        passCount++;
+                    } else {
+                        lastDeny = deny;
+                    }
+                }
+                if (passCount == 1) return null; // exactly one passed
+                return lastDeny != null ? lastDeny : ""; // 0 or 2+ passed
+            }
+            case "and":
+            default: {
+                // AND mode (current behavior): all must pass. First failure returns deny.
+                for (final RequirementData requirement : requirements) {
+                    final String deny = processRequirementData(requirement, placeholder, player, params);
+                    if (deny != null) {
+                        return deny;
+                    }
+                }
+                return null;
             }
         }
-        return null;
     }
 
     /**
@@ -84,11 +123,15 @@ public final class RequirementManager {
         final String input = getParameters(player, data, requirementData.input(), params);
         final String output = getParameters(player, data, requirementData.output(), params);
 
-        if (requirement.validate(requirementData.identifier(), input, output)) {
+        boolean passed = requirement.validate(requirementData.identifier(), input, output);
+        if (requirementData.negate()) {
+            passed = !passed;
+        }
+        if (passed) {
             return null;
         }
 
-        return requirementData.deny();
+        return getParameters(player, data, requirementData.deny(), params);
     }
 
     /**

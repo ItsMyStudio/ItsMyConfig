@@ -27,4 +27,4 @@ package to.itsme.itsmyconfig.requirement;
  *                   System.out.println(requirement.getOutput()); // prints "output"
  * @param deny       The deny message for a requirement.
  */
-public record RequirementData(String identifier, String input, String output, String deny) {}
+public record RequirementData(String identifier, String input, String output, String deny, boolean negate) {}

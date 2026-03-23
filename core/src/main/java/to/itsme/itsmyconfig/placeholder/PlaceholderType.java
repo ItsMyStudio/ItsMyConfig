@@ -25,6 +25,7 @@ public enum PlaceholderType {
      */
     MAP,
     RANGE,
+    SWITCH,
     /**
      * Represents a placeholder type for getting random values out of a list.
      */

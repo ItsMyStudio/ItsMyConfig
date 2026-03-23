@@ -12,6 +12,7 @@ import java.util.List;
 public final class ListPlaceholder extends Placeholder {
 
     private final List<String> list;
+    private final String defaultValue;
 
     public ListPlaceholder(
             final String filePath,
@@ -19,6 +20,7 @@ public final class ListPlaceholder extends Placeholder {
     ) {
         super(section, filePath, PlaceholderType.LIST, PlaceholderDependancy.NONE);
         this.list = section.getStringList("values");
+        this.defaultValue = section.getString("default", "");
     }
 
     @Override
@@ -27,15 +29,32 @@ public final class ListPlaceholder extends Placeholder {
             final String[] args
     ) {
         if (args.length == 0) {
-            return "";
+            return defaultValue;
         }
 
         final int line = Strings.intOrDefault(args[0], 1) - 1;
         if (line >= list.size() || line < 0) {
-            return "";
+            return defaultValue;
         }
 
-        return list.get(line);
+        final String value = list.get(line);
+        if (value == null || value.isEmpty()) {
+            return defaultValue;
+        }
+
+        if (args.length == 1) {
+            return value;
+        }
+
+        return applyArgs(value, args);
+    }
+
+    private static String applyArgs(final String template, final String[] args) {
+        String out = template;
+        for (int i = 1; i < args.length; i++) {
+            out = out.replace("{" + (i - 1) + "}", args[i]);
+        }
+        return out;
     }
 
 }

@@ -51,6 +51,10 @@ public abstract class Placeholder {
      */
     private final Set<RequirementData> requirements = new LinkedHashSet<>();
     /**
+     * The logical mode for evaluating requirements (and, or, xor).
+     */
+    private String requirementMode = "and";
+    /**
      * Represents a list of dependancy arguments.
      */
     private final Set<PlaceholderDependancy> dependancies;
@@ -78,12 +82,14 @@ public abstract class Placeholder {
     public void registerRequirement(final ConfigurationSection section) {
         final String identifier = section.getString("type");
         this.registerArgumentsFor(section, identifier);
+        final boolean negate = section.getBoolean("negate", false);
         this.requirements.add(
                 new RequirementData(
                         identifier,
                         section.getString("input"),
                         section.getString("output"),
-                        section.getString("deny")
+                        section.getString("deny"),
+                        negate
                 )
         );
     }
@@ -235,6 +241,24 @@ public abstract class Placeholder {
      */
     public Collection<RequirementData> getRequirements() {
         return requirements;
+    }
+
+    /**
+     * Gets the requirement evaluation mode.
+     *
+     * @return the requirement mode (and, or, xor)
+     */
+    public String getRequirementMode() {
+        return requirementMode;
+    }
+
+    /**
+     * Sets the requirement evaluation mode.
+     *
+     * @param mode the requirement mode (and, or, xor)
+     */
+    public void setRequirementMode(final String mode) {
+        this.requirementMode = mode;
     }
 
     /**
