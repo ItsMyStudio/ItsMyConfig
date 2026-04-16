@@ -2,6 +2,8 @@ package to.itsme.itsmyconfig.component.event;
 
 import com.google.gson.*;
 import java.lang.reflect.Type;
+
+import net.kyori.adventure.nbt.api.BinaryTagHolder;
 import net.kyori.adventure.text.event.ClickEvent.Payload;
 import to.itsme.itsmyconfig.util.Versions;
 
@@ -12,21 +14,23 @@ public class ClickEvent {
 
     public ClickEvent() {}
 
-    @SuppressWarnings("deprecation")
-    public ClickEvent(net.kyori.adventure.text.event.ClickEvent event) {
+    public ClickEvent(net.kyori.adventure.text.event.ClickEvent<?> event) {
         this.action = Action.fromName(event.action().toString());
 
         final Payload payload = event.payload();
-        if (payload instanceof Payload.Text textPayload) {
-            this.value = textPayload.value();
-        } else if (payload instanceof Payload.Int intPayload) {
-            this.value = String.valueOf(intPayload.integer());
-        } else if (payload instanceof Payload.Dialog dialogPayload) {
-            this.value = String.valueOf(dialogPayload.dialog()); // incorrect handling, but prevents errors
-        } else if (payload instanceof Payload.Custom customPayload) {
-            this.value = customPayload.nbt().string();
-        } else {
-            this.value = event.value();
+        switch (payload) {
+            case Payload.Text textPayload -> this.value = textPayload.value();
+            case Payload.Int intPayload -> this.value = String.valueOf(intPayload.integer());
+            case Payload.Dialog dialogPayload -> this.value = String.valueOf(dialogPayload.dialog()); // incorrect handling, but prevents errors
+            case Payload.Custom customPayload -> {
+                final BinaryTagHolder holder = customPayload.nbt();
+                if (holder == null) {
+                    this.value = "";
+                } else {
+                    this.value = holder.string();
+                }
+            }
+            default -> this.value = event.payload().toString(); // another incorrect handling, but should never reach here anyway
         }
     }
 

@@ -71,7 +71,7 @@ public final class ItsMyConfigCommand {
                             .content(description.getName())
                             .decorate(TextDecoration.BOLD)
                             .hoverEvent(Utilities.MM.deserialize(hoverMessage))
-                            .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, description.getWebsite()))
+                            .clickEvent(ClickEvent.openUrl(description.getWebsite()))
             );
         });
     }
@@ -89,7 +89,7 @@ public final class ItsMyConfigCommand {
                         .content("iiAhmedYT")
                         .decorate(TextDecoration.UNDERLINED)
                         .hoverEvent(Utilities.MM.deserialize(hoverMessage))
-                        .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/iiAhmedYT"))
+                        .clickEvent(ClickEvent.openUrl("https://github.com/iiAhmedYT"))
         ));
     }
 
