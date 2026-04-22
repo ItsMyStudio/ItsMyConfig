@@ -64,7 +64,7 @@ public final class RangePlaceholder extends Placeholder {
         final List<Entry> entries = new ArrayList<>();
         for (final String key : cfg.getKeys(false)) {
             final Object raw = cfg.get(key);
-            final String value = raw == null ? "" : String.valueOf(raw);
+            final String value = convertToString(raw); 
 
             final Range r = parseRangeKey(key);
             if (r == null) {
@@ -223,6 +223,18 @@ public final class RangePlaceholder extends Placeholder {
 
     private void warn(final ConfigurationSection section, final String msg) {
         plugin.getLogger().warning("Range placeholder misconfig at '" + section.getCurrentPath() + "': " + msg);
+    }
+
+    private String convertToString(final Object value) {
+        if (value instanceof List<?>) {
+            return String.join("\n", ((List<?>) value).stream()
+                    .map(String::valueOf)
+                    .toArray(String[]::new));
+        } else if (value instanceof String) {
+            return (String) value;
+        } else {
+            return value == null ? "" : String.valueOf(value);
+        }
     }
 
     private record Range(long start, long end) {}
