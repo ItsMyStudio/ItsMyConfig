@@ -14,6 +14,7 @@ import to.itsme.itsmyconfig.processor.PacketListener;
 import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Utilities;
+import to.itsme.itsmyconfig.util.ChatResendDetector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +54,9 @@ public final class PLibListener extends PacketAdapter implements PacketListener 
     public void onPacketSending(final PacketEvent event) {
         final PacketContainer container = event.getPacket();
         final PacketType type = container.getType();
-        Utilities.debug(() -> "################# CHAT PACKET #################\nProccessing packet " + type.name());
+        
+        Utilities.debug(() -> "################# CHAT PACKET #################\nProcessing packet " + type.name());
+        
         final PacketContent<PacketContainer> packet = this.processPacket(container);
         if (packet == null || packet.isEmpty()) {
             Utilities.debug(() -> "Packet is null or empty\n" + Strings.DEBUG_HYPHEN);
@@ -61,16 +64,28 @@ public final class PLibListener extends PacketAdapter implements PacketListener 
         }
 
         final String message = packet.message();
-        Utilities.debug(() -> "Found message: " + message);
+        final Player player = event.getPlayer();
+        final String playerIdentifier = player.getUniqueId().toString();
+        
+        // Check message for resend patterns (blank lines, invisible unicode)
+        // This also updates burst state for this player
+        final boolean isInBurst = ChatResendDetector.checkMessage(playerIdentifier, message);
+        
+        Utilities.debug(() -> "Found message: " + message + (isInBurst ? " [RESEND DETECTED]" : ""));
 
         final Optional<String> parsed = Strings.parsePrefixedMessage(message);
-        if (parsed.isEmpty()) {
-            Utilities.debug(() -> "Message doesn't start w/ the symbol-prefix: " + message + "\n" + Strings.DEBUG_HYPHEN);
+        
+        // Also check if message contains ItsMyConfig placeholders even without prefix
+        final boolean hasPlaceholders = message.contains("<p:");
+        
+        if (parsed.isEmpty() && !hasPlaceholders) {
+            Utilities.debug(() -> "Message doesn't start w/ the symbol-prefix and has no <p: placeholders: " + message + "\n" + Strings.DEBUG_HYPHEN);
             return;
         }
 
-        final Player player = event.getPlayer();
-        final Component translated = Utilities.translate(parsed.get(), player);
+        // Use the parsed message if available, otherwise use original message
+        final String messageToProcess = parsed.isPresent() ? parsed.get() : message;
+        final Component translated = Utilities.translate(messageToProcess, player);
         if (translated.equals(Component.empty())) {
             event.setCancelled(true);
             Utilities.debug(() -> "Component is empty, cancelling...\n" + Strings.DEBUG_HYPHEN);
