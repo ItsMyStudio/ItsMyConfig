@@ -20,7 +20,6 @@ import to.itsme.itsmyconfig.placeholder.type.*;
 import to.itsme.itsmyconfig.placeholder.type.ProgressbarPlaceholder;
 import to.itsme.itsmyconfig.requirement.RequirementManager;
 import to.itsme.itsmyconfig.util.IMCSerializer;
-import to.itsme.itsmyconfig.util.LibraryLoader;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Versions;
 import to.itsme.itsmyconfig.processor.ConsoleFilter;
@@ -69,7 +68,6 @@ public final class ItsMyConfig extends JavaPlugin {
     @Override
     public void onLoad() {
         instance = this;
-        LibraryLoader.loadLibraries();
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
         PacketEvents.getAPI().load();
     }
