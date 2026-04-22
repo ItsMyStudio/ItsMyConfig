@@ -95,7 +95,11 @@ public enum LibraryLoader {
         for (final LibraryLoader value : values()) {
             if (value.shouldLoad) {
                 ItsMyConfig.getInstance().getLogger().info("Loading library " + value.library.getArtifactId() + "...");
-                MANAGER.loadLibrary(value.library);
+                try {
+                    MANAGER.loadLibrary(value.library);
+                } catch (final Throwable err) {
+                    ItsMyConfig.getInstance().getLogger().log(Level.SEVERE, "Failed to load library " + value.library.getArtifactId() + "!", err);
+                }
             } else {
                 ItsMyConfig.getInstance().getLogger().info("Library " + value.library.getArtifactId() + " is not needed.");
             }
