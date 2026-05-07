@@ -1,7 +1,6 @@
 package to.itsme.itsmyconfig.util;
 
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -9,8 +8,9 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -39,8 +39,12 @@ public final class Utilities {
     private static final ItsMyConfig plugin = ItsMyConfig.getInstance();
 
     public static final MiniMessage MM, EMPTY_MM;
-    public static final GsonComponentSerializer GSON_SERIALIZER = BukkitComponentSerializer.gson();
-    public static final BungeeComponentSerializer BUNGEE_SERIALIZER = BungeeComponentSerializer.get();
+    public static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
+    public static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.builder()
+            .character(ChatColor.COLOR_CHAR)
+            .hexColors()
+            .useUnusualXRepeatedCharacterHexFormat()
+            .build();
 
     private static final TagResolver FONT_RESOLVER;
     private static final Field TEXT_COMPONENT_CONTENT;
@@ -270,6 +274,17 @@ public final class Utilities {
                 .collect(Collectors.toList());
 
         return component.decorations(cleanedDecorations).children(cleanedChildren);
+    }
+
+    public static BaseComponent[] toBungee(final Component component) {
+        return net.md_5.bungee.chat.ComponentSerializer.parse(GSON_SERIALIZER.serialize(component));
+    }
+
+    public static Component fromBungee(final BaseComponent... components) {
+        if (components == null || components.length == 0) {
+            return Component.empty();
+        }
+        return GSON_SERIALIZER.deserialize(net.md_5.bungee.chat.ComponentSerializer.toString(components));
     }
 
     /**

@@ -37,7 +37,7 @@ public class ActiobarTag extends ArgumentsTag {
         if (Versions.isOver(1, 19, 0)) {
             player.spigot().sendMessage(
                     ChatMessageType.ACTION_BAR,
-                    Utilities.BUNGEE_SERIALIZER.serialize(component)
+                    Utilities.toBungee(component)
             );
         } else {
             AudienceResolver.resolve(player).sendActionBar(component);

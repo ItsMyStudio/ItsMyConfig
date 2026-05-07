@@ -2,7 +2,6 @@ package to.itsme.itsmyconfig.hook;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -187,8 +186,8 @@ public final class PAPIHook extends PlaceholderExpansion {
             var component = Utilities.translate(processedContent, player);
             
             return switch (format) {
-                case "legacy", "l" -> BukkitComponentSerializer.legacy().serialize(component);
-                case "console", "c" -> BukkitComponentSerializer.legacy().serialize(component);
+                case "legacy", "l" -> Utilities.LEGACY_SERIALIZER.serialize(component);
+                case "console", "c" -> Utilities.LEGACY_SERIALIZER.serialize(component);
                 case "mini", "m" -> IMCSerializer.toMiniMessage(component);
                 default -> IMCSerializer.toMiniMessage(component);
             };

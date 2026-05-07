@@ -81,7 +81,7 @@ public enum PLibProcessor implements PacketProcessor<PacketContainer> {
         @Override
         public void edit(PacketContainer container, Component component) {
             container.getModifier().withType(TextComponent.class).write(0, new TextComponent(
-                    Utilities.BUNGEE_SERIALIZER.serialize(component)
+                    Utilities.toBungee(component)
             ));
         }
 
@@ -95,7 +95,7 @@ public enum PLibProcessor implements PacketProcessor<PacketContainer> {
         }
 
         private String processBaseComponents(final BaseComponent... components) {
-            return IMCSerializer.toMiniMessage(Utilities.BUNGEE_SERIALIZER.deserialize(components));
+            return IMCSerializer.toMiniMessage(Utilities.fromBungee(components));
         }
 
     },

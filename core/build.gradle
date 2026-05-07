@@ -47,10 +47,8 @@ dependencies {
     //adventure ->
     implementation "${kyori(KyoriModule.MINI_MESSAGE)}"
     implementation "${kyori(KyoriModule.GSON_SERIALIZER)}"
+    implementation "${kyori(KyoriModule.LEGACY_SERIALIZER)}"
     
-    implementation "${kyoriPlatform(KyoriModule.BUKKIT)}"
-    implementation "${kyoriPlatform(KyoriModule.BUNGEE_SERIALIZER)}"
-
     // imperat ->
     implementation "dev.velix:imperat-core:${imperatVersion}"
     implementation "dev.velix:imperat-bukkit:${imperatVersion}"
@@ -69,7 +67,6 @@ dependencies {
     
     testImplementation("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     testImplementation("${kyori(KyoriModule.MINI_MESSAGE)}")
-    testImplementation("${kyoriPlatform(KyoriModule.BUKKIT)}")
 
     testImplementation(platform('org.junit:junit-bom:5.13.4'))
 	testImplementation('org.junit.jupiter:junit-jupiter')

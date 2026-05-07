@@ -31,7 +31,7 @@ import java.util.*;
 /**
  * ItsMyConfig class represents the main configuration class for the plugin.
  * It extends the JavaPlugin class and provides methods to manage the plugin configuration.
- * It also holds instances of PlaceholderManager, ProgressBarBucket, RequirementManager, and BukkitAudiences.
+ * It also holds instances of PlaceholderManager and RequirementManager.
  */
 public final class ItsMyConfig extends JavaPlugin {
 

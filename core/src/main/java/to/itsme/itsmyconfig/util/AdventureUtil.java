@@ -19,11 +19,10 @@ public final class AdventureUtil {
 
         try {
             componentClass = Class.forName("net{}kyori{}adventure{}text{}Component".replace("{}", "."));
-            Class<?> bukkitSerializers = Class.forName("net{}kyori{}adventure{}platform{}bukkit{}BukkitComponentSerializer".replace("{}", "."));
-            Method gsonMethod = bukkitSerializers.getMethod("gson");
+            Class<?> gsonSerializerClass = Class.forName("net{}kyori{}adventure{}text{}serializer{}gson{}GsonComponentSerializer".replace("{}", "."));
+            Method gsonMethod = gsonSerializerClass.getMethod("gson");
             gsonSerializer = gsonMethod.invoke(null);
-            serialize = Class.forName("net{}kyori{}adventure{}text{}serializer{}gson{}GsonComponentSerializer".replace("{}", "."))
-                .getMethod("serialize", componentClass);
+            serialize = gsonSerializerClass.getMethod("serialize", componentClass);
             deserialize = gsonSerializer.getClass().getMethod("deserialize", String.class);
             serialize.setAccessible(true);
             deserialize.setAccessible(true);
