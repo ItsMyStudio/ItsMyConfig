@@ -1,7 +1,5 @@
 package to.itsme.itsmyconfig.command.impl;
 
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.annotations.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -12,7 +10,10 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
+import studio.mevera.imperat.BukkitCommandSource;
+import studio.mevera.imperat.annotations.types.*;
 import to.itsme.itsmyconfig.ItsMyConfig;
+import to.itsme.itsmyconfig.command.suggest.ModifiablePlaceholderProvider;
 import to.itsme.itsmyconfig.command.util.PlayerSelector;
 import to.itsme.itsmyconfig.message.AudienceResolver;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
@@ -22,7 +23,7 @@ import to.itsme.itsmyconfig.util.Utilities;
 
 import java.io.IOException;
 
-@Command("itsmyconfig")
+@RootCommand("itsmyconfig")
 @Permission("itsmyconfig.admin")
 @SuppressWarnings("deprecation")
 public final class ItsMyConfigCommand {
@@ -33,9 +34,9 @@ public final class ItsMyConfigCommand {
         this.plugin = plugin;
     }
 
-    @Usage
+    @Execute
     @SubCommand("help")
-    public void usage(final BukkitSource source) {
+    public void usage(final BukkitCommandSource source) {
         final String message = """
                   <gold><plugin></gold> | Config has never been easier
                 
@@ -96,7 +97,7 @@ public final class ItsMyConfigCommand {
     @SubCommand("reload")
     @Permission("itsmyconfig.reload")
     @Description("Reloads the plugin config")
-    public void reload(final BukkitSource source) {
+    public void reload(final BukkitCommandSource source) {
         plugin.loadConfig();
         Message.RELOAD.send(source);
     }
@@ -105,7 +106,7 @@ public final class ItsMyConfigCommand {
     @Permission("itsmyconfig.message")
     @Description("Sends messages to players")
     public void messageDirectly(
-            final BukkitSource source,
+            final BukkitCommandSource source,
             final @Named("target") PlayerSelector players,
             final @Named("message") @Greedy String message
     ) {
@@ -122,7 +123,7 @@ public final class ItsMyConfigCommand {
     @Permission("itsmyconfig.message")
     @Description("Sends messages to players")
     public void message(
-            final BukkitSource source,
+            final BukkitCommandSource source,
             final @Named("target") PlayerSelector players,
             final @Named("message") @Greedy String message
     ) {
@@ -143,7 +144,7 @@ public final class ItsMyConfigCommand {
     @Permission("itsmyconfig.parse")
     @Description("Parse messages as players")
     public void parse(
-            final BukkitSource source,
+            final BukkitCommandSource source,
             final @Named("target") PlayerSelector players,
             final @Named("message") @Greedy String message
     ) {
@@ -162,7 +163,7 @@ public final class ItsMyConfigCommand {
     @SubCommand("debug")
     @Permission("itsmyconfig.debug")
     @Description("Toggles debug mode for messages (not permanent)")
-    public void debug(final BukkitSource source) {
+    public void debug(final BukkitCommandSource source) {
         final boolean debug = plugin.toggleDebug();
         final String message = debug ? "<green>Debug mode enabled!</green>" : "<red>Debug mode disabled!</red>";
         AudienceResolver.send(source, Utilities.MM.deserialize(message));
@@ -177,8 +178,8 @@ public final class ItsMyConfigCommand {
     @Permission("itsmyconfig.config")
     @Description("Sets config values for placeholder")
     public void config(
-            final BukkitSource source,
-            @SuggestionProvider("ModifiablePlaceholder") final Placeholder placeholder,
+            final BukkitCommandSource source,
+            @SuggestionProvider(ModifiablePlaceholderProvider.class) final Placeholder placeholder,
             @Named("value") @Greedy final String value
     ) {
         final ConfigurationSection section = placeholder.getConfigurationSection();
@@ -202,21 +203,21 @@ public final class ItsMyConfigCommand {
         if (!placeholder.reloadFromSection()) this.reload(source);
     }
 
-    @Command("message")
+    @RootCommand("message")
     @Permission("itsmyconfig.message")
     public void msgCommand(
-            final BukkitSource source,
+            final BukkitCommandSource source,
             final @Named("target") PlayerSelector players,
             final @Named("message") @Greedy String message
     ) {
         this.message(source, players, message);
     }
 
-    @Command("config")
+    @RootCommand("config")
     @Permission("itsmyconfig.config")
     public void configCommand(
-            final BukkitSource source,
-            @SuggestionProvider("ModifiablePlaceholder") final Placeholder placeholder,
+            final BukkitCommandSource source,
+            @SuggestionProvider(ModifiablePlaceholderProvider.class) final Placeholder placeholder,
             @Named("value") @Greedy final String value
     ) {
         this.config(source, placeholder, value);

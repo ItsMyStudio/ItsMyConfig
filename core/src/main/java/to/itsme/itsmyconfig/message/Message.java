@@ -1,10 +1,10 @@
 package to.itsme.itsmyconfig.message;
 
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.context.Source;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.entity.Player;
+import studio.mevera.imperat.BukkitCommandSource;
+import studio.mevera.imperat.context.CommandSource;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Utilities;
@@ -29,11 +29,11 @@ public enum Message {
         AudienceResolver.resolve(player).sendMessage(component);
     }
 
-    public void send(final Source source, final TagResolver... replacers) {
-        send((BukkitSource) source, replacers);
+    public void send(final CommandSource source, final TagResolver... replacers) {
+        send((BukkitCommandSource) source, replacers);
     }
 
-    public void send(final BukkitSource source, final TagResolver... replacers) {
+    public void send(final BukkitCommandSource source, final TagResolver... replacers) {
         if (source.isConsole()) {
             AudienceResolver.resolve(source).sendMessage(Utilities.translate(toString(), replacers));
         } else {

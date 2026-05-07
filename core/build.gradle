@@ -10,6 +10,10 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven {
+        name = "central-snapshots"
+        url = "https://central.sonatype.com/repository/maven-snapshots/"
+    }
+    maven {
         name = "codemc"
         url = "https://repo.codemc.io/repository/maven-releases/"
     }
@@ -39,7 +43,7 @@ repositories {
     }
 }
 
-def imperatVersion = "1.9.6"
+def imperatVersion = "4.0.0-SNAPSHOT"
 dependencies {
     // api ->
     implementation project(":api")
@@ -49,10 +53,10 @@ dependencies {
     implementation "${kyori(KyoriModule.GSON_SERIALIZER)}"
     implementation "${kyori(KyoriModule.LEGACY_SERIALIZER)}"
     implementation "${kyori(KyoriModule.LEGACY_SERIALIZER_IMPL)}"
-    
+
     // imperat ->
-    implementation "dev.velix:imperat-core:${imperatVersion}"
-    implementation "dev.velix:imperat-bukkit:${imperatVersion}"
+    implementation "studio.mevera:imperat-core:${imperatVersion}"
+    implementation "studio.mevera:imperat-bukkit:${imperatVersion}"
 
     // other ->
     implementation "org.bstats:bstats-bukkit:3.0.2"
@@ -105,7 +109,7 @@ def shadePath = "to.itsme.itsmyconfig.shade."
 shadowJar {
     relocate("com.tcoded.folialib", "${shadePath}folialib")
     relocate("redempt.crunch", "${shadePath}crunch")
-    relocate("dev.velix.imperat", "${shadePath}imperat")
+    relocate("studio.mevera.imperat", "${shadePath}imperat")
     relocate("org.bstats", "${shadePath}bstats")
     relocate("net.kyori", "${shadePath}kyori")
     relocate("com.alessiodp.libby", "${shadePath}libby")

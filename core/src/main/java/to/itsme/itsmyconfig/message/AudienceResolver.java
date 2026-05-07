@@ -1,7 +1,5 @@
 package to.itsme.itsmyconfig.message;
 
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.context.Source;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
@@ -15,6 +13,8 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jspecify.annotations.NonNull;
+import studio.mevera.imperat.BukkitCommandSource;
+import studio.mevera.imperat.context.CommandSource;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.util.Utilities;
 import to.itsme.itsmyconfig.util.Versions;
@@ -41,11 +41,11 @@ public class AudienceResolver {
         return AUDIENCE_RESOLVER.resolve(sender);
     }
 
-    public static Audience resolve(final Source source) {
-        return AUDIENCE_RESOLVER.resolve((BukkitSource) source);
+    public static Audience resolve(final CommandSource source) {
+        return AUDIENCE_RESOLVER.resolve((BukkitCommandSource) source);
     }
 
-    public static Audience resolve(final BukkitSource source) {
+    public static Audience resolve(final BukkitCommandSource source) {
         return AUDIENCE_RESOLVER.resolve(source);
     }
 
@@ -53,7 +53,7 @@ public class AudienceResolver {
         AUDIENCE_RESOLVER.resolve(sender).sendMessage(component);
     }
 
-    public static void send(final BukkitSource source, final ComponentLike component) {
+    public static void send(final BukkitCommandSource source, final ComponentLike component) {
         AUDIENCE_RESOLVER.resolve(source).sendMessage(component);
     }
 
@@ -65,7 +65,7 @@ public class AudienceResolver {
 
         Audience resolve(final CommandSender sender);
 
-        default Audience resolve(final BukkitSource source) {
+        default Audience resolve(final BukkitCommandSource source) {
             return resolve(source.origin());
         }
 

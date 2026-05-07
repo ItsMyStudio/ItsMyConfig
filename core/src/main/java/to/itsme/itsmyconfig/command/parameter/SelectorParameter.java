@@ -1,30 +1,29 @@
 package to.itsme.itsmyconfig.command.parameter;
 
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.command.parameters.type.BaseParameterType;
-import dev.velix.imperat.context.ExecutionContext;
-import dev.velix.imperat.context.internal.CommandInputStream;
-import dev.velix.imperat.exception.ImperatException;
-import dev.velix.imperat.resolvers.SuggestionResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.BukkitCommandSource;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
+import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import to.itsme.itsmyconfig.command.handler.SelectorException;
 import to.itsme.itsmyconfig.command.util.PlayerSelector;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SelectorParameter extends BaseParameterType<BukkitSource, PlayerSelector> {
+public class SelectorParameter extends SimpleArgumentType<BukkitCommandSource, PlayerSelector> {
 
     @Override
-    public @Nullable PlayerSelector resolve(
-            @NotNull ExecutionContext<BukkitSource> context,
-            @NotNull CommandInputStream<BukkitSource> stream,
+    public PlayerSelector parse(
+            @NotNull CommandContext<BukkitCommandSource> context,
+            @NotNull Argument<BukkitCommandSource> argument,
             @NotNull String input
-    ) throws ImperatException {
-        if (input.equals("all")) {
+    ) throws CommandException {
+        if ("all".equals(input)) {
             return PlayerSelector.all();
         }
 
@@ -37,11 +36,11 @@ public class SelectorParameter extends BaseParameterType<BukkitSource, PlayerSel
     }
 
     @Override
-    public SuggestionResolver<BukkitSource> getSuggestionResolver() {
+    public SuggestionProvider<BukkitCommandSource> getSuggestionProvider() {
         final List<String> names = new ArrayList<>(Bukkit.getOnlinePlayers().size());
         names.add("all");
         Bukkit.getOnlinePlayers().stream().map(Player::getName).forEach(names::add);
-        return SuggestionResolver.plain(names);
+        return SuggestionProvider.staticSuggestions(names);
     }
 
 }

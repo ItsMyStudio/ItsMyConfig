@@ -1,8 +1,8 @@
 package to.itsme.itsmyconfig.command;
 
-import dev.velix.imperat.BukkitImperat;
-import dev.velix.imperat.exception.PermissionDeniedException;
-import dev.velix.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.BukkitCommandSource;
+import studio.mevera.imperat.BukkitImperat;
+import studio.mevera.imperat.exception.PermissionDeniedException;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.command.impl.ItsMyConfigCommand;
 import to.itsme.itsmyconfig.command.parameter.PlaceholderParameter;
@@ -15,23 +15,17 @@ import to.itsme.itsmyconfig.placeholder.Placeholder;
 public final class CommandManager {
 
     private final ItsMyConfig plugin;
-    private final BukkitImperat handler;
+    private final BukkitImperat<BukkitCommandSource> handler;
 
     public CommandManager(final ItsMyConfig plugin) {
         this.plugin = plugin;
         this.handler = BukkitImperat.builder(plugin)
-                .parameterType(PlayerSelector.class, new SelectorParameter())
-                .parameterType(Placeholder.class, new PlaceholderParameter(plugin))
-                .throwableResolver(
+                .argType(PlayerSelector.class, new SelectorParameter())
+                .argType(Placeholder.class, new PlaceholderParameter(plugin))
+                .exceptionHandler(
                         PermissionDeniedException.class,
-                        (exception, imperat, context) -> Message.NO_PERMISSION.send(context.source())
+                        (exception, context) -> Message.NO_PERMISSION.send(context.source())
                 )
-                .namedSuggestionResolver("ModifiablePlaceholder", SuggestionResolver.plain(
-                        plugin.getPlaceholderManager().getPlaceholdersMap().keySet().stream().filter(name -> {
-                            final Placeholder data = plugin.getPlaceholderManager().get(name);
-                            return data.getConfigurationSection().contains("value");
-                        }).toList()
-                ))
                 .build();
         this.registerCommands();
     }

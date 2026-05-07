@@ -1,18 +1,18 @@
 package to.itsme.itsmyconfig.command.parameter;
 
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.command.parameters.type.BaseParameterType;
-import dev.velix.imperat.context.ExecutionContext;
-import dev.velix.imperat.context.internal.CommandInputStream;
-import dev.velix.imperat.exception.ImperatException;
-import dev.velix.imperat.resolvers.SuggestionResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.BukkitCommandSource;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
+import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.command.handler.PlaceholderException;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 
-public class PlaceholderParameter extends BaseParameterType<BukkitSource, Placeholder> {
+public class PlaceholderParameter extends SimpleArgumentType<BukkitCommandSource, Placeholder> {
 
     private final ItsMyConfig plugin;
 
@@ -21,11 +21,11 @@ public class PlaceholderParameter extends BaseParameterType<BukkitSource, Placeh
     }
 
     @Override
-    public @Nullable Placeholder resolve(
-            @NotNull ExecutionContext<BukkitSource> context,
-            @NotNull CommandInputStream<BukkitSource> stream,
+    public @Nullable Placeholder parse(
+            @NotNull CommandContext<BukkitCommandSource> context,
+            @NotNull Argument<BukkitCommandSource> argument,
             @NotNull String input
-    ) throws ImperatException {
+    ) throws CommandException {
         final Placeholder placeholder = plugin.getPlaceholderManager().get(input);
         if (placeholder != null) {
             return placeholder;
@@ -34,8 +34,8 @@ public class PlaceholderParameter extends BaseParameterType<BukkitSource, Placeh
     }
 
     @Override
-    public SuggestionResolver<BukkitSource> getSuggestionResolver() {
-        return SuggestionResolver.plain(plugin.getPlaceholderManager().getPlaceholdersMap().keySet().toArray(new String[0]));
+    public SuggestionProvider<BukkitCommandSource> getSuggestionProvider() {
+        return SuggestionProvider.staticSuggestions(plugin.getPlaceholderManager().getPlaceholdersMap().keySet().toArray(new String[0]));
     }
 
 }
