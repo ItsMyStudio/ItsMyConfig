@@ -48,6 +48,7 @@ dependencies {
     implementation "${kyori(KyoriModule.MINI_MESSAGE)}"
     implementation "${kyori(KyoriModule.GSON_SERIALIZER)}"
     implementation "${kyori(KyoriModule.LEGACY_SERIALIZER)}"
+    implementation "${kyori(KyoriModule.LEGACY_SERIALIZER_IMPL)}"
     
     // imperat ->
     implementation "dev.velix:imperat-core:${imperatVersion}"

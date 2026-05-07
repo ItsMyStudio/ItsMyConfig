@@ -9,8 +9,11 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.json.JSONOptions;
+import net.kyori.adventure.text.serializer.json.legacyimpl.NBTLegacyHoverEventSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -39,7 +42,7 @@ public final class Utilities {
     private static final ItsMyConfig plugin = ItsMyConfig.getInstance();
 
     public static final MiniMessage MM, EMPTY_MM;
-    public static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
+    public static final GsonComponentSerializer GSON_SERIALIZER;
     public static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.builder()
             .character(ChatColor.COLOR_CHAR)
             .hexColors()
@@ -50,6 +53,21 @@ public final class Utilities {
     private static final Field TEXT_COMPONENT_CONTENT;
 
     static {
+        if (Versions.isOrOver(1, 13, 0)) {
+            GSON_SERIALIZER = GsonComponentSerializer.builder()
+                    .options(
+                            JSONOptions.byDataVersion().at(
+                                    Bukkit.getUnsafe().getDataVersion()
+                            )
+                    )
+                    .build();
+        } else {
+            GSON_SERIALIZER = GsonComponentSerializer.builder()
+                    .legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get())
+                    .options(JSONOptions.byDataVersion().at(0))
+                    .build();
+        }
+
         final TagResolver.Builder builder = TagResolver.builder();
         for (final @Subst("") Font font : Font.values()) {
             builder.tag(font.getName(), new FontTag(font));

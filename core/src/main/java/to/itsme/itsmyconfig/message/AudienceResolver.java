@@ -14,6 +14,7 @@ import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jspecify.annotations.NonNull;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.util.Utilities;
 import to.itsme.itsmyconfig.util.Versions;
@@ -24,6 +25,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@SuppressWarnings("all")
 public class AudienceResolver {
 
     private static final Resolver AUDIENCE_RESOLVER = Versions.IS_PAPER ? new PaperResolver() : new LegacyResolver();
@@ -31,7 +33,6 @@ public class AudienceResolver {
     /**
      * Dummy method to load resolvers onEnable, and just logs it.
      */
-    @SuppressWarnings("all")
     public static void load(final ItsMyConfig plugin) {
         plugin.getLogger().fine("Loaded " + AUDIENCE_RESOLVER.getClass().getSimpleName() + " successfully!");
     }
@@ -130,12 +131,12 @@ public class AudienceResolver {
         }
 
         @Override
-        public void sendMessage(final Component component) {
+        public void sendMessage(final @NonNull Component component) {
             sender.sendMessage(Utilities.LEGACY_SERIALIZER.serialize(component));
         }
 
         @Override
-        public void sendActionBar(final Component component) {
+        public void sendActionBar(final @NonNull Component component) {
             sendMessage(component);
         }
 
@@ -159,13 +160,14 @@ public class AudienceResolver {
         }
 
         @Override
-        public void sendActionBar(final Component component) {
+        public void sendActionBar(final @NonNull Component component) {
             this.player().spigot().sendMessage(ChatMessageType.ACTION_BAR, Utilities.toBungee(component));
         }
 
         @Override
         public void showTitle(final Title title) {
             final Title.Times times = title.times() == null ? Title.DEFAULT_TIMES : title.times();
+            assert times != null;
             this.player().sendTitle(
                     Utilities.LEGACY_SERIALIZER.serialize(title.title()),
                     Utilities.LEGACY_SERIALIZER.serialize(title.subtitle()),
@@ -176,7 +178,7 @@ public class AudienceResolver {
         }
 
         @Override
-        public void showBossBar(final BossBar bar) {
+        public void showBossBar(final @NonNull BossBar bar) {
             final org.bukkit.boss.BossBar bukkitBar = activeBossBars.computeIfAbsent(bar, this::createBossBar);
             final Player player = player();
             if (!bukkitBar.getPlayers().contains(player)) {
@@ -186,7 +188,7 @@ public class AudienceResolver {
         }
 
         @Override
-        public void hideBossBar(final BossBar bar) {
+        public void hideBossBar(final @NonNull BossBar bar) {
             final org.bukkit.boss.BossBar bukkitBar = activeBossBars.remove(bar);
             if (bukkitBar == null) {
                 return;
@@ -217,27 +219,27 @@ public class AudienceResolver {
 
             final BossBar.Listener listener = new BossBar.Listener() {
                 @Override
-                public void bossBarNameChanged(final BossBar changedBar, final Component oldName, final Component newName) {
+                public void bossBarNameChanged(final @NonNull BossBar changedBar, final @NonNull Component oldName, final Component newName) {
                     bukkitBar.setTitle(Utilities.LEGACY_SERIALIZER.serialize(newName));
                 }
 
                 @Override
-                public void bossBarProgressChanged(final BossBar changedBar, final float oldProgress, final float newProgress) {
+                public void bossBarProgressChanged(final @NonNull BossBar changedBar, final float oldProgress, final float newProgress) {
                     bukkitBar.setProgress(newProgress);
                 }
 
                 @Override
-                public void bossBarColorChanged(final BossBar changedBar, final BossBar.Color oldColor, final BossBar.Color newColor) {
+                public void bossBarColorChanged(final @NonNull BossBar changedBar, final BossBar.@NonNull Color oldColor, final BossBar.Color newColor) {
                     bukkitBar.setColor(mapColor(newColor));
                 }
 
                 @Override
-                public void bossBarOverlayChanged(final BossBar changedBar, final BossBar.Overlay oldOverlay, final BossBar.Overlay newOverlay) {
+                public void bossBarOverlayChanged(final @NonNull BossBar changedBar, final BossBar.@NonNull Overlay oldOverlay, final BossBar.@NonNull Overlay newOverlay) {
                     bukkitBar.setStyle(mapStyle(newOverlay));
                 }
 
                 @Override
-                public void bossBarFlagsChanged(final BossBar changedBar, final Set<BossBar.Flag> added, final Set<BossBar.Flag> removed) {
+                public void bossBarFlagsChanged(final BossBar changedBar, final @NonNull Set<BossBar.Flag> added, final @NonNull Set<BossBar.Flag> removed) {
                     applyFlags(bukkitBar, changedBar.flags());
                 }
             };
