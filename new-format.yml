@@ -1,0 +1,174 @@
+custom-placeholder:
+
+  ##########################################################################################
+
+  string:
+    type: string
+    value: "This is a custom string placeholder"
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> returns the value
+  # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> returns the value
+
+  # - <placeholder:{placeholder_name}> -> returns the value
+  # - <placeholder:{placeholder_name}:{arg-1}:{arg-2}> -> returns the value with args
+
+  ##########################################################################################
+
+  color:
+    type: color
+    value: "#RRGGBB" # black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple, gold, gray, dark_gray, blue, green, aqua, red, light_purple, yellow, or white.
+    bold: false
+    underlined: false
+    italic: false
+    strikethrough: false
+    obfuscated: false
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> returns the value in MiniMessage format (e.g., <red> for red)
+  # - %itsmyconfig_{placeholder_name}_legacy% -> returns the value in legacy format (e.g., &c for red)
+  # - %itsmyconfig_{placeholder_name}_l% -> returns the value in legacy format (shortcut)
+  # - %itsmyconfig_{placeholder_name}_console% -> returns the value in console format (e.g., §c for red)
+  # - %itsmyconfig_{placeholder_name}_c% -> returns the value in console format (shortcut)
+  # - %itsmyconfig_{placeholder_name}_mini% -> returns the value in MiniMessage format (shortcut)
+  # - %itsmyconfig_{placeholder_name}_mini:{text}% -> returns the value in MiniMessage format with {text} substituted into the value
+
+  # - <placeholder:{placeholder_name}> -> MiniMessage tag you can open and close around text (e.g., <placeholder:example-color>Text</placeholder>)
+  # - <p:{placeholder_name}> -> MiniMessage tag shortcut (e.g., <p:example-color>Text</p>)
+
+  ##########################################################################################
+
+  animation:
+    type: animation
+    values: # Note, values not value
+      - "Frame 1"
+      - "Frame 2"
+      - "Frame 3"
+    interval: 50 # In ticks
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> returns the value
+  # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> returns the value
+
+  # - <placeholder:{placeholder_name}> -> returns the value
+  # - <placeholder:{placeholder_name}:{arg-1}:{arg-2}> -> returns the value with args
+
+  ##########################################################################################
+
+  # TODO: Add weight ?
+  random:
+    type: random
+    values: # Note, values not value
+      - "Option 1"
+      - "Option 2"
+      - "Option 3"
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> returns the value
+  # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> returns the value
+
+  # - <placeholder:{placeholder_name}> -> returns the value
+  # - <placeholder:{placeholder_name}:{arg-1}:{arg-2}> -> returns the value with args
+
+  ##########################################################################################
+
+  colored_text:
+    type: colored_text
+    value: '<bold><yellow>Example Colored Text'
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> returns the value in MiniMessage format
+  # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> returns the value in MiniMessage format
+  # - %itsmyconfig_{placeholder_name}_legacy% -> returns the value in legacy format
+  # - %itsmyconfig_{placeholder_name}_legacy:{arg-1}:{arg-2}% -> returns the value in legacy format with args
+  # - %itsmyconfig_{placeholder_name}_l% -> returns the value in legacy format (shortcut)
+  # - %itsmyconfig_{placeholder_name}_l:{arg-1}:{arg-2}% -> returns the value in legacy format with args (shortcut)
+  # - %itsmyconfig_{placeholder_name}_console% -> returns the value in console format
+  # - %itsmyconfig_{placeholder_name}_console:{arg-1}:{arg-2}% -> returns the value in console format with args
+  # - %itsmyconfig_{placeholder_name}_c% -> returns the value in console format (shortcut)
+  # - %itsmyconfig_{placeholder_name}_c:{arg-1}:{arg-2}% -> returns the value in console format with args (shortcut)
+  # - %itsmyconfig_{placeholder_name}_mini% -> returns the value in MiniMessage format
+  # - %itsmyconfig_{placeholder_name}_mini:{arg-1}:{arg-2}% -> returns the value in MiniMessage format
+
+  # - <placeholder:{placeholder_name}> -> MiniMessage tag you can open
+
+  ##########################################################################################
+
+  math:
+    type: math
+    value: "(1 + 3) * 3"
+    rounding: HALF_UP # Supported value: HALF_UP, HALF_DOWN, HALF_EVEN, UP, DOWN, CEILING, FLOOR. Optional
+    precision: 1 # Number of decimal places. Optional
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> Return the result of the math expression.
+  # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> Return the result of the math expression.
+  # - %itsmyconfig_{placeholder_name}_formatted% -> Return the result of the math expression formatted (e.g., 1k instead of 1000).
+  # - %itsmyconfig_{placeholder_name}_formatted:{arg-1}:{arg-2}% -> Return the result of the math expression formatted.
+  # - %itsmyconfig_{placeholder_name}_fixed% -> Return the result of the math expression with a fixed number of decimal places (e.g., 1.0 instead of 1).
+  # - %itsmyconfig_{placeholder_name}_fixed:{arg-1}:{arg-2}% -> Return the result of the math expression with a fixed number of decimal places.
+  # - %itsmyconfig_{placeholder_name}_commas% -> Return the result of the math expression formatted with commas (e.g., 1,000 instead of 1000).
+  # - %itsmyconfig_{placeholder_name}_commas:{arg-1}:{arg-2}% -> Return the result of the math expression formatted with commas
+
+  # - <placeholder:{placeholder_name}> -> Return the result of the math expression.
+  # - <placeholder:{placeholder_name}:{arg-1}:{arg-2}> -> Return the result of the math expression with args.
+  # - <placeholder:{placeholder_name}_formatted> -> Return the result of the math expression formatted.
+  # - <placeholder:{placeholder_name}_formatted:{arg-1}:{arg-2}> -> Return the result of the math expression formatted with args.
+  # - <placeholder:{placeholder_name}_fixed> -> Return the result of the math expression with a fixed number of decimal places.
+  # - <placeholder:{placeholder_name}_fixed:{arg-1}:{arg-2}> -> Return the result of the math expression with a fixed number of decimal places and args.
+  # - <placeholder:{placeholder_name}_commas> -> Return the result of the math expression formatted with commas.
+  # - <placeholder:{placeholder_name}_commas:{arg-1}:{arg-2}> -> Return the result of the math expression formatted with commas and args.
+
+  ##########################################################################################
+
+  list:
+    type: list
+    values:
+      - "Value 1"
+      - "Value 2"
+      - "Value 3"
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}_{index}% -> returns the value at the specified index (starting from 1)
+  # - %itsmyconfig_{placeholder_name}_{index}:{arg-1}:{arg-2}% -> returns the value at the specified index with args
+
+  # - <placeholder:{placeholder_name}_{index}> -> returns the value at the specified index
+  # - <placeholder:{placeholder_name}_{index}:{arg-1}:{arg-2}> -> returns the value at the specified index with args
+
+  ##########################################################################################
+
+  switch:
+    type: switch
+    values:
+      default: "&7Unknown"
+      key1: "Value 1"
+      "test": "Value 2"
+      key3: "Value 3"
+      "": "Value for empty key"
+      "4-10": "Value for range key"
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}:{key}% -> returns the value for the specified key
+  # - %itsmyconfig_{placeholder_name}:{key}:{arg-1}:{arg-2}% -> returns the value for the specified key with args
+
+  # - <placeholder:{placeholder_name}:{key}> -> returns the value for the specified key
+  # - <placeholder:{placeholder_name}:{key}:{arg-1}:{arg-2}> -> returns the value for the specified key with args
+
+  ##########################################################################################
+
+  # TODO: Always put every color inside the returned value, even if nothing after. Allow to make gradients
+  progress_bar:
+    type: progress_bar
+    value: ⦁●⚫●⚫●⚫●⚫●⚫●⚫●⚫●⚫●⚫●⚫●⦁
+    completed-color: '&a'
+    progress-color: '&e'
+    remaining-color: '&7'
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}:{current_value}:{max_value}% -> returns a progress bar with the specified value and max value
+  # - %itsmyconfig_{placeholder_name}:{current_value}:{max_value}:{arg-1}:{arg-2}% -> returns a progress bar with the specified value, max value, and args
+
+  # - <placeholder:{placeholder_name}:{current_value}:{max_value}> -> returns a progress bar with the specified value and max value
+  # - <placeholder:{placeholder_name}:{current_value}:{max_value}:{arg-1}:{arg-2}> -> returns a progress bar with the specified value, max value, and args
+
+##########################################################################################
