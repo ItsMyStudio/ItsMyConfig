@@ -151,7 +151,7 @@ public final class Utilities {
             final OfflinePlayer player,
             final TagResolver... placeholders
     ) {
-        if (player.isOnline()) {
+        if (player != null && player.isOnline()) {
             return translate(text, player.getPlayer(), placeholders);
         }
 
