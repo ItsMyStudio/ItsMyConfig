@@ -1,34 +1,17 @@
 package to.itsme.itsmyconfig.message;
 
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.bossbar.BossBar;
-import net.kyori.adventure.text.Component;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.ComponentLike;
-import net.kyori.adventure.title.Title;
-import net.md_5.bungee.api.ChatMessageType;
-import org.bukkit.Bukkit;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarFlag;
-import org.bukkit.boss.BarStyle;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.context.CommandSource;
 import to.itsme.itsmyconfig.ItsMyConfig;
-import to.itsme.itsmyconfig.util.Utilities;
-import to.itsme.itsmyconfig.util.Versions;
-
-import java.time.Duration;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("all")
 public class AudienceResolver {
 
-    private static final Resolver AUDIENCE_RESOLVER = Versions.IS_PAPER ? new PaperResolver() : new LegacyResolver();
+    private static final Resolver AUDIENCE_RESOLVER = new BukkitResolver();
 
     /**
      * Dummy method to load resolvers onEnable, and just logs it.
@@ -61,7 +44,7 @@ public class AudienceResolver {
         AUDIENCE_RESOLVER.close();
     }
 
-    public sealed interface Resolver permits LegacyResolver, PaperResolver {
+    public sealed interface Resolver permits BukkitResolver, PaperResolver {
 
         Audience resolve(final CommandSender sender);
 
@@ -73,221 +56,31 @@ public class AudienceResolver {
 
     }
 
+    public static final class BukkitResolver implements Resolver {
+
+        private final BukkitAudiences audiences;
+
+        {
+            audiences = BukkitAudiences.create(ItsMyConfig.getInstance());
+        }
+
+        @Override
+        public Audience resolve(final CommandSender sender) {
+            return audiences.sender(sender);
+        }
+
+        @Override
+        public void close() {
+            this.audiences.close();
+        }
+
+    }
+
     public static final class PaperResolver implements Resolver {
 
-        private final LegacyResolver fallback = new LegacyResolver();
-
         @Override
         public Audience resolve(final CommandSender sender) {
-            if (sender instanceof Audience audience) {
-                return audience;
-            }
-            return fallback.resolve(sender);
-        }
-
-        @Override
-        public void close() {
-            fallback.close();
-        }
-
-    }
-
-    public static final class LegacyResolver implements Resolver {
-
-        private final Map<UUID, LegacyPlayerAudience> playerAudiences = new ConcurrentHashMap<>();
-        private final LegacySenderAudience consoleAudience = new LegacySenderAudience(Bukkit.getConsoleSender());
-
-        @Override
-        public Audience resolve(final CommandSender sender) {
-            if (sender instanceof Player player) {
-                return playerAudiences.compute(player.getUniqueId(), (uuid, existing) -> {
-                    if (existing == null) {
-                        return new LegacyPlayerAudience(player);
-                    }
-                    existing.sender = player;
-                    return existing;
-                });
-            }
-            if (sender == Bukkit.getConsoleSender()) {
-                return consoleAudience;
-            }
-            return new LegacySenderAudience(sender);
-        }
-
-        @Override
-        public void close() {
-            playerAudiences.values().forEach(LegacyPlayerAudience::close);
-            playerAudiences.clear();
-        }
-
-    }
-
-    private static class LegacySenderAudience implements Audience {
-
-        protected CommandSender sender;
-
-        private LegacySenderAudience(final CommandSender sender) {
-            this.sender = sender;
-        }
-
-        @Override
-        public void sendMessage(final @NonNull Component component) {
-            sender.sendMessage(Utilities.LEGACY_SERIALIZER.serialize(component));
-        }
-
-        @Override
-        public void sendActionBar(final @NonNull Component component) {
-            sendMessage(component);
-        }
-
-        @Override
-        public void showTitle(final Title title) {
-            sendMessage(title.title());
-            if (!Component.empty().equals(title.subtitle())) {
-                sendMessage(title.subtitle());
-            }
-        }
-
-    }
-
-    private static final class LegacyPlayerAudience extends LegacySenderAudience {
-
-        private final Map<BossBar, org.bukkit.boss.BossBar> activeBossBars = new ConcurrentHashMap<>();
-        private final Map<BossBar, BossBar.Listener> listeners = new ConcurrentHashMap<>();
-
-        private LegacyPlayerAudience(final Player sender) {
-            super(sender);
-        }
-
-        @Override
-        public void sendActionBar(final @NonNull Component component) {
-            this.player().spigot().sendMessage(ChatMessageType.ACTION_BAR, Utilities.toBungee(component));
-        }
-
-        @Override
-        public void showTitle(final Title title) {
-            final Title.Times times = title.times() == null ? Title.DEFAULT_TIMES : title.times();
-            assert times != null;
-            this.player().sendTitle(
-                    Utilities.LEGACY_SERIALIZER.serialize(title.title()),
-                    Utilities.LEGACY_SERIALIZER.serialize(title.subtitle()),
-                    ticks(times.fadeIn()),
-                    ticks(times.stay()),
-                    ticks(times.fadeOut())
-            );
-        }
-
-        @Override
-        public void showBossBar(final @NonNull BossBar bar) {
-            final org.bukkit.boss.BossBar bukkitBar = activeBossBars.computeIfAbsent(bar, this::createBossBar);
-            final Player player = player();
-            if (!bukkitBar.getPlayers().contains(player)) {
-                bukkitBar.addPlayer(player);
-            }
-            bukkitBar.setVisible(true);
-        }
-
-        @Override
-        public void hideBossBar(final @NonNull BossBar bar) {
-            final org.bukkit.boss.BossBar bukkitBar = activeBossBars.remove(bar);
-            if (bukkitBar == null) {
-                return;
-            }
-
-            final BossBar.Listener listener = listeners.remove(bar);
-            if (listener != null) {
-                bar.removeListener(listener);
-            }
-
-            bukkitBar.removeAll();
-            bukkitBar.setVisible(false);
-        }
-
-        private Player player() {
-            return (Player) this.sender;
-        }
-
-        private org.bukkit.boss.BossBar createBossBar(final BossBar bar) {
-            final org.bukkit.boss.BossBar bukkitBar = Bukkit.createBossBar(
-                    Utilities.LEGACY_SERIALIZER.serialize(bar.name()),
-                    mapColor(bar.color()),
-                    mapStyle(bar.overlay())
-            );
-
-            bukkitBar.setProgress(bar.progress());
-            applyFlags(bukkitBar, bar.flags());
-
-            final BossBar.Listener listener = new BossBar.Listener() {
-                @Override
-                public void bossBarNameChanged(final @NonNull BossBar changedBar, final @NonNull Component oldName, final Component newName) {
-                    bukkitBar.setTitle(Utilities.LEGACY_SERIALIZER.serialize(newName));
-                }
-
-                @Override
-                public void bossBarProgressChanged(final @NonNull BossBar changedBar, final float oldProgress, final float newProgress) {
-                    bukkitBar.setProgress(newProgress);
-                }
-
-                @Override
-                public void bossBarColorChanged(final @NonNull BossBar changedBar, final BossBar.@NonNull Color oldColor, final BossBar.Color newColor) {
-                    bukkitBar.setColor(mapColor(newColor));
-                }
-
-                @Override
-                public void bossBarOverlayChanged(final @NonNull BossBar changedBar, final BossBar.@NonNull Overlay oldOverlay, final BossBar.@NonNull Overlay newOverlay) {
-                    bukkitBar.setStyle(mapStyle(newOverlay));
-                }
-
-                @Override
-                public void bossBarFlagsChanged(final BossBar changedBar, final @NonNull Set<BossBar.Flag> added, final @NonNull Set<BossBar.Flag> removed) {
-                    applyFlags(bukkitBar, changedBar.flags());
-                }
-            };
-
-            bar.addListener(listener);
-            listeners.put(bar, listener);
-            return bukkitBar;
-        }
-
-        private void close() {
-            for (final BossBar bar : Set.copyOf(activeBossBars.keySet())) {
-                hideBossBar(bar);
-            }
-        }
-
-        private static int ticks(final Duration duration) {
-            return Math.max(0, (int) (duration.toMillis() / 50L));
-        }
-
-        private static BarColor mapColor(final BossBar.Color color) {
-            return BarColor.valueOf(color.name());
-        }
-
-        private static BarStyle mapStyle(final BossBar.Overlay overlay) {
-            return switch (overlay) {
-                case PROGRESS -> BarStyle.SOLID;
-                case NOTCHED_6 -> BarStyle.SEGMENTED_6;
-                case NOTCHED_10 -> BarStyle.SEGMENTED_10;
-                case NOTCHED_12 -> BarStyle.SEGMENTED_12;
-                case NOTCHED_20 -> BarStyle.SEGMENTED_20;
-            };
-        }
-
-        private static void applyFlags(final org.bukkit.boss.BossBar bukkitBar, final Set<BossBar.Flag> flags) {
-            for (final BarFlag flag : BarFlag.values()) {
-                bukkitBar.removeFlag(flag);
-            }
-            for (final BossBar.Flag flag : flags) {
-                bukkitBar.addFlag(mapFlag(flag));
-            }
-        }
-
-        private static BarFlag mapFlag(final BossBar.Flag flag) {
-            return switch (flag) {
-                case DARKEN_SCREEN -> BarFlag.DARKEN_SKY;
-                case PLAY_BOSS_MUSIC -> BarFlag.PLAY_BOSS_MUSIC;
-                case CREATE_WORLD_FOG -> BarFlag.CREATE_FOG;
-            };
+            return (Audience) sender;
         }
 
     }

@@ -5,14 +5,14 @@ allprojects {
 
     ext {
         kyoriVersion = "5.0.1"
-        kyoriPlatformVersion = "4.4.1"
+        kyoriPlatformVersion = "1.0.1"
 
         kyori = { String module ->
             return "net.kyori:adventure-" + module + ":" + kyoriVersion
         }
 
         kyoriPlatform = { String module ->
-            return "net.kyori:adventure-" + module + ":" + kyoriPlatformVersion
+            return "studio.mevera.adventure:adventure-" + module + ":" + kyoriPlatformVersion
         }
 
         KyoriModule = [

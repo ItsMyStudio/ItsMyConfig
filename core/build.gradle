@@ -41,6 +41,10 @@ repositories {
         name = "jitpack"
         url = "https://jitpack.io"
     }
+    maven {
+        name = "gravemc"
+        url = "https://repo.gravemc.net/releases/"
+    }
 }
 
 def imperatVersion = "4.0.0-SNAPSHOT"
@@ -53,6 +57,9 @@ dependencies {
     implementation "${kyori(KyoriModule.GSON_SERIALIZER)}"
     implementation "${kyori(KyoriModule.LEGACY_SERIALIZER)}"
     implementation "${kyori(KyoriModule.LEGACY_SERIALIZER_IMPL)}"
+
+    implementation "${kyoriPlatform(KyoriModule.BUKKIT)}"
+    implementation "${kyoriPlatform(KyoriModule.BUNGEE_SERIALIZER)}"
 
     // imperat ->
     implementation "studio.mevera:imperat-core:${imperatVersion}"
