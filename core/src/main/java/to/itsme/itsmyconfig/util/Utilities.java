@@ -42,11 +42,7 @@ public final class Utilities {
     public static final MiniMessage MM, EMPTY_MM;
     public static final GsonComponentSerializer GSON_SERIALIZER = BukkitComponentSerializer.gson();
     public static final BungeeComponentSerializer BUNGEE_SERIALIZER = BungeeComponentSerializer.get();
-    public static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.builder()
-            .character(ChatColor.COLOR_CHAR)
-            .hexColors()
-            .useUnusualXRepeatedCharacterHexFormat()
-            .build();
+    public static final LegacyComponentSerializer LEGACY_SERIALIZER = BukkitComponentSerializer.legacy();
 
     private static final TagResolver FONT_RESOLVER;
     private static final Field TEXT_COMPONENT_CONTENT;
