@@ -14,6 +14,9 @@ import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Utilities;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * DynamicPlaceHolder class is a PlaceholderExpansion that handles dynamic placeholders for the ItsMyConfig plugin.
  * It provides methods for handling various types of placeholders, such as fonts, progress bars, and custom placeholders.
@@ -39,6 +42,14 @@ public final class PAPIHook extends PlaceholderExpansion {
      */
     public static final String PLACEHOLDER_NOT_FOUND_MSG = "Placeholder not found";
     private final String identifier;
+
+    private static final Map<String, CachedResult> CACHE = new HashMap<>();
+
+    private record CachedResult(String name, int length) {}
+
+    public static void clearCache() {
+        CACHE.clear();
+    }
 
     /**
      * DynamicPlaceHolder is a class that represents a dynamic placeholder for a placeholder expansion.
@@ -204,61 +215,70 @@ public final class PAPIHook extends PlaceholderExpansion {
      * @param player      The player object.
      * @return The formatted string.
      */
-    private String handlePlaceholder(
-            final String[] params,
-            final Player player
-    ) {
-        final Placeholder placeholder = plugin.getPlaceholderManager().get(params[0]);
-        if (placeholder == null) {
-            return PLACEHOLDER_NOT_FOUND_MSG;
+    private String handlePlaceholder(final String[] params, final Player player) {
+        final String joined = String.join("_", params);
+        final CachedResult cached = CACHE.get(joined);
+
+        int nameLength = 0;
+        Placeholder placeholder = null;
+
+        if (cached != null) {
+            placeholder = plugin.getPlaceholderManager().get(cached.name());
+            if (placeholder != null) {
+                nameLength = cached.length();
+            } else {
+                CACHE.remove(joined);
+            }
         }
 
-        if (params.length == 1) {
+        if (placeholder == null) {
+            for (int i = params.length; i > 0; i--) {
+                final StringBuilder candidateBuilder = new StringBuilder(params[0]);
+                for (int j = 1; j < i; j++) {
+                    candidateBuilder.append("_").append(params[j]);
+                }
+                final String candidate = candidateBuilder.toString();
+                if (plugin.getPlaceholderManager().has(candidate)) {
+                    nameLength = i;
+                    placeholder = plugin.getPlaceholderManager().get(candidate);
+                    CACHE.put(joined, new CachedResult(candidate, nameLength));
+                    break;
+                }
+            }
+
+            if (placeholder == null) {
+                return PLACEHOLDER_NOT_FOUND_MSG;
+            }
+        }
+
+        final int remaining = params.length - nameLength;
+
+        if (remaining == 0) {
             return placeholder.asString(player, new String[0]);
         }
 
-        final String firstParam = params[1];
-        if (params.length == 2) {
-            return placeholder.asString(player, firstParam.split("::"));
+        final String firstArg = params[nameLength];
+        if (remaining == 1) {
+            return placeholder.asString(player, firstArg.split("::"));
         }
 
-        final StringBuilder builder = new StringBuilder();
-        builder.append(firstParam);
-
         final PlaceholderType type = placeholder.getType();
+        final StringBuilder builder = new StringBuilder(firstArg);
+
         switch (type) {
             case COLOR:
             case COLORED_TEXT:
-                switch (firstParam.toLowerCase()) {
-                    case "m":
-                    case "l":
-                    case "c":
-                    case "mini":
-                    case "legacy":
-                    case "console":
-                        builder.append("::");
-                        break;
-                    default:
-                        builder.append("_");
-                        break;
+                switch (firstArg.toLowerCase()) {
+                    case "m", "mini", "l", "legacy", "c", "console" -> builder.append("::");
+                    default -> builder.append("_");
                 }
                 break;
             case MATH:
-                final String lower = firstParam.toLowerCase();
-                if (lower.endsWith("dp")) {
+                final String lower = firstArg.toLowerCase();
+                if (lower.endsWith("dp") || lower.equals("commas") || lower.equals("fixed") || lower.equals("formatted")) {
                     builder.append("::");
-                    break;
                 } else {
-                    switch (lower) {
-                        case "commas":
-                        case "fixed":
-                        case "formatted":
-                            builder.append("::");
-                            break;
-                        default:
-                            builder.append("_");
-                            break;
-                    }
+                    builder.append("_");
                 }
                 break;
             default:
@@ -266,7 +286,7 @@ public final class PAPIHook extends PlaceholderExpansion {
                 break;
         }
 
-        for (int i = 2; i < params.length; i++) {
+        for (int i = nameLength + 1; i < params.length; i++) {
             builder.append(params[i]);
             if (i < params.length - 1) {
                 builder.append("_");
