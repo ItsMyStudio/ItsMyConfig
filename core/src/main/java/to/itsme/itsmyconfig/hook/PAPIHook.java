@@ -147,8 +147,12 @@ public final class PAPIHook extends PlaceholderExpansion {
                 return ILLEGAL_NUMBER_FORMAT_MSG;
             }
         } else if ("smallcaps".equals(fontType)) {
-            String message = splitParams[2].toLowerCase();
-            return MappedFont.SMALL_CAPS.apply(message);
+            final StringBuilder messageBuilder = new StringBuilder();
+            for (int i = 2; i < splitParams.length; i++) {
+                if (i > 2) messageBuilder.append("_");
+                messageBuilder.append(splitParams[i]);
+            }
+            return MappedFont.SMALL_CAPS.apply(messageBuilder.toString().toLowerCase());
         }
         return "ERROR";
     }
