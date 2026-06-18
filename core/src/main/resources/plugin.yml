@@ -9,3 +9,7 @@ depend:
   - PlaceholderAPI
 softdepend:
   - ProtocolLib
+# register channel before server's packetevents
+# so plugins like Typewriter read the packet post-modification
+loadbefore:
+  - packetevents
