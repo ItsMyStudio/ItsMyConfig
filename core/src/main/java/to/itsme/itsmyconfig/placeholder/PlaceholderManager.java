@@ -16,6 +16,7 @@ public final class PlaceholderManager {
      * Placeholders are used to represent dynamic values that can be replaced in messages or text.
      */
     private final Map<String, Placeholder> placeholders = Collections.synchronizedMap(new LinkedHashMap<>());
+    private final Map<String, CompiledPlaceholder> compiledPlaceholders = Collections.synchronizedMap(new LinkedHashMap<>());
 
     /**
      * Registers a placeholder with the provided key and value.
@@ -25,6 +26,7 @@ public final class PlaceholderManager {
      */
     public void register(final String key, final Placeholder value) {
         this.placeholders.put(key, value);
+        this.rebuildCompiledPlaceholders();
     }
 
     /**
@@ -32,6 +34,7 @@ public final class PlaceholderManager {
      */
     public void unregisterAll() {
         this.placeholders.clear();
+        this.compiledPlaceholders.clear();
     }
 
     /**
@@ -41,6 +44,7 @@ public final class PlaceholderManager {
      */
     public void unregister(final String key) {
         this.placeholders.remove(key);
+        this.rebuildCompiledPlaceholders();
     }
 
     /**
@@ -53,6 +57,10 @@ public final class PlaceholderManager {
         return this.placeholders.containsKey(key);
     }
 
+    public boolean hasCompiled(final String key) {
+        return this.compiledPlaceholders.containsKey(key);
+    }
+
     /**
      * Retrieves the placeholder data object associated with the given key.
      *
@@ -61,6 +69,10 @@ public final class PlaceholderManager {
      */
     public Placeholder get(final String key) {
         return this.placeholders.get(key);
+    }
+
+    public CompiledPlaceholder getCompiled(final String key) {
+        return this.compiledPlaceholders.get(key);
     }
 
     /**
@@ -79,5 +91,48 @@ public final class PlaceholderManager {
      */
     public Set<String> getPlaceholderKeys() {
         return placeholders.keySet();
+    }
+
+    private void rebuildCompiledPlaceholders() {
+        this.compiledPlaceholders.clear();
+        for (final Map.Entry<String, Placeholder> entry : this.placeholders.entrySet()) {
+            this.compile(entry.getKey(), entry.getValue());
+        }
+    }
+
+    private void compile(final String key, final Placeholder placeholder) {
+        this.compiledPlaceholders.put(key, new CompiledPlaceholder(placeholder, placeholder::asString));
+
+        switch (placeholder.getType()) {
+            case COLOR, COLORED_TEXT:
+                this.compileVariant(key, placeholder, "legacy", placeholder::asLegacyString);
+                this.compileVariant(key, placeholder, "l", placeholder::asLegacyString);
+                this.compileVariant(key, placeholder, "console", placeholder::asConsoleString);
+                this.compileVariant(key, placeholder, "c", placeholder::asConsoleString);
+                this.compileVariant(key, placeholder, "mini", placeholder::asMiniString);
+                this.compileVariant(key, placeholder, "m", placeholder::asMiniString);
+                this.compileVariant(key, placeholder, "raw", placeholder::asRawString);
+                this.compileVariant(key, placeholder, "r", placeholder::asRawString);
+                break;
+            case MATH:
+                this.compileVariant(key, placeholder, "commas", placeholder::asCommasString);
+                this.compileVariant(key, placeholder, "fixed", placeholder::asFixedString);
+                this.compileVariant(key, placeholder, "formatted", placeholder::asFormattedString);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void compileVariant(
+            final String key,
+            final Placeholder placeholder,
+            final String variant,
+            final PlaceholderCaller caller
+    ) {
+        final String compiledKey = key + "_" + variant;
+        if (!this.compiledPlaceholders.containsKey(compiledKey)) {
+            this.compiledPlaceholders.put(compiledKey, new CompiledPlaceholder(placeholder, caller));
+        }
     }
 }

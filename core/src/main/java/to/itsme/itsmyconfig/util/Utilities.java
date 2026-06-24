@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.font.Font;
 import to.itsme.itsmyconfig.font.FontTag;
-import to.itsme.itsmyconfig.placeholder.Placeholder;
+import to.itsme.itsmyconfig.placeholder.CompiledPlaceholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.type.ColorPlaceholder;
 import to.itsme.itsmyconfig.tag.TagManager;
@@ -183,12 +183,12 @@ public final class Utilities {
             }
 
             final String name = argumentQueue.popOr("").value();
-            final Placeholder data = plugin.getPlaceholderManager().get(name);
-            if (data == null) {
+            final CompiledPlaceholder compiled = plugin.getPlaceholderManager().getCompiled(name);
+            if (compiled == null) {
                 return Tag.preProcessParsed("Unknown Placeholder");
             }
 
-            if (data instanceof ColorPlaceholder colorPlaceholder) {
+            if (plugin.getPlaceholderManager().get(name) instanceof ColorPlaceholder colorPlaceholder) {
                 return colorPlaceholder.getStyle();
             }
 
@@ -197,11 +197,11 @@ public final class Utilities {
                 args.add(argumentQueue.pop().value());
             }
 
-            if (!data.hasDependency(PlaceholderDependancy.NONE)) {
+            if (!compiled.placeholder().hasDependency(PlaceholderDependancy.NONE)) {
                 return Tag.preProcessParsed("");
             }
 
-            final String parsed = data.asString(args.toArray(new String[0]));
+            final String parsed = compiled.caller().call(null, args.toArray(new String[0]));
             return Tag.preProcessParsed((parsed == null ? "" : parsed).replace("§", "&"));
         });
     }
@@ -219,12 +219,12 @@ public final class Utilities {
             }
 
             final String name = argumentQueue.popOr("").value();
-            final Placeholder data = plugin.getPlaceholderManager().get(name);
-            if (data == null) {
+            final CompiledPlaceholder compiled = plugin.getPlaceholderManager().getCompiled(name);
+            if (compiled == null) {
                 return Tag.preProcessParsed("Unknown Placeholder");
             }
 
-            if (data instanceof ColorPlaceholder colorPlaceholder) {
+            if (plugin.getPlaceholderManager().get(name) instanceof ColorPlaceholder colorPlaceholder) {
                 return colorPlaceholder.getStyle();
             }
 
@@ -233,7 +233,7 @@ public final class Utilities {
                 args.add(argumentQueue.pop().value());
             }
 
-            final String parsed = data.asString(player, args.toArray(new String[0]));
+            final String parsed = compiled.caller().call(player, args.toArray(new String[0]));
             return Tag.preProcessParsed((parsed == null ? "" : parsed).replace("§", "&"));
         });
     }

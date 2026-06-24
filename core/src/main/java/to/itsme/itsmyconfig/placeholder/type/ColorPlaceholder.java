@@ -8,7 +8,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
-import to.itsme.itsmyconfig.placeholder.PlaceholderVariant;
 import to.itsme.itsmyconfig.util.Strings;
 
 import java.util.*;
@@ -166,29 +165,44 @@ public final class ColorPlaceholder extends Placeholder {
             return this.nameValue;
         }
 
-        switch (PlaceholderVariant.find(params[0])) {
-            case LEGACY:
-                return this.legacyString;
-            case CONSOLE:
-                return this.consoleString;
-            case MINI:
-                final String prefix = "<" + this.value + ">" + propertiesMiniPrefix;
-                if (params.length > 1) {
-                    final String suffix = "</" + this.value + ">" + propertiesMiniSuffix;
-                    final StringBuilder result = new StringBuilder(prefix);
-                    for (int i = 1; i < params.length; i++) {
-                        result.append(params[i]);
-                        if (i != params.length - 1) {
-                            result.append(" ");
-                        }
-                    }
-                    return result.append(suffix).toString();
-                }
-                return prefix;
-            case RAW:
-                return this.value;
-        }
         return this.value;
+    }
+
+    @Override
+    protected String getLegacyResult(final OfflinePlayer player, final String[] args) {
+        return this.invalid ? "" : this.legacyString;
+    }
+
+    @Override
+    protected String getConsoleResult(final OfflinePlayer player, final String[] args) {
+        return this.invalid ? "" : this.consoleString;
+    }
+
+    @Override
+    protected String getMiniResult(final OfflinePlayer player, final String[] args) {
+        if (this.invalid) {
+            return "";
+        }
+
+        final String prefix = "<" + this.value + ">" + propertiesMiniPrefix;
+        if (args.length == 0) {
+            return prefix;
+        }
+
+        final String suffix = "</" + this.value + ">" + propertiesMiniSuffix;
+        final StringBuilder result = new StringBuilder(prefix);
+        for (int i = 0; i < args.length; i++) {
+            result.append(args[i]);
+            if (i != args.length - 1) {
+                result.append(" ");
+            }
+        }
+        return result.append(suffix).toString();
+    }
+
+    @Override
+    protected String getRawResult(final OfflinePlayer player, final String[] args) {
+        return this.invalid ? "" : this.value;
     }
 
     /**

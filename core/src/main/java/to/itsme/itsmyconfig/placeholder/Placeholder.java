@@ -145,6 +145,59 @@ public abstract class Placeholder {
         return result;
     }
 
+    public String asLegacyString(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, args, this::getLegacyResult);
+    }
+
+    public String asConsoleString(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, args, this::getConsoleResult);
+    }
+
+    public String asMiniString(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, args, this::getMiniResult);
+    }
+
+    public String asRawString(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, args, this::getRawResult);
+    }
+
+    public String asCommasString(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, args, this::getCommasResult);
+    }
+
+    public String asFixedString(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, args, this::getFixedResult);
+    }
+
+    public String asFormattedString(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, args, this::getFormattedResult);
+    }
+
+    private String asVariantString(
+            final OfflinePlayer player,
+            final String[] args,
+            final PlaceholderResultGetter getter
+    ) {
+        final String deny = getColorTranslatedMessage(player, args);
+        if (deny != null) {
+            return deny;
+        }
+
+        final String result;
+        if (player != null && player.isOnline()) {
+            result = PlaceholderAPI.setPlaceholders(player.getPlayer(), getter.get(player.getPlayer(), args));
+        } else {
+            result = PlaceholderAPI.setPlaceholders(player, getter.get(player, args));
+        }
+
+        return result;
+    }
+
+    @FunctionalInterface
+    private interface PlaceholderResultGetter {
+        String get(OfflinePlayer player, String[] args);
+    }
+
     /**
      * Translates a color-coded message using the given player and arguments,
      * using the deny message obtained from the plugin's requirement manager.
@@ -188,6 +241,34 @@ public abstract class Placeholder {
      */
     public String getResult(final OfflinePlayer player, final String[] args)  {
         throw new RuntimeException("Placeholder " + this.type.name() + " does not accept OfflinePlayer");
+    }
+
+    protected String getLegacyResult(final OfflinePlayer player, final String[] args) {
+        return this.getResult(player, args);
+    }
+
+    protected String getConsoleResult(final OfflinePlayer player, final String[] args) {
+        return this.getResult(player, args);
+    }
+
+    protected String getMiniResult(final OfflinePlayer player, final String[] args) {
+        return this.getResult(player, args);
+    }
+
+    protected String getRawResult(final OfflinePlayer player, final String[] args) {
+        return this.getResult(player, args);
+    }
+
+    protected String getCommasResult(final OfflinePlayer player, final String[] args) {
+        return this.getResult(player, args);
+    }
+
+    protected String getFixedResult(final OfflinePlayer player, final String[] args) {
+        return this.getResult(player, args);
+    }
+
+    protected String getFormattedResult(final OfflinePlayer player, final String[] args) {
+        return this.getResult(player, args);
     }
 
     /**

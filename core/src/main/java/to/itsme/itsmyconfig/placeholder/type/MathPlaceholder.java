@@ -14,7 +14,9 @@ import to.itsme.itsmyconfig.util.Utilities;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
 public final class MathPlaceholder extends Placeholder {
 
@@ -66,42 +68,55 @@ public final class MathPlaceholder extends Placeholder {
             final OfflinePlayer player,
             final String[] args
     ) {
-        final boolean prefixed = this.isPrefixed(args);
-        final int providedArgs = prefixed ? args.length - 1 : args.length;
-        if (providedArgs < variablesRequired) {
-            return String.format("Invalid variable count, provided: %d, required: %d", providedArgs, variablesRequired);
+        final Double result = this.evaluate(args);
+        if (result == null) {
+            return this.invalidResult(args);
         }
-
-        final double[] vals = this.convertArray(args, variablesRequired, prefixed);
-        if (vals == null) {
-            return "One of the arguments is an invalid number";
-        }
-
-        final double result = expression.evaluate(vals);
-        if (prefixed) {
-            final String prefix = args[0];
-            if (prefix.endsWith("dp")) {
-                try {
-                    final double nearest = Double.parseDouble(prefix.substring(0, prefix.length() - 2));
-                    return String.valueOf(Math.round(result / nearest));
-                } catch (final Throwable ignored) { return "Invalid DP calculation"; }
-            } else switch (prefix) {
-                case "commas":
-                    return COMMAS_FORMAT.format(result);
-                case "fixed":
-                    return FIXED_FORMAT.format(result);
-                case "formatted":
-                    return formatNumber((long) result);
-            }
-        }
-
         return new BigDecimal(result).setScale(this.precision, this.mode).stripTrailingZeros().toPlainString();
     }
 
-    public double[] convertArray(final String[] args, final int limit, final boolean prefixed) {
+    @Override
+    protected String getCommasResult(final OfflinePlayer player, final String[] args) {
+        final Double result = this.evaluate(args);
+        return result == null ? this.invalidResult(args) : COMMAS_FORMAT.format(result);
+    }
+
+    @Override
+    protected String getFixedResult(final OfflinePlayer player, final String[] args) {
+        final Double result = this.evaluate(args);
+        return result == null ? this.invalidResult(args) : FIXED_FORMAT.format(result);
+    }
+
+    @Override
+    protected String getFormattedResult(final OfflinePlayer player, final String[] args) {
+        final Double result = this.evaluate(args);
+        return result == null ? this.invalidResult(args) : formatNumber(result.longValue());
+    }
+
+    private Double evaluate(final String[] args) {
+        if (args.length < variablesRequired) {
+            return null;
+        }
+
+        final double[] vals = this.convertArray(args, variablesRequired);
+        if (vals == null) {
+            return null;
+        }
+
+        return expression.evaluate(vals);
+    }
+
+    private String invalidResult(final String[] args) {
+        if (args.length < variablesRequired) {
+            return String.format("Invalid variable count, provided: %d, required: %d", args.length, variablesRequired);
+        }
+        return "One of the arguments is an invalid number";
+    }
+
+    public double[] convertArray(final String[] args, final int limit) {
         final double[] doubleArgs = new double[limit];
         for (int i = 0; i < limit; i++) {
-            final String arg = args[prefixed ? i + 1 : i];
+            final String arg = args[i];
             try {
                 doubleArgs[i] = Double.parseDouble(arg);
             } catch (final NumberFormatException e) {
@@ -132,20 +147,6 @@ public final class MathPlaceholder extends Placeholder {
         final long truncated = balance / (divideBy / 10);
         boolean hasDecimal = truncated < 100 && (truncated / 10d) != (truncated / 10);
         return hasDecimal ? (truncated / 10d) + suffix : (truncated / 10) + suffix;
-    }
-
-    private boolean isPrefixed(final String[] args) {
-        if (args.length == 0) return false;
-
-        final String arg = args[0].toLowerCase(Locale.ENGLISH);
-        if (arg.endsWith("dp")) {
-            return true;
-        }
-
-        return switch (arg) {
-            case "commas", "fixed", "formatted" -> true;
-            default -> false;
-        };
     }
 
 }
