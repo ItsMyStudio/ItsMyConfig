@@ -42,7 +42,9 @@ public final class ConditionalPlaceholder extends Placeholder {
             this.conditions.add(condition);
             this.registerArguments(condition.input());
             this.registerArguments(condition.output());
-            this.registerArguments(condition.falseValue());
+            if (condition.falseValue() != null) {
+                this.registerArguments(condition.falseValue());
+            }
         }
     }
 
@@ -80,7 +82,15 @@ public final class ConditionalPlaceholder extends Placeholder {
         }
 
         private static String nullableValue(final Map<?, ?> map, final String key) {
-            final Object value = map.get(key);
+            Object value = map.get(key);
+            if (value == null) {
+                for (final Map.Entry<?, ?> entry : map.entrySet()) {
+                    if (entry.getKey() != null && entry.getKey().toString().equals(key)) {
+                        value = entry.getValue();
+                        break;
+                    }
+                }
+            }
             return value == null ? null : String.valueOf(value);
         }
 
