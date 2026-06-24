@@ -8,6 +8,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
+import to.itsme.itsmyconfig.placeholder.PlaceholderVariant;
 import to.itsme.itsmyconfig.util.Strings;
 
 import java.util.*;
@@ -161,18 +162,16 @@ public final class ColorPlaceholder extends Placeholder {
             return this.value + this.properties;
         }
 
-        final String firstArg = params[0].toLowerCase(Locale.ROOT);
-        switch (firstArg) {
-            case "closestname":
-                return this.nameValue;
-            case "l":
-            case "legacy":
+        if ("closestname".equals(params[0].toLowerCase(Locale.ROOT))) {
+            return this.nameValue;
+        }
+
+        switch (PlaceholderVariant.find(params[0])) {
+            case LEGACY:
                 return this.legacyString;
-            case "c":
-            case "console":
+            case CONSOLE:
                 return this.consoleString;
-            case "m":
-            case "mini":
+            case MINI:
                 final String prefix = "<" + this.value + ">" + propertiesMiniPrefix;
                 if (params.length > 1) {
                     final String suffix = "</" + this.value + ">" + propertiesMiniSuffix;
@@ -186,6 +185,8 @@ public final class ColorPlaceholder extends Placeholder {
                     return result.append(suffix).toString();
                 }
                 return prefix;
+            case RAW:
+                return this.value;
         }
         return this.value;
     }

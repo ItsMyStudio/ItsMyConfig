@@ -9,6 +9,7 @@ import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.font.MappedFont;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
+import to.itsme.itsmyconfig.placeholder.PlaceholderVariant;
 import to.itsme.itsmyconfig.tag.TagManager;
 import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
@@ -181,30 +182,24 @@ public final class PAPIHook extends PlaceholderExpansion {
         String content = contentBuilder.toString();
         
         // Check if there's a format specification at the end (e.g., _legacy, _mini, _console)
-        String format = "legacy"; // default format
-        String[] formatParts = content.split("_");
+        PlaceholderVariant variant = PlaceholderVariant.LEGACY;
+        final String[] formatParts = content.split("_");
         if (formatParts.length > 0) {
-            String lastPart = formatParts[formatParts.length - 1].toLowerCase();
-            if (lastPart.equals("legacy") || lastPart.equals("mini") || lastPart.equals("console") || 
-                lastPart.equals("l") || lastPart.equals("m") || lastPart.equals("c")) {
-                format = lastPart;
-                // Remove the format part from content
-                content = content.substring(0, content.lastIndexOf("_" + lastPart));
+            final PlaceholderVariant found = PlaceholderVariant.find(formatParts[formatParts.length - 1]);
+            if (found != PlaceholderVariant.RAW) {
+                variant = found;
+                content = content.substring(0, content.lastIndexOf("_" + formatParts[formatParts.length - 1]));
             }
         }
 
         try {
-            // Process tags first
-            String processedContent = TagManager.process(player, content);
-            
-            // Parse with MiniMessage and convert to desired format
-            var component = Utilities.translate(processedContent, player);
-            
-            return switch (format) {
-                case "legacy", "l" -> Utilities.LEGACY_SERIALIZER.serialize(component);
-                case "console", "c" -> Utilities.LEGACY_SERIALIZER.serialize(component);
-                case "mini", "m" -> IMCSerializer.toMiniMessage(component);
-                default -> IMCSerializer.toMiniMessage(component);
+            final String processedContent = TagManager.process(player, content);
+            final var component = Utilities.translate(processedContent, player);
+
+            return switch (variant) {
+                case LEGACY, CONSOLE -> Utilities.LEGACY_SERIALIZER.serialize(component);
+                case MINI -> IMCSerializer.toMiniMessage(component);
+                case RAW -> IMCSerializer.toMiniMessage(component);
             };
             
         } catch (Exception e) {
@@ -272,9 +267,10 @@ public final class PAPIHook extends PlaceholderExpansion {
         switch (type) {
             case COLOR:
             case COLORED_TEXT:
-                switch (firstArg.toLowerCase()) {
-                    case "m", "mini", "l", "legacy", "c", "console" -> builder.append("::");
-                    default -> builder.append("_");
+                if (PlaceholderVariant.find(firstArg) != PlaceholderVariant.RAW) {
+                    builder.append("::");
+                } else {
+                    builder.append("_");
                 }
                 break;
             case MATH:
