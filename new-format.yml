@@ -129,7 +129,7 @@ custom-placeholder:
       - "Value 3"
 
   # Placeholders
-  # - %itsmyconfig_{placeholder_name}_{index}% -> returns the value at the specified index (starting from 1)
+  # - %itsmyconfig_{placeholder_name}_{index}% -> returns the value at the specified index (starting from 0)
   # - %itsmyconfig_{placeholder_name}_{index}:{arg-1}:{arg-2}% -> returns the value at the specified index with args
 
   # - <placeholder:{placeholder_name}_{index}> -> returns the value at the specified index
