@@ -103,7 +103,10 @@ public final class PlaceholderManager {
         }
 
         this.compiledPlaceholders.keySet().forEach(
-                s -> this.papiPlaceholderKeys.add("%itsmyconfig_" + s + "%")
+                s -> {
+                    this.papiPlaceholderKeys.add("%itsmyconfig_" + s + "%");
+                    this.papiPlaceholderKeys.add("%imc_" + s + "%");
+                }
         );
     }
 
