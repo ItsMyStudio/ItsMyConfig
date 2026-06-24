@@ -18,7 +18,6 @@ import to.itsme.itsmyconfig.placeholder.PlaceholderManager;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
 import to.itsme.itsmyconfig.placeholder.type.*;
 import to.itsme.itsmyconfig.placeholder.type.ProgressbarPlaceholder;
-import to.itsme.itsmyconfig.requirement.RequirementManager;
 import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Versions;
@@ -31,7 +30,7 @@ import java.util.*;
 /**
  * ItsMyConfig class represents the main configuration class for the plugin.
  * It extends the JavaPlugin class and provides methods to manage the plugin configuration.
- * It also holds instances of PlaceholderManager and RequirementManager.
+ * It also holds a PlaceholderManager instance.
  */
 public final class ItsMyConfig extends JavaPlugin {
 
@@ -39,7 +38,6 @@ public final class ItsMyConfig extends JavaPlugin {
     private static ItsMyConfigAPI api;
 
     private final PlaceholderManager placeholderManager = new PlaceholderManager();
-    private final RequirementManager requirementManager = new RequirementManager();
     private FileConfiguration config;
     private String symbolPrefix;
     private boolean debug;
@@ -347,7 +345,6 @@ public final class ItsMyConfig extends JavaPlugin {
     /**
      * Loads custom placeholders from a YAML configuration section.
      * It iterates over each placeholder defined in the section, constructs a corresponding `PlaceholderData` object, and registers it with the `placeholderManager`.
-     * Additionally, it registers any associated requirements for each placeholder.
      *
      * @param section                The YAML configuration section containing placeholder data.
      * @param paths                  A map of registered placeholders to avoid duplicates.
@@ -376,21 +373,7 @@ public final class ItsMyConfig extends JavaPlugin {
                 continue;
             }
 
-            // Use getPlaceholderData to retrieve PlaceholderData
             final Placeholder placeholder = this.getPlaceholder(file.getPath(), placeholderSection);
-
-            // Load requirements if they exist
-            if (placeholderSection.isConfigurationSection("requirements")) {
-                final ConfigurationSection requirementsSection = placeholderSection.getConfigurationSection("requirements");
-                for (final String reqIdentifier : requirementsSection.getKeys(false)) {
-                    final ConfigurationSection reqSection = requirementsSection.getConfigurationSection(reqIdentifier);
-                    if (reqSection != null) {
-                        placeholder.registerRequirement(reqSection);
-                    } else {
-                        getLogger().warning(String.format("Invalid requirement configuration for %s in placeholder %s from file %s", reqIdentifier, identifier, filePath));
-                    }
-                }
-            }
 
             placeholderManager.register(identifier, placeholder);
             paths.computeIfAbsent(identifier, v -> new ArrayList<>()).add(filePath);
@@ -416,6 +399,7 @@ public final class ItsMyConfig extends JavaPlugin {
             case COLOR -> new ColorPlaceholder(filePath, section);
             case COLORED_TEXT -> new ColoredTextPlaceholder(filePath, section);
             case PROGRESS_BAR -> new ProgressbarPlaceholder(filePath, section);
+            case CONDITIONAL -> new ConditionalPlaceholder(filePath, section);
             default -> new StringPlaceholder(filePath, section);
         };
     }
@@ -487,16 +471,6 @@ public final class ItsMyConfig extends JavaPlugin {
      */
     public PlaceholderManager getPlaceholderManager() {
         return this.placeholderManager;
-    }
-
-    /**
-     * Returns the RequirementManager object. The RequirementManager class is responsible for managing requirements
-     * and validating them.
-     *
-     * @return the RequirementManager object
-     */
-    public RequirementManager getRequirementManager() {
-        return this.requirementManager;
     }
 
 }

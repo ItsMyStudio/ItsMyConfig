@@ -6,6 +6,7 @@ import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
+import to.itsme.itsmyconfig.util.Strings;
 
 import java.util.*;
 
@@ -56,7 +57,7 @@ public final class RangePlaceholder extends Placeholder {
         if (cfg == null) {
             this.starts = new long[0];
             this.ends = new long[0];
-            this.values = new String[0];
+            this.values = Strings.EMPTY_STRING_ARRAY;
             return;
         }
 

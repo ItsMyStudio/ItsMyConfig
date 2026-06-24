@@ -14,6 +14,7 @@ public final class Strings {
     public static String incognitoPrefix;
     public static Pattern symbolPrefixPattern;
 
+    public static final String[] EMPTY_STRING_ARRAY = new String[0];
     public static final String DEBUG_HYPHEN = "###############################################";
 
     public static final Pattern LETTERS_PATTERN = Pattern.compile("[A-Za-zÀ-ÿ]");

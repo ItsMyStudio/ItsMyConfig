@@ -127,6 +127,10 @@ public final class MathPlaceholder extends Placeholder {
         return doubleArgs;
     }
 
+    public int variablesRequired() {
+        return this.variablesRequired;
+    }
+
     @SuppressWarnings("all")
     private String formatNumber(long balance) {
         if (balance == Long.MIN_VALUE) {

@@ -1,5 +1,7 @@
 package to.itsme.itsmyconfig.placeholder;
 
+import to.itsme.itsmyconfig.placeholder.type.MathPlaceholder;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -101,38 +103,76 @@ public final class PlaceholderManager {
     }
 
     private void compile(final String key, final Placeholder placeholder) {
-        this.compiledPlaceholders.put(key, new CompiledPlaceholder(placeholder, placeholder::asString));
+        this.compiledPlaceholders.put(key, new CompiledPlaceholder(
+                placeholder,
+                placeholder::asString,
+                this.minArguments(placeholder),
+                this.maxArguments(placeholder)
+        ));
 
         switch (placeholder.getType()) {
-            case COLOR, COLORED_TEXT:
-                this.compileVariant(key, placeholder, "legacy", placeholder::asLegacyString);
-                this.compileVariant(key, placeholder, "l", placeholder::asLegacyString);
-                this.compileVariant(key, placeholder, "console", placeholder::asConsoleString);
-                this.compileVariant(key, placeholder, "c", placeholder::asConsoleString);
-                this.compileVariant(key, placeholder, "mini", placeholder::asMiniString);
-                this.compileVariant(key, placeholder, "m", placeholder::asMiniString);
-                this.compileVariant(key, placeholder, "raw", placeholder::asRawString);
-                this.compileVariant(key, placeholder, "r", placeholder::asRawString);
+            case COLOR:
+                this.compileVariant(key, placeholder, "legacy", placeholder::asLegacyString, 0, 0);
+                this.compileVariant(key, placeholder, "l", placeholder::asLegacyString, 0, 0);
+                this.compileVariant(key, placeholder, "console", placeholder::asConsoleString, 0, 0);
+                this.compileVariant(key, placeholder, "c", placeholder::asConsoleString, 0, 0);
+                this.compileVariant(key, placeholder, "mini", placeholder::asMiniString, 0, 1);
+                this.compileVariant(key, placeholder, "m", placeholder::asMiniString, 0, 1);
+                break;
+            case COLORED_TEXT:
+                this.compileVariant(key, placeholder, "legacy", placeholder::asLegacyString, 0, -1);
+                this.compileVariant(key, placeholder, "l", placeholder::asLegacyString, 0, -1);
+                this.compileVariant(key, placeholder, "console", placeholder::asConsoleString, 0, -1);
+                this.compileVariant(key, placeholder, "c", placeholder::asConsoleString, 0, -1);
+                this.compileVariant(key, placeholder, "mini", placeholder::asMiniString, 0, -1);
+                this.compileVariant(key, placeholder, "m", placeholder::asMiniString, 0, -1);
                 break;
             case MATH:
-                this.compileVariant(key, placeholder, "commas", placeholder::asCommasString);
-                this.compileVariant(key, placeholder, "fixed", placeholder::asFixedString);
-                this.compileVariant(key, placeholder, "formatted", placeholder::asFormattedString);
+                final int required = this.minArguments(placeholder);
+                this.compileVariant(key, placeholder, "commas", placeholder::asCommasString, required, required);
+                this.compileVariant(key, placeholder, "fixed", placeholder::asFixedString, required, required);
+                this.compileVariant(key, placeholder, "formatted", placeholder::asFormattedString, required, required);
                 break;
             default:
                 break;
         }
     }
 
+    private int minArguments(final Placeholder placeholder) {
+        return switch (placeholder.getType()) {
+            case LIST, MAP, RANGE -> 1;
+            case PROGRESS_BAR -> 2;
+            case MATH -> placeholder instanceof MathPlaceholder mathPlaceholder ? mathPlaceholder.variablesRequired() : 0;
+            default -> 0;
+        };
+    }
+
+    private int maxArguments(final Placeholder placeholder) {
+        return switch (placeholder.getType()) {
+            case COLOR -> 0;
+            case PROGRESS_BAR -> 2;
+            case MATH -> placeholder instanceof MathPlaceholder mathPlaceholder ? mathPlaceholder.variablesRequired() : -1;
+            default -> -1;
+        };
+    }
+
     private void compileVariant(
             final String key,
             final Placeholder placeholder,
             final String variant,
-            final PlaceholderCaller caller
+            final PlaceholderCaller caller,
+            final int minArguments,
+            final int maxArguments
     ) {
         final String compiledKey = key + "_" + variant;
         if (!this.compiledPlaceholders.containsKey(compiledKey)) {
-            this.compiledPlaceholders.put(compiledKey, new CompiledPlaceholder(placeholder, caller));
+            this.compiledPlaceholders.put(compiledKey, new CompiledPlaceholder(
+                    placeholder,
+                    caller,
+                    minArguments,
+                    maxArguments
+            ));
         }
     }
+
 }

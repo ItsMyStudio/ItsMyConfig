@@ -201,7 +201,12 @@ public final class Utilities {
                 return Tag.preProcessParsed("");
             }
 
-            final String parsed = compiled.caller().call(null, args.toArray(new String[0]));
+            final String[] parsedArgs = args.toArray(new String[0]);
+            if (!compiled.accepts(parsedArgs.length)) {
+                return Tag.preProcessParsed(compiled.invalidArgumentsMessage(parsedArgs.length));
+            }
+
+            final String parsed = compiled.caller().call(null, parsedArgs);
             return Tag.preProcessParsed((parsed == null ? "" : parsed).replace("§", "&"));
         });
     }
@@ -233,7 +238,12 @@ public final class Utilities {
                 args.add(argumentQueue.pop().value());
             }
 
-            final String parsed = compiled.caller().call(player, args.toArray(new String[0]));
+            final String[] parsedArgs = args.toArray(new String[0]);
+            if (!compiled.accepts(parsedArgs.length)) {
+                return Tag.preProcessParsed(compiled.invalidArgumentsMessage(parsedArgs.length));
+            }
+
+            final String parsed = compiled.caller().call(player, parsedArgs);
             return Tag.preProcessParsed((parsed == null ? "" : parsed).replace("§", "&"));
         });
     }

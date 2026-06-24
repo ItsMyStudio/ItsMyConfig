@@ -1,32 +1,20 @@
 package to.itsme.itsmyconfig.placeholder;
 
 import me.clip.placeholderapi.PlaceholderAPI;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Nullable;
-import to.itsme.itsmyconfig.ItsMyConfig;
-import to.itsme.itsmyconfig.requirement.RequirementData;
 import to.itsme.itsmyconfig.util.Strings;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
  * The PlaceholderData class is an abstract class that represents the basic structure of a placeholder data object.
- * It provides methods for registering requirements, obtaining the placeholder type, and generating the placeholder result.
+ * It provides methods for obtaining the placeholder type and generating the placeholder result.
  */
-@SuppressWarnings("deprecation")
 public abstract class Placeholder {
-
-    /**
-     * Represents the plugin variable for ItsMyConfig.
-     * ItsMyConfig is a JavaPlugin that manages configuration, placeholders, and requirements.
-     *
-     * @see ItsMyConfig
-     */
-    private final ItsMyConfig plugin = ItsMyConfig.getInstance();
 
     /**
      * Represents the config section of the placeholder.
@@ -46,10 +34,6 @@ public abstract class Placeholder {
      * Represents a set of all argument numbers.
      */
     protected final Set<Integer> arguments = new HashSet<>();
-    /**
-     * Represents a set of requirement data.
-     */
-    private final Set<RequirementData> requirements = new LinkedHashSet<>();
     /**
      * Represents a list of dependancy arguments.
      */
@@ -71,38 +55,6 @@ public abstract class Placeholder {
     }
 
     /**
-     * Registers a requirement based on the provided ConfigurationSection.
-     *
-     * @param section The ConfigurationSection containing requirement data.
-     */
-    public void registerRequirement(final ConfigurationSection section) {
-        final String identifier = section.getString("type");
-        this.registerArgumentsFor(section, identifier);
-        this.requirements.add(
-                new RequirementData(
-                        identifier,
-                        section.getString("input"),
-                        section.getString("output"),
-                        section.getString("deny")
-                )
-        );
-    }
-
-    /**
-     * Registers the arguments for a given configuration section and argument name.
-     *
-     * @param section       the ConfigurationSection to retrieve the argument value from
-     * @param argumentName  the name of the argument in the ConfigurationSection
-     */
-    private void registerArgumentsFor(
-            final ConfigurationSection section,
-            final String argumentName
-    ) {
-        final String argumentValue = section.getString(argumentName);
-        this.registerArguments(argumentValue);
-    }
-
-    /**
      * Converts the given Player and arguments to a formatted string.
      *
      * @param args   The array of strings.
@@ -112,11 +64,6 @@ public abstract class Placeholder {
     public String asString(final String[] args) {
         if (this.hasDependency(PlaceholderDependancy.NONE)) {
             throw new RuntimeException("This method requires a player / offline player to be used.");
-        }
-
-        final String deny = getColorTranslatedMessage(null, args);
-        if (deny != null) {
-            return deny;
         }
 
         return this.getResult(null, args);
@@ -130,11 +77,6 @@ public abstract class Placeholder {
      * @return The formatted string.
      */
     public String asString(final OfflinePlayer player, final String[] args) {
-        final String deny = getColorTranslatedMessage(player, args);
-        if (deny != null) {
-            return deny;
-        }
-
         final String result;
         if (player != null && player.isOnline()) {
             result = PlaceholderAPI.setPlaceholders(player.getPlayer(), this.getResult(player.getPlayer(), args));
@@ -178,11 +120,6 @@ public abstract class Placeholder {
             final String[] args,
             final PlaceholderResultGetter getter
     ) {
-        final String deny = getColorTranslatedMessage(player, args);
-        if (deny != null) {
-            return deny;
-        }
-
         final String result;
         if (player != null && player.isOnline()) {
             result = PlaceholderAPI.setPlaceholders(player.getPlayer(), getter.get(player.getPlayer(), args));
@@ -196,20 +133,6 @@ public abstract class Placeholder {
     @FunctionalInterface
     private interface PlaceholderResultGetter {
         String get(OfflinePlayer player, String[] args);
-    }
-
-    /**
-     * Translates a color-coded message using the given player and arguments,
-     * using the deny message obtained from the plugin's requirement manager.
-     *
-     * @param player The player to translate the message for.
-     * @param args   The arguments to use in the translation.
-     * @return The translated message if a deny message is found, null otherwise.
-     */
-    private String getColorTranslatedMessage(final @Nullable OfflinePlayer player, final String[] args) {
-        final String deny = this.plugin.getRequirementManager().getDenyMessage(this, player, args);
-        if (deny == null) return null;
-        return ChatColor.translateAlternateColorCodes('&', PlaceholderAPI.setPlaceholders(player, deny));
     }
 
     /**
@@ -307,15 +230,6 @@ public abstract class Placeholder {
         }
 
         return output;
-    }
-
-    /**
-     * Retrieves a list of RequirementData objects representing the requirements for a PlaceholderData object.
-     *
-     * @return a list of RequirementData objects representing the requirements
-     */
-    public Collection<RequirementData> getRequirements() {
-        return requirements;
     }
 
     /**

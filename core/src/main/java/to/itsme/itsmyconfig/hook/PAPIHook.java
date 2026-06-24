@@ -252,7 +252,10 @@ public final class PAPIHook extends PlaceholderExpansion {
         final int remaining = params.length - nameLength;
 
         if (remaining == 0) {
-            return compiled.caller().call(player, new String[0]);
+            if (!compiled.accepts(0)) {
+                return compiled.invalidArgumentsMessage(0);
+            }
+            return compiled.caller().call(player, Strings.EMPTY_STRING_ARRAY);
         }
 
         final StringBuilder builder = new StringBuilder(params[nameLength]);
@@ -261,10 +264,21 @@ public final class PAPIHook extends PlaceholderExpansion {
             builder.append(params[i]);
         }
 
-        return compiled.caller().call(
-                player,
-                builder.toString().split(compiled.placeholder().getType() == PlaceholderType.PROGRESS_BAR ? "_" : "::")
-        );
+        final String candidate = builder.toString();
+        final int colonIndex = candidate.indexOf(':');
+
+        if (colonIndex == -1) {
+            if (compiled.accepts(0)) {
+                return compiled.caller().call(player, Strings.EMPTY_STRING_ARRAY);
+            }
+        }
+
+        final String[] args = builder.toString().split("::");
+        if (!compiled.accepts(args.length)) {
+            return compiled.invalidArgumentsMessage(args.length);
+        }
+
+        return compiled.caller().call(player, args);
     }
 
     private static String parseFormatVariant(final String input) {
