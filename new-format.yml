@@ -172,3 +172,22 @@ custom-placeholder:
   # - <placeholder:{placeholder_name}:{current_value}:{max_value}:{arg-1}:{arg-2}> -> returns a progress bar with the specified value, max value, and args
 
 ##########################################################################################
+
+  condition:
+    type: conditional
+    condtions:
+      - type: string equals
+        input: "%itsmyconfig_example-string%"
+        output: "This is a custom string placeholder"
+        false: "&cCondition not met!"
+    true: "&aCondition met!"
+    false: "&cCondition not met!"
+        
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> returns the value of the condition (true or false)
+  # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> returns the value of the condition (true or false) with args
+
+  # - <placeholder:{placeholder_name}> -> returns the value of the condition (true or false)
+  # - <placeholder:{placeholder_name}:{arg-1}:{arg-2}> -> returns the value of the condition (true or false) with args
+
+##########################################################################################
