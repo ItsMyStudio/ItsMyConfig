@@ -44,14 +44,6 @@ public final class PAPIHook extends PlaceholderExpansion {
     public static final String PLACEHOLDER_NOT_FOUND_MSG = "Placeholder not found";
     private final String identifier;
 
-    private static final Map<String, CachedResult> CACHE = new HashMap<>();
-
-    private record CachedResult(String name, int length) {}
-
-    public static void clearCache() {
-        CACHE.clear();
-    }
-
     /**
      * DynamicPlaceHolder is a class that represents a dynamic placeholder for a placeholder expansion.
      * It handles different types of placeholders and provides methods to handle font, progress, and custom placeholders.
@@ -129,7 +121,7 @@ public final class PAPIHook extends PlaceholderExpansion {
         if (("font".equals(firstParam) || "f".equals(firstParam)) && splitParams.length >= 3) {
             return handleFont(splitParams);
         }
-        return handlePlaceholder(splitParams, player);
+        return handlePlaceholder(params, player);
     }
 
     @Override
@@ -165,7 +157,7 @@ public final class PAPIHook extends PlaceholderExpansion {
 
     /**
      * Handles the imc_parse_ placeholder that processes text with tags and placeholders.
-     * 
+     *
      * @param splitParams The array of parameters, where the content to parse starts at index 1.
      * @param player The player for whom the placeholder is being processed.
      * @return The parsed text with tags and placeholders processed.
@@ -183,9 +175,9 @@ public final class PAPIHook extends PlaceholderExpansion {
             }
             contentBuilder.append(splitParams[i]);
         }
-        
+
         String content = contentBuilder.toString();
-        
+
         // Check if there's a format specification at the end (e.g., _legacy, _mini, _console)
         String variant = "legacy";
         final String[] formatParts = content.split("_");
@@ -206,7 +198,7 @@ public final class PAPIHook extends PlaceholderExpansion {
                 case "mini" -> IMCSerializer.toMiniMessage(component);
                 default -> IMCSerializer.toMiniMessage(component);
             };
-            
+
         } catch (Exception e) {
             return "Parse Error: " + e.getMessage();
         }
@@ -219,67 +211,23 @@ public final class PAPIHook extends PlaceholderExpansion {
      * @param player      The player object.
      * @return The formatted string.
      */
-    private String handlePlaceholder(final String[] params, final Player player) {
-        final String joined = String.join("_", params);
-        final CachedResult cached = CACHE.get(joined);
-
-        int nameLength = 0;
-        CompiledPlaceholder compiled = null;
-
-        if (cached != null) {
-            compiled = plugin.getPlaceholderManager().getCompiled(cached.name());
-            if (compiled != null) {
-                nameLength = cached.length();
-            } else {
-                CACHE.remove(joined);
-            }
-        }
+    private String handlePlaceholder(final String params, final Player player) {
+        final int colonIndex = params.indexOf(':');
+        final String candidate = colonIndex == -1 ? params : params.substring(0, colonIndex);
+        final CompiledPlaceholder compiled = plugin.getPlaceholderManager().getCompiled(candidate);
 
         if (compiled == null) {
-            for (int i = params.length; i > 0; i--) {
-                final StringBuilder candidateBuilder = new StringBuilder(params[0]);
-                for (int j = 1; j < i; j++) {
-                    candidateBuilder.append("_").append(params[j]);
-                }
-                final String candidate = candidateBuilder.toString();
-                compiled = plugin.getPlaceholderManager().getCompiled(candidate);
-                if (compiled != null) {
-                    nameLength = i;
-                    CACHE.put(joined, new CachedResult(candidate, nameLength));
-                    break;
-                }
-            }
-
-            if (compiled == null) {
-                return PLACEHOLDER_NOT_FOUND_MSG;
-            }
+            return  PLACEHOLDER_NOT_FOUND_MSG;
         }
 
-        final int remaining = params.length - nameLength;
-
-        if (remaining == 0) {
+        if (colonIndex == -1) {
             if (!compiled.accepts(0)) {
                 return compiled.invalidArgumentsMessage(0);
             }
             return compiled.caller().call(player);
         }
 
-        final StringBuilder builder = new StringBuilder(params[nameLength]);
-        for (int i = nameLength + 1; i < params.length; i++) {
-            builder.append("_");
-            builder.append(params[i]);
-        }
-
-        final String candidate = builder.toString();
-        final int colonIndex = candidate.indexOf(':');
-
-        if (colonIndex == -1) {
-            if (compiled.accepts(0)) {
-                return compiled.caller().call(player);
-            }
-        }
-
-        final String[] args = extractArguments(candidate);
+        final String[] args = extractArguments(params.substring(colonIndex + 1));
         if (!compiled.accepts(args.length)) {
             return compiled.invalidArgumentsMessage(args.length);
         }

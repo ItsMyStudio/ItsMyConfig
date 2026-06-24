@@ -163,7 +163,6 @@ public final class ItsMyConfig extends JavaPlugin {
 
         // 3 - 4: unregister all placeholders and bars
         this.placeholderManager.unregisterAll();
-        PAPIHook.clearCache();
 
         // 5 - 7: load config.yml
         this.saveDefaultConfig();

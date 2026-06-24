@@ -105,7 +105,7 @@ custom-placeholder:
   # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> Return the result of the math expression.
   # - %itsmyconfig_{placeholder_name}_formatted% -> Return the result of the math expression formatted (e.g., 1k instead of 1000).
   # - %itsmyconfig_{placeholder_name}_formatted:{arg-1}:{arg-2}% -> Return the result of the math expression formatted.
-  # - %itsmyconfig_{placeholder_name}_fixed% -> Return the result of the math expression with a fixed number of decimal places (e.g., 1.0 instead of 1).
+  # - %itsmyconfig_{placeholder_name}_fixed% -> Return the result of the math expression with a fixed number of decimal places (e.g., 1 instead of 1.0).
   # - %itsmyconfig_{placeholder_name}_fixed:{arg-1}:{arg-2}% -> Return the result of the math expression with a fixed number of decimal places.
   # - %itsmyconfig_{placeholder_name}_commas% -> Return the result of the math expression formatted with commas (e.g., 1,000 instead of 1000).
   # - %itsmyconfig_{placeholder_name}_commas:{arg-1}:{arg-2}% -> Return the result of the math expression formatted with commas

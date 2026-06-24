@@ -113,6 +113,7 @@ public final class ColorPlaceholder extends Placeholder {
 
         this.compiledPlaceholders = Set.of(
                 mainCompiledPlaceholder(),
+                this.compileVariant("closestname", this::getClosestNameResult, 0, 0),
                 this.compileVariant("legacy", this::getLegacyResult, 0, 0),
                 this.compileVariant("l", this::getLegacyResult, 0, 0),
                 this.compileVariant("console", this::getConsoleResult, 0, 0),
@@ -176,11 +177,11 @@ public final class ColorPlaceholder extends Placeholder {
             return this.value + this.properties;
         }
 
-        if ("closestname".equals(params[0].toLowerCase(Locale.ROOT))) {
-            return this.nameValue;
-        }
-
         return this.value;
+    }
+
+    private String getClosestNameResult(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, this.nameValue);
     }
 
     private String getLegacyResult(final OfflinePlayer player, final String[] args) {
