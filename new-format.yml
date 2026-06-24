@@ -140,12 +140,12 @@ custom-placeholder:
   switch:
     type: switch
     values:
-      default: "&7Unknown"
       key1: "Value 1"
       "test": "Value 2"
       key3: "Value 3"
       "": "Value for empty key"
       "4-10": "Value for range key"
+    default: "&7Unknown"
 
   # Placeholders
   # - %itsmyconfig_{placeholder_name}:{key}% -> returns the value for the specified key
