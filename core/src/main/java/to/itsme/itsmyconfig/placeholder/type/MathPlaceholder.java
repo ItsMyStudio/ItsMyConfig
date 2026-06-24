@@ -42,7 +42,7 @@ public final class MathPlaceholder extends Placeholder {
     private final int variablesRequired;
 
     private final int precision;
-    private final RoundingMode mode;
+    private final RoundingMode roundingMode;
 
     public MathPlaceholder(
             final String filePath,
@@ -53,7 +53,7 @@ public final class MathPlaceholder extends Placeholder {
         this.registerArguments(value);
 
         this.precision = section.getInt("precision");
-        this.mode = RoundingMode.valueOf(section.getString("mode", "HALF_UP"));
+        this.roundingMode = RoundingMode.valueOf(section.getString("rounding", section.getString("mode", "HALF_UP")));
 
         String copy = value;
         for (final int argument : this.arguments) {
@@ -90,7 +90,7 @@ public final class MathPlaceholder extends Placeholder {
         if (result == null) {
             return this.invalidResult(args);
         }
-        return new BigDecimal(result).setScale(this.precision, this.mode).stripTrailingZeros().toPlainString();
+        return new BigDecimal(result).setScale(this.precision, this.roundingMode).stripTrailingZeros().toPlainString();
     }
 
     private String getCommasResult(final OfflinePlayer player, final String[] args) {
