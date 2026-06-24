@@ -102,32 +102,20 @@ public final class ItsMyConfigCommand {
         Message.RELOAD.send(source);
     }
 
-    @SubCommand("messagedirectly")
-    @Permission("itsmyconfig.message")
-    @Description("Sends messages to players")
-    public void messageDirectly(
-            final BukkitCommandSource source,
-            final @Named("target") PlayerSelector players,
-            final @Named("message") @Greedy String message
-    ) {
-        for (final Player player : players) {
-            player.sendMessage(this.plugin.getSymbolPrefix() + message);
-        }
-
-        if (!source.isConsole()) {
-            Message.MESSAGE_SENT.send(source);
-        }
-    }
-
     @SubCommand("message")
     @Permission("itsmyconfig.message")
     @Description("Sends messages to players")
     public void message(
             final BukkitCommandSource source,
             final @Named("target") PlayerSelector players,
+            final @Switch("direct") boolean direct,
             final @Named("message") @Greedy String message
     ) {
-        for (final Player player : players) {
+        if (direct) {
+            for (final Player player : players) {
+                player.sendMessage(this.plugin.getSymbolPrefix() + message);
+            }
+        } else for (final Player player : players) {
             final Component component = Utilities.translate(message, player);
             if (!Component.empty().equals(component)) {
                 AudienceResolver.resolve(player).sendMessage(component);
@@ -208,9 +196,10 @@ public final class ItsMyConfigCommand {
     public void msgCommand(
             final BukkitCommandSource source,
             final @Named("target") PlayerSelector players,
+            final @Switch("direct") boolean direct,
             final @Named("message") @Greedy String message
     ) {
-        this.message(source, players, message);
+        this.message(source, players, direct, message);
     }
 
     @RootCommand("config")
