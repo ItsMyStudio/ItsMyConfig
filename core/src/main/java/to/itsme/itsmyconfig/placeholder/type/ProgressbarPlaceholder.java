@@ -57,6 +57,16 @@ public final class ProgressbarPlaceholder extends Placeholder {
         this.remainingColor = section.getString("remaining-color");
     }
 
+    @Override
+    public int minArgs() {
+        return 2;
+    }
+
+    @Override
+    public int maxArgs() {
+        return 2;
+    }
+
     /**
      * Renders a progress bar based on the given value and max.
      *

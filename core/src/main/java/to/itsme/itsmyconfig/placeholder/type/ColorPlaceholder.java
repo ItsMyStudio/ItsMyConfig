@@ -110,6 +110,21 @@ public final class ColorPlaceholder extends Placeholder {
 
         this.consoleString = this.toConsoleString();
         this.legacyString = (legacy ? legacyColor + this.properties : '&' + this.hexValue + this.properties).replace("§", "&");
+
+        this.compiledPlaceholders = Set.of(
+                mainCompiledPlaceholder(),
+                this.compileVariant("legacy", this::getLegacyResult, 0, 0),
+                this.compileVariant("l", this::getLegacyResult, 0, 0),
+                this.compileVariant("console", this::getConsoleResult, 0, 0),
+                this.compileVariant("c", this::getConsoleResult, 0, 0),
+                this.compileVariant("mini", this::getMiniResult, 0, 1),
+                this.compileVariant("m", this::getMiniResult, 0, 1)
+        );
+    }
+
+    @Override
+    public int maxArgs() {
+        return 0;
     }
 
     /**
@@ -168,25 +183,22 @@ public final class ColorPlaceholder extends Placeholder {
         return this.value;
     }
 
-    @Override
-    protected String getLegacyResult(final OfflinePlayer player, final String[] args) {
-        return this.invalid ? "" : this.legacyString;
+    private String getLegacyResult(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, this.invalid ? "" : this.legacyString);
     }
 
-    @Override
-    protected String getConsoleResult(final OfflinePlayer player, final String[] args) {
-        return this.invalid ? "" : this.consoleString;
+    private String getConsoleResult(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, this.invalid ? "" : this.consoleString);
     }
 
-    @Override
-    protected String getMiniResult(final OfflinePlayer player, final String[] args) {
+    private String getMiniResult(final OfflinePlayer player, final String[] args) {
         if (this.invalid) {
             return "";
         }
 
         final String prefix = "<" + this.value + ">" + propertiesMiniPrefix;
         if (args.length == 0) {
-            return prefix;
+            return this.asVariantString(player, prefix);
         }
 
         final String suffix = "</" + this.value + ">" + propertiesMiniSuffix;
@@ -197,12 +209,8 @@ public final class ColorPlaceholder extends Placeholder {
                 result.append(" ");
             }
         }
-        return result.append(suffix).toString();
-    }
 
-    @Override
-    protected String getRawResult(final OfflinePlayer player, final String[] args) {
-        return this.invalid ? "" : this.value;
+        return this.asVariantString(player, result.append(suffix).toString());
     }
 
     /**
@@ -216,14 +224,14 @@ public final class ColorPlaceholder extends Placeholder {
 
     private String toConsoleString() {
         if (legacy) {
-            return legacyColor + this.properties.replaceAll("&", "§");
+            return legacyColor + this.properties.replace("&", "§");
         }
         final String hexColor = this.hexValue.substring(1);
         final StringBuilder minecraftFormat = new StringBuilder("§x");
         for (int i = 0; i < hexColor.length(); i++) {
             minecraftFormat.append("§").append(hexColor.charAt(i));
         }
-        return minecraftFormat + this.properties.replaceAll("&", "§");
+        return minecraftFormat + this.properties.replace("&", "§");
     }
 
 }

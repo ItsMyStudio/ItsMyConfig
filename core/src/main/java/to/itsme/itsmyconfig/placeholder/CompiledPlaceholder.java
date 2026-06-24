@@ -1,6 +1,7 @@
 package to.itsme.itsmyconfig.placeholder;
 
 public record CompiledPlaceholder(
+        String key,
         Placeholder placeholder,
         PlaceholderCaller caller,
         int minArguments,

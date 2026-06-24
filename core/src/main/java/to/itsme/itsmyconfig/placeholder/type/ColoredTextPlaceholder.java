@@ -9,6 +9,8 @@ import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
 import to.itsme.itsmyconfig.util.Utilities;
 
+import java.util.Set;
+
 public final class ColoredTextPlaceholder extends Placeholder {
 
     private final static LegacyComponentSerializer SECTION_SERIALIZER = LegacyComponentSerializer
@@ -42,6 +44,16 @@ public final class ColoredTextPlaceholder extends Placeholder {
         );
         this.miniText = section.getString("value", "");
         this.registerArguments(this.miniText);
+
+        this.compiledPlaceholders = Set.of(
+                mainCompiledPlaceholder(),
+                this.compileVariant("legacy", this::getLegacyResult, 0, -1),
+                this.compileVariant("l", this::getLegacyResult, 0, -1),
+                this.compileVariant("console", this::getConsoleResult, 0, -1),
+                this.compileVariant("c", this::getConsoleResult, 0, -1),
+                this.compileVariant("mini", this::getMiniResult, 0, -1),
+                this.compileVariant("m", this::getMiniResult, 0, -1)
+        );
     }
 
     @Override
@@ -71,34 +83,26 @@ public final class ColoredTextPlaceholder extends Placeholder {
         return this.replaceArguments(args, this.miniText);
     }
 
-    @Override
-    protected String getLegacyResult(final OfflinePlayer player, final String[] args) {
-        return this.replaceArguments(
+    private String getLegacyResult(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, this.replaceArguments(
                 args,
                 AMPERSAND_SERIALIZER.serialize(
                         Utilities.translate(this.miniText, player)
                 )
-        );
+        ));
     }
 
-    @Override
-    protected String getConsoleResult(final OfflinePlayer player, final String[] args) {
-        return this.replaceArguments(
+    private String getConsoleResult(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, this.replaceArguments(
                 args,
                 SECTION_SERIALIZER.serialize(
                         Utilities.translate(this.miniText, player)
                 )
-        );
+        ));
     }
 
-    @Override
-    protected String getMiniResult(final OfflinePlayer player, final String[] args) {
-        return this.replaceArguments(args, this.miniText);
-    }
-
-    @Override
-    protected String getRawResult(final OfflinePlayer player, final String[] args) {
-        return this.replaceArguments(args, this.miniText);
+    private String getMiniResult(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, this.replaceArguments(args, this.miniText));
     }
 
 }

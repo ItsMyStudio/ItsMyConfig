@@ -27,9 +27,13 @@ public abstract class Placeholder {
     private final String filePath;
 
     /**
-     * Represents the type of a placeholder.
+     * Represents the type of the placeholder.
      */
     private final PlaceholderType type;
+    /**
+     * Represents the key of the placeholder.
+     */
+    protected final String key;
     /**
      * Represents a set of all argument numbers.
      */
@@ -38,6 +42,11 @@ public abstract class Placeholder {
      * Represents a list of dependancy arguments.
      */
     private final Set<PlaceholderDependancy> dependancies;
+
+    /**
+     * Represents a set of the compiled placeholders / variants.
+     */
+    protected Set<CompiledPlaceholder> compiledPlaceholders;
 
     /**
      * Represents a placeholder data object.
@@ -51,7 +60,46 @@ public abstract class Placeholder {
         this.type = type;
         this.section = section;
         this.filePath = filePath;
+        this.key = section.getName();
         this.dependancies = Set.of(dependancies);
+        this.compiledPlaceholders = Set.of(mainCompiledPlaceholder());
+    }
+
+    public int minArgs() {
+        return 0;
+    }
+
+    public int maxArgs() {
+        return -1;
+    }
+
+    public Set<CompiledPlaceholder> getCompiledPlaceholders() {
+        return compiledPlaceholders;
+    }
+
+    protected CompiledPlaceholder mainCompiledPlaceholder() {
+        return new CompiledPlaceholder(
+                this.key,
+                this,
+                this::asString,
+                this.minArgs(),
+                this.maxArgs()
+        );
+    }
+
+    protected CompiledPlaceholder compileVariant(
+            final String variant,
+            final PlaceholderCaller caller,
+            final int minArguments,
+            final int maxArguments
+    ) {
+         return new CompiledPlaceholder(
+                    this.key + "_" + variant,
+                    this,
+                    caller,
+                    minArguments,
+                    maxArguments
+         );
     }
 
     /**
@@ -87,52 +135,17 @@ public abstract class Placeholder {
         return result;
     }
 
-    public String asLegacyString(final OfflinePlayer player, final String[] args) {
-        return this.asVariantString(player, args, this::getLegacyResult);
-    }
-
-    public String asConsoleString(final OfflinePlayer player, final String[] args) {
-        return this.asVariantString(player, args, this::getConsoleResult);
-    }
-
-    public String asMiniString(final OfflinePlayer player, final String[] args) {
-        return this.asVariantString(player, args, this::getMiniResult);
-    }
-
-    public String asRawString(final OfflinePlayer player, final String[] args) {
-        return this.asVariantString(player, args, this::getRawResult);
-    }
-
-    public String asCommasString(final OfflinePlayer player, final String[] args) {
-        return this.asVariantString(player, args, this::getCommasResult);
-    }
-
-    public String asFixedString(final OfflinePlayer player, final String[] args) {
-        return this.asVariantString(player, args, this::getFixedResult);
-    }
-
-    public String asFormattedString(final OfflinePlayer player, final String[] args) {
-        return this.asVariantString(player, args, this::getFormattedResult);
-    }
-
-    private String asVariantString(
+    protected String asVariantString(
             final OfflinePlayer player,
-            final String[] args,
-            final PlaceholderResultGetter getter
+            String result
     ) {
-        final String result;
         if (player != null && player.isOnline()) {
-            result = PlaceholderAPI.setPlaceholders(player.getPlayer(), getter.get(player.getPlayer(), args));
+            result = PlaceholderAPI.setPlaceholders(player.getPlayer(), result);
         } else {
-            result = PlaceholderAPI.setPlaceholders(player, getter.get(player, args));
+            result = PlaceholderAPI.setPlaceholders(player,result);
         }
 
         return result;
-    }
-
-    @FunctionalInterface
-    private interface PlaceholderResultGetter {
-        String get(OfflinePlayer player, String[] args);
     }
 
     /**
@@ -164,34 +177,6 @@ public abstract class Placeholder {
      */
     public String getResult(final OfflinePlayer player, final String[] args)  {
         throw new RuntimeException("Placeholder " + this.type.name() + " does not accept OfflinePlayer");
-    }
-
-    protected String getLegacyResult(final OfflinePlayer player, final String[] args) {
-        return this.getResult(player, args);
-    }
-
-    protected String getConsoleResult(final OfflinePlayer player, final String[] args) {
-        return this.getResult(player, args);
-    }
-
-    protected String getMiniResult(final OfflinePlayer player, final String[] args) {
-        return this.getResult(player, args);
-    }
-
-    protected String getRawResult(final OfflinePlayer player, final String[] args) {
-        return this.getResult(player, args);
-    }
-
-    protected String getCommasResult(final OfflinePlayer player, final String[] args) {
-        return this.getResult(player, args);
-    }
-
-    protected String getFixedResult(final OfflinePlayer player, final String[] args) {
-        return this.getResult(player, args);
-    }
-
-    protected String getFormattedResult(final OfflinePlayer player, final String[] args) {
-        return this.getResult(player, args);
     }
 
     /**

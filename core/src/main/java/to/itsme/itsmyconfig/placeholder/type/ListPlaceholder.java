@@ -22,6 +22,11 @@ public final class ListPlaceholder extends Placeholder {
     }
 
     @Override
+    public int minArgs() {
+        return 1;
+    }
+
+    @Override
     public String getResult(
             final OfflinePlayer player,
             final String[] args

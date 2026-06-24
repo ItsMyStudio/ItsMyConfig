@@ -16,6 +16,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Set;
 import java.util.TreeMap;
 
 public final class MathPlaceholder extends Placeholder {
@@ -61,6 +62,23 @@ public final class MathPlaceholder extends Placeholder {
 
         this.expression = Crunch.compileExpression(copy);
         this.variablesRequired = this.expression.getVariableCount();
+
+        this.compiledPlaceholders = Set.of(
+                mainCompiledPlaceholder(),
+                this.compileVariant("commas", this::getCommasResult, this.variablesRequired, this.variablesRequired),
+                this.compileVariant("fixed", this::getFixedResult, this.variablesRequired, this.variablesRequired),
+                this.compileVariant("formatted", this::getFormattedResult, this.variablesRequired, this.variablesRequired)
+        );
+    }
+
+    @Override
+    public int minArgs() {
+        return this.variablesRequired;
+    }
+
+    @Override
+    public int maxArgs() {
+        return this.variablesRequired;
     }
 
     @Override
@@ -75,22 +93,19 @@ public final class MathPlaceholder extends Placeholder {
         return new BigDecimal(result).setScale(this.precision, this.mode).stripTrailingZeros().toPlainString();
     }
 
-    @Override
-    protected String getCommasResult(final OfflinePlayer player, final String[] args) {
+    private String getCommasResult(final OfflinePlayer player, final String[] args) {
         final Double result = this.evaluate(args);
-        return result == null ? this.invalidResult(args) : COMMAS_FORMAT.format(result);
+        return this.asVariantString(player, result == null ? this.invalidResult(args) : COMMAS_FORMAT.format(result));
     }
 
-    @Override
-    protected String getFixedResult(final OfflinePlayer player, final String[] args) {
+    private String getFixedResult(final OfflinePlayer player, final String[] args) {
         final Double result = this.evaluate(args);
-        return result == null ? this.invalidResult(args) : FIXED_FORMAT.format(result);
+        return this.asVariantString(player, result == null ? this.invalidResult(args) : FIXED_FORMAT.format(result));
     }
 
-    @Override
-    protected String getFormattedResult(final OfflinePlayer player, final String[] args) {
+    private String getFormattedResult(final OfflinePlayer player, final String[] args) {
         final Double result = this.evaluate(args);
-        return result == null ? this.invalidResult(args) : formatNumber(result.longValue());
+        return this.asVariantString(player, result == null ? this.invalidResult(args) : formatNumber(result.longValue()));
     }
 
     private Double evaluate(final String[] args) {
