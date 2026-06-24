@@ -5,6 +5,6 @@ import org.bukkit.OfflinePlayer;
 @FunctionalInterface
 public interface PlaceholderCaller {
 
-    String call(OfflinePlayer player, String[] args);
+    String call(OfflinePlayer player, String... args);
 
 }

@@ -8,13 +8,14 @@ import org.jetbrains.annotations.Nullable;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.font.MappedFont;
 import to.itsme.itsmyconfig.placeholder.CompiledPlaceholder;
-import to.itsme.itsmyconfig.placeholder.PlaceholderType;
 import to.itsme.itsmyconfig.tag.TagManager;
 import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Utilities;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -255,7 +256,7 @@ public final class PAPIHook extends PlaceholderExpansion {
             if (!compiled.accepts(0)) {
                 return compiled.invalidArgumentsMessage(0);
             }
-            return compiled.caller().call(player, Strings.EMPTY_STRING_ARRAY);
+            return compiled.caller().call(player);
         }
 
         final StringBuilder builder = new StringBuilder(params[nameLength]);
@@ -269,16 +270,47 @@ public final class PAPIHook extends PlaceholderExpansion {
 
         if (colonIndex == -1) {
             if (compiled.accepts(0)) {
-                return compiled.caller().call(player, Strings.EMPTY_STRING_ARRAY);
+                return compiled.caller().call(player);
             }
         }
 
-        final String[] args = builder.toString().split("::");
+        final String[] args = extractArguments(candidate);
         if (!compiled.accepts(args.length)) {
             return compiled.invalidArgumentsMessage(args.length);
         }
 
         return compiled.caller().call(player, args);
+    }
+
+    private static String[] extractArguments(final String raw) {
+        final List<String> args = new ArrayList<>();
+
+        int i = 0;
+        while (i < raw.length()) {
+            char delimiter = raw.charAt(i);
+
+            int end;
+            if (delimiter == '"' || delimiter == '\'' || delimiter == '`') {
+                i++; // skip opening quote
+                end = raw.indexOf(delimiter, i);
+                if (end == -1) break;
+                args.add(raw.substring(i, end));
+                i = end + 1;
+                // skip trailing ':' separator
+                if (i < raw.length() && raw.charAt(i) == ':') i++;
+            } else {
+                end = i;
+                while (end < raw.length()) {
+                    char c = raw.charAt(end);
+                    if (c == ':' || Character.isWhitespace(c)) break;
+                    end++;
+                }
+                args.add(raw.substring(i, end));
+                i = end + 1; // skip ':'
+            }
+        }
+
+        return args.toArray(new String[0]);
     }
 
     private static String parseFormatVariant(final String input) {
