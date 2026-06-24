@@ -117,7 +117,7 @@ public final class PAPIHook extends PlaceholderExpansion {
         params = PlaceholderAPI.setPlaceholders(player, params.replaceAll("\\$\\((.*?)\\)\\$", "%$1%"));
         params = PlaceholderAPI.setBracketPlaceholders(player, params);
 
-        final String[] splitParams = params.split("_");
+        final String[] splitParams = params.split("_", -1);
         if (splitParams.length == 0) {
             return ILLEGAL_ARGUMENT_MSG;
         }
