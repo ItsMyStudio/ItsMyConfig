@@ -21,11 +21,6 @@ public enum PlaceholderType {
      */
     LIST,
     /**
-     * Represents a placeholder type for getting a value from a map using a key.
-     */
-    MAP,
-    RANGE,
-    /**
      * Represents a placeholder type for getting random values out of a list.
      */
     RANDOM,
@@ -35,7 +30,8 @@ public enum PlaceholderType {
     ANIMATION,
     PROGRESS_BAR,
     COLORED_TEXT,
-    CONDITIONAL;
+    CONDITIONAL,
+    SWITCH;
 
     /**
      * Finds the PlaceholderType for the given type.
