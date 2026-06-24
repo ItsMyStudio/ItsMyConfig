@@ -16,10 +16,10 @@ public interface ToastSender {
     /**
      * Sends a toast message to the specified player with the given title, frame type, and icon.
      *
-     * @param player     The player who should receive the toast.
-     * @param title      The main title of the toast (usually bold and gold).
-     * @param icon       The item icon to display on the left side of the toast.
-     * @param frameType  The type of toast frame: "task", "goal", or "challenge".
+     * @param player    The player who should receive the toast.
+     * @param title     The main title of the toast (usually bold and gold).
+     * @param icon      The item icon to display on the left side of the toast.
+     * @param frameType The type of toast frame: "task", "goal", or "challenge".
      */
     void sendToast(Player player, Component title, Material icon, String frameType);
 }

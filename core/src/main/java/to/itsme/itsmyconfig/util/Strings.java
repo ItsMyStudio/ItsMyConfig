@@ -112,9 +112,8 @@ public final class Strings {
     /**
      * Escapes Tags based on the special properties provided.
      *
-     * @param text The text that contains tags to be escaped.
+     * @param text       The text that contains tags to be escaped.
      * @param properties The properties that the method should follow.
-     *
      * @return The text after escaping tags.
      */
     private static String escapeTags(final String text, final Set<String> properties) {
@@ -175,6 +174,7 @@ public final class Strings {
         }
         return false;
     }
+
     /**
      * Extracts only the numeric digits and at most a single decimal point from the input string.
      * <p>
@@ -227,27 +227,31 @@ public final class Strings {
     /**
      * Converts a string to an integer, returning a default value if the conversion fails.
      *
-     * @param text the string to convert
+     * @param text       the string to convert
      * @param defaultInt the default value to return if conversion fails
      * @return the converted integer or the default value
      */
     public static int intOrDefault(final String text, final int defaultInt) {
         try {
             return Integer.parseInt(textless(text));
-        } catch (final Throwable ignored) { return defaultInt; }
+        } catch (final Throwable ignored) {
+            return defaultInt;
+        }
     }
 
     /**
      * Converts a string to a long, returning a default value if the conversion fails.
      *
-     * @param text the string to convert
+     * @param text         the string to convert
      * @param defaultFloat the default value to return if conversion fails
      * @return the converted float or the default value
      */
     public static float floatOrDefault(final String text, final float defaultFloat) {
         try {
             return Float.parseFloat(textless(text));
-        } catch (final Throwable ignored) { return defaultFloat; }
+        } catch (final Throwable ignored) {
+            return defaultFloat;
+        }
     }
 
     /**
@@ -270,7 +274,7 @@ public final class Strings {
     /**
      * Converts a list of strings to a string, where each string is represented on a new line.
      *
-     * @param  collection The collection of strings to be converted to a string.
+     * @param collection The collection of strings to be converted to a string.
      * @return The string representation of the list.
      */
     public static String toString(final @NotNull Collection<String> collection) {
@@ -299,7 +303,7 @@ public final class Strings {
      * Parses a message that starts with a defined symbol prefix, ignoring formatting codes
      * and legacy MiniMessage-style tags. If the prefix is found, it removes the prefix,
      * replaces all occurrences of the '§' color symbol with '&', and returns the result.
-     * 
+     * <p>
      * The method skips over:
      * <ul>
      *   <li>Legacy formatting codes (e.g., &a or §a)</li>
@@ -309,7 +313,7 @@ public final class Strings {
      *
      * @param message the message to check and process
      * @return an {@link Optional} containing the processed message if the symbol prefix is found;
-     *         otherwise, {@link Optional#empty()}
+     * otherwise, {@link Optional#empty()}
      */
     public static Optional<String> parsePrefixedMessage(final String message) {
         if (message == null || message.isEmpty()) {
@@ -360,6 +364,7 @@ public final class Strings {
 
     /**
      * Checks if the provided message starts with the "$" symbol
+     *
      * @param message the checked message
      * @deprecated This method is deprecated and will be removed in a future release.
      */

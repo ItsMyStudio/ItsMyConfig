@@ -24,10 +24,6 @@ import java.util.List;
 public final class PAPIHook extends PlaceholderExpansion {
 
     /**
-     * This variable is an instance of the ItsMyConfig class.
-     */
-    private final ItsMyConfig plugin;
-    /**
      * ILLEGAL_NUMBER_FORMAT_MSG represents the error message when an illegal number format is encountered.
      */
     public static final String ILLEGAL_NUMBER_FORMAT_MSG = "Illegal Number Format";
@@ -40,6 +36,10 @@ public final class PAPIHook extends PlaceholderExpansion {
      * PLACEHOLDER_NOT_FOUND_MSG is a constant variable that represents the message displayed when a placeholder is not found.
      */
     public static final String PLACEHOLDER_NOT_FOUND_MSG = "Placeholder not found";
+    /**
+     * This variable is an instance of the ItsMyConfig class.
+     */
+    private final ItsMyConfig plugin;
     private final String identifier;
 
     /**
@@ -49,6 +49,50 @@ public final class PAPIHook extends PlaceholderExpansion {
     public PAPIHook(final ItsMyConfig plugin, final String identifier) {
         this.plugin = plugin;
         this.identifier = identifier;
+    }
+
+    private static String[] extractArguments(final String raw) {
+        final List<String> args = new ArrayList<>();
+
+        int i = 0;
+        while (i < raw.length()) {
+            char delimiter = raw.charAt(i);
+
+            int end;
+            if (delimiter == '"' || delimiter == '\'' || delimiter == '`') {
+                i++; // skip opening quote
+                end = raw.indexOf(delimiter, i);
+                if (end == -1) break;
+                args.add(raw.substring(i, end));
+                i = end + 1;
+                // skip trailing ':' separator
+                if (i < raw.length() && raw.charAt(i) == ':') i++;
+            } else {
+                end = i;
+                while (end < raw.length()) {
+                    char c = raw.charAt(end);
+                    if (c == ':' || Character.isWhitespace(c)) break;
+                    end++;
+                }
+                args.add(raw.substring(i, end));
+                i = end + 1; // skip ':'
+            }
+        }
+
+        return args.toArray(new String[0]);
+    }
+
+    private static String parseFormatVariant(final String input) {
+        if (input == null || input.isEmpty()) {
+            return null;
+        }
+
+        return switch (input.toLowerCase()) {
+            case "legacy", "l" -> "legacy";
+            case "console", "c" -> "console";
+            case "mini", "m", "raw", "r" -> "mini";
+            default -> null;
+        };
     }
 
     /**
@@ -65,7 +109,7 @@ public final class PAPIHook extends PlaceholderExpansion {
      * Retrieves the author(s) of the plugin.
      *
      * @return The author(s) of the plugin as a string. If there are multiple authors,
-     *         they are joined by commas.
+     * they are joined by commas.
      */
     @Override
     @SuppressWarnings("deprecation")
@@ -157,7 +201,7 @@ public final class PAPIHook extends PlaceholderExpansion {
      * Handles the imc_parse_ placeholder that processes text with tags and placeholders.
      *
      * @param splitParams The array of parameters, where the content to parse starts at index 1.
-     * @param player The player for whom the placeholder is being processed.
+     * @param player      The player for whom the placeholder is being processed.
      * @return The parsed text with tags and placeholders processed.
      */
     private String handleParse(final String[] splitParams, final Player player) {
@@ -206,7 +250,7 @@ public final class PAPIHook extends PlaceholderExpansion {
      * Handles the placeholder based on the params and player.
      *
      * @param params The array of split parameters.
-     * @param player      The player object.
+     * @param player The player object.
      * @return The formatted string.
      */
     private String handlePlaceholder(final String params, final Player player) {
@@ -215,7 +259,7 @@ public final class PAPIHook extends PlaceholderExpansion {
         final CompiledPlaceholder compiled = plugin.getPlaceholderManager().getCompiled(candidate);
 
         if (compiled == null) {
-            return  PLACEHOLDER_NOT_FOUND_MSG;
+            return PLACEHOLDER_NOT_FOUND_MSG;
         }
 
         if (colonIndex == -1) {
@@ -231,50 +275,6 @@ public final class PAPIHook extends PlaceholderExpansion {
         }
 
         return compiled.caller().call(player, args);
-    }
-
-    private static String[] extractArguments(final String raw) {
-        final List<String> args = new ArrayList<>();
-
-        int i = 0;
-        while (i < raw.length()) {
-            char delimiter = raw.charAt(i);
-
-            int end;
-            if (delimiter == '"' || delimiter == '\'' || delimiter == '`') {
-                i++; // skip opening quote
-                end = raw.indexOf(delimiter, i);
-                if (end == -1) break;
-                args.add(raw.substring(i, end));
-                i = end + 1;
-                // skip trailing ':' separator
-                if (i < raw.length() && raw.charAt(i) == ':') i++;
-            } else {
-                end = i;
-                while (end < raw.length()) {
-                    char c = raw.charAt(end);
-                    if (c == ':' || Character.isWhitespace(c)) break;
-                    end++;
-                }
-                args.add(raw.substring(i, end));
-                i = end + 1; // skip ':'
-            }
-        }
-
-        return args.toArray(new String[0]);
-    }
-
-    private static String parseFormatVariant(final String input) {
-        if (input == null || input.isEmpty()) {
-            return null;
-        }
-
-        return switch (input.toLowerCase()) {
-            case "legacy", "l" -> "legacy";
-            case "console", "c" -> "console";
-            case "mini", "m", "raw", "r" -> "mini";
-            default -> null;
-        };
     }
 
 }

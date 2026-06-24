@@ -72,6 +72,47 @@ public final class SwitchPlaceholder extends Placeholder {
         }
     }
 
+    private static Range parseRangeKey(final String keyRaw) {
+        if (keyRaw == null) return null;
+        final String key = keyRaw.trim();
+        if (!key.contains("-")) return null;
+
+        if (key.startsWith("-") && key.length() > 1) {
+            final Long end = tryParseLong(key.substring(1));
+            if (end == null) return null;
+            return new Range(Long.MIN_VALUE, end);
+        }
+
+        if (key.endsWith("-") && key.length() > 1) {
+            final Long start = tryParseLong(key.substring(0, key.length() - 1));
+            if (start == null) return null;
+            return new Range(start, Long.MAX_VALUE);
+        }
+
+        final int dash = key.indexOf('-');
+        if (dash <= 0 || dash >= key.length() - 1) return null;
+        final Long start = tryParseLong(key.substring(0, dash));
+        final Long end = tryParseLong(key.substring(dash + 1));
+        if (start == null || end == null) return null;
+        return new Range(start, end);
+    }
+
+    private static Long tryParseLong(final String s) {
+        try {
+            return Long.parseLong(s.trim());
+        } catch (final Exception ignored) {
+            return null;
+        }
+    }
+
+    private static String applyArgs(final String template, final String[] args) {
+        String out = template;
+        for (int i = 1; i < args.length; i++) {
+            out = out.replace("{" + (i - 1) + "}", args[i]);
+        }
+        return out;
+    }
+
     @Override
     public int minArgs() {
         return 1;
@@ -135,48 +176,8 @@ public final class SwitchPlaceholder extends Placeholder {
         return (x <= rangeEnds[best]) ? best : -1;
     }
 
-    private static Range parseRangeKey(final String keyRaw) {
-        if (keyRaw == null) return null;
-        final String key = keyRaw.trim();
-        if (!key.contains("-")) return null;
-
-        if (key.startsWith("-") && key.length() > 1) {
-            final Long end = tryParseLong(key.substring(1));
-            if (end == null) return null;
-            return new Range(Long.MIN_VALUE, end);
-        }
-
-        if (key.endsWith("-") && key.length() > 1) {
-            final Long start = tryParseLong(key.substring(0, key.length() - 1));
-            if (start == null) return null;
-            return new Range(start, Long.MAX_VALUE);
-        }
-
-        final int dash = key.indexOf('-');
-        if (dash <= 0 || dash >= key.length() - 1) return null;
-        final Long start = tryParseLong(key.substring(0, dash));
-        final Long end = tryParseLong(key.substring(dash + 1));
-        if (start == null || end == null) return null;
-        return new Range(start, end);
-    }
-
-    private static Long tryParseLong(final String s) {
-        try {
-            return Long.parseLong(s.trim());
-        } catch (final Exception ignored) {
-            return null;
-        }
-    }
-
-    private static String applyArgs(final String template, final String[] args) {
-        String out = template;
-        for (int i = 1; i < args.length; i++) {
-            out = out.replace("{" + (i - 1) + "}", args[i]);
-        }
-        return out;
-    }
-
     private record Range(long start, long end) {}
+
     private record RangeEntry(long start, long end, String value) {}
 
 }

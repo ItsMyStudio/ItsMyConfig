@@ -168,7 +168,7 @@ custom-placeholder:
   # - %itsmyconfig_{placeholder_name}:{current_value}:{max_value}% -> returns a progress bar with the specified value and max value
   # - <placeholder:{placeholder_name}:{current_value}:{max_value}> -> returns a progress bar with the specified value and max value
 
-##########################################################################################
+  ##########################################################################################
 
   condition:
     type: conditional
@@ -179,7 +179,7 @@ custom-placeholder:
         false: "&cCondition not met!" # Optional, use the main false value if not specified
     true: "&aCondition met!"
     false: "&cCondition not met!"
-        
+
   # Placeholders
   # - %itsmyconfig_{placeholder_name}% -> returns the value of the condition (true or false)
   # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> returns the value of the condition (true or false) with args

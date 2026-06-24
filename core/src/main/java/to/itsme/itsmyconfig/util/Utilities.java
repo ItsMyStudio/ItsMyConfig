@@ -20,15 +20,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.font.Font;
-import to.itsme.itsmyconfig.tag.adventure.FontTag;
-import to.itsme.itsmyconfig.tag.adventure.PlainTag;
 import to.itsme.itsmyconfig.placeholder.CompiledPlaceholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.type.ColorPlaceholder;
 import to.itsme.itsmyconfig.tag.TagManager;
+import to.itsme.itsmyconfig.tag.adventure.FontTag;
+import to.itsme.itsmyconfig.tag.adventure.PlainTag;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -91,7 +93,7 @@ public final class Utilities {
     /**
      * Logs debug information along with an exception stack trace to the console if the debug mode is enabled.
      *
-     * @param supplier The supplier that provides the debug information to log.
+     * @param supplier  The supplier that provides the debug information to log.
      * @param exception The Exception object representing the exception to log.
      */
     public static void debug(final Supplier<String> supplier, final Throwable exception) {
@@ -124,7 +126,7 @@ public final class Utilities {
     /**
      * Translates a String into a {@link Component}
      *
-     * @param text The text to translate.
+     * @param text   The text to translate.
      * @param player The player translated-for.
      * @return The translated {@link Component}.
      */
@@ -151,7 +153,7 @@ public final class Utilities {
     /**
      * Translates a String into a {@link Component}
      *
-     * @param text The text to translate.
+     * @param text   The text to translate.
      * @param player The player translated-for.
      * @return The translated {@link Component}.
      */
@@ -307,7 +309,7 @@ public final class Utilities {
      * Modifies the content of a TextComponent instance.
      *
      * @param component The TextComponent instance to modify.
-     * @param content       The new content for the TextComponent.
+     * @param content   The new content for the TextComponent.
      */
     private static void modifyTextComponent(
             final @NotNull TextComponent component,

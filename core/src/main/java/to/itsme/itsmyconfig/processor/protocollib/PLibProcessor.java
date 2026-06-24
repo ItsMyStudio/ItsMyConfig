@@ -7,19 +7,21 @@ import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
-import to.itsme.itsmyconfig.processor.PacketProcessor;
 import to.itsme.itsmyconfig.processor.PacketContent;
-import to.itsme.itsmyconfig.util.*;
+import to.itsme.itsmyconfig.processor.PacketProcessor;
+import to.itsme.itsmyconfig.util.AdventureUtil;
+import to.itsme.itsmyconfig.util.IMCSerializer;
+import to.itsme.itsmyconfig.util.Utilities;
+import to.itsme.itsmyconfig.util.Versions;
 
 public enum PLibProcessor implements PacketProcessor<PacketContainer> {
 
     SERVER_ADVENTURE {
-
         @Override
         public void edit(PacketContainer container, Component component) {
             final StructureModifier<Object> modifier = container.getModifier().withType(AdventureComponentConverter.getComponentClass());
             modifier.write(0, AdventureComponentConverter.fromJsonAsObject(
-                Utilities.GSON_SERIALIZER.serialize(component)
+                    Utilities.GSON_SERIALIZER.serialize(component)
             ));
         }
 
@@ -40,13 +42,12 @@ public enum PLibProcessor implements PacketProcessor<PacketContainer> {
             }
 
             return this.of(container, IMCSerializer.toMiniMessage(
-                AdventureUtil.toComponent(component)
+                    AdventureUtil.toComponent(component)
             ));
         }
     },
 
     WRAPPED_COMPONENT {
-
         @Override
         public void edit(PacketContainer container, Component component) {
             container.getChatComponents().write(0, WrappedChatComponent.fromJson(
@@ -77,7 +78,6 @@ public enum PLibProcessor implements PacketProcessor<PacketContainer> {
     },
 
     @SuppressWarnings("deprecation") BUNGEE_COMPONENT {
-
         @Override
         public void edit(PacketContainer container, Component component) {
             container.getModifier().withType(TextComponent.class).write(0, new TextComponent(
@@ -101,7 +101,6 @@ public enum PLibProcessor implements PacketProcessor<PacketContainer> {
     },
 
     JSON {
-
         @Override
         public void edit(PacketContainer container, Component component) {
             container.getStrings().write(0, Utilities.GSON_SERIALIZER.serialize(component));

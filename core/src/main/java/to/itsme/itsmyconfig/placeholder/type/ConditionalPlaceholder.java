@@ -94,6 +94,14 @@ public final class ConditionalPlaceholder extends Placeholder {
             return value == null ? null : String.valueOf(value);
         }
 
+        private static String parse(final OfflinePlayer player, final String[] args, final String value) {
+            String output = value == null ? "" : value;
+            for (int i = 0; i < args.length; i++) {
+                output = output.replace("{" + i + "}", args[i]);
+            }
+            return player == null ? output : PlaceholderAPI.setPlaceholders(player, output);
+        }
+
         private boolean matches(final OfflinePlayer player, final String[] args) {
             final Requirement<?> requirement = REQUIREMENTS.getRequirementByType(this.type);
             if (requirement == null) {
@@ -105,14 +113,6 @@ public final class ConditionalPlaceholder extends Placeholder {
                     parse(player, args, this.input),
                     parse(player, args, this.output)
             );
-        }
-
-        private static String parse(final OfflinePlayer player, final String[] args, final String value) {
-            String output = value == null ? "" : value;
-            for (int i = 0; i < args.length; i++) {
-                output = output.replace("{" + i + "}", args[i]);
-            }
-            return player == null ? output : PlaceholderAPI.setPlaceholders(player, output);
         }
     }
 }

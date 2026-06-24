@@ -10,7 +10,10 @@ import to.itsme.itsmyconfig.tag.impl.title.SubtitleTag;
 import to.itsme.itsmyconfig.tag.impl.title.TitleTag;
 import to.itsme.itsmyconfig.tag.impl.toast.ToastTag;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

@@ -109,9 +109,9 @@ public final class NumberRequirement extends Requirement<Double> {
     /**
      * Validates the input and output strings based on a given identifier.
      *
-     * @param identifier     the identifier used to determine the type of validation
-     * @param inputString    the input string to be validated
-     * @param outputString   the output string to be validated against
+     * @param identifier   the identifier used to determine the type of validation
+     * @param inputString  the input string to be validated
+     * @param outputString the output string to be validated against
      * @return true if the validation is successful, false otherwise
      */
     @Override
@@ -147,16 +147,19 @@ public final class NumberRequirement extends Requirement<Double> {
         Double convertedValue = 0.0;
         try {
             convertedValue = Double.parseDouble(value);
-        } catch (NumberFormatException ignored) { }
+        } catch (NumberFormatException ignored) {
+        }
         if (convertedValue.equals(0.0)) {
             try {
                 convertedValue = (double) Integer.parseInt(value);
-            } catch (NumberFormatException ignored) { }
+            } catch (NumberFormatException ignored) {
+            }
         }
         if (convertedValue.equals(0.0)) {
             try {
                 convertedValue = (double) Float.parseFloat(value);
-            } catch (NumberFormatException ignored) { }
+            } catch (NumberFormatException ignored) {
+            }
         }
         return convertedValue;
     }

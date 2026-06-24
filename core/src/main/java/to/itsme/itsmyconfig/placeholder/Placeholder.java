@@ -17,20 +17,6 @@ import java.util.regex.Pattern;
 public abstract class Placeholder {
 
     /**
-     * Represents the config section of the placeholder.
-     */
-    private final ConfigurationSection section;
-
-    /**
-     * Represents the config section of the placeholder.
-     */
-    private final String filePath;
-
-    /**
-     * Represents the type of the placeholder.
-     */
-    private final PlaceholderType type;
-    /**
      * Represents the key of the placeholder.
      */
     protected final String key;
@@ -38,6 +24,18 @@ public abstract class Placeholder {
      * Represents a set of all argument numbers.
      */
     protected final Set<Integer> arguments = new HashSet<>();
+    /**
+     * Represents the config section of the placeholder.
+     */
+    private final ConfigurationSection section;
+    /**
+     * Represents the config section of the placeholder.
+     */
+    private final String filePath;
+    /**
+     * Represents the type of the placeholder.
+     */
+    private final PlaceholderType type;
     /**
      * Represents a list of dependancy arguments.
      */
@@ -93,13 +91,13 @@ public abstract class Placeholder {
             final int minArguments,
             final int maxArguments
     ) {
-         return new CompiledPlaceholder(
-                    this.key + "_" + variant,
-                    this,
-                    caller,
-                    minArguments,
-                    maxArguments
-         );
+        return new CompiledPlaceholder(
+                this.key + "_" + variant,
+                this,
+                caller,
+                minArguments,
+                maxArguments
+        );
     }
 
     /**
@@ -127,7 +125,7 @@ public abstract class Placeholder {
         if (player != null && player.isOnline()) {
             result = PlaceholderAPI.setPlaceholders(player.getPlayer(), result);
         } else {
-            result = PlaceholderAPI.setPlaceholders(player,result);
+            result = PlaceholderAPI.setPlaceholders(player, result);
         }
 
         return result;
@@ -140,7 +138,7 @@ public abstract class Placeholder {
      * @return The result of the placeholder evaluation as a string.
      */
     @SuppressWarnings("unused")
-    public String getResult(final String[] args)  {
+    public String getResult(final String[] args) {
         throw new RuntimeException("Placeholder " + this.type.name() + " does not accept empty requirements");
     }
 
@@ -160,15 +158,15 @@ public abstract class Placeholder {
      * @param args The arguments used for the placeholder evaluation.
      * @return The result of the placeholder evaluation as a string.
      */
-    public String getResult(final OfflinePlayer player, final String[] args)  {
+    public String getResult(final OfflinePlayer player, final String[] args) {
         throw new RuntimeException("Placeholder " + this.type.name() + " does not accept OfflinePlayer");
     }
 
     /**
      * Replaces arguments in a given message string.
      *
-     * @param params     The array of parameters to use for replacement.
-     * @param message    The message string to replace arguments in.
+     * @param params  The array of parameters to use for replacement.
+     * @param message The message string to replace arguments in.
      * @return The message string with replaced arguments.
      */
     public String replaceArguments(final String[] params, final String message) {
@@ -178,8 +176,8 @@ public abstract class Placeholder {
     /**
      * Replaces placeholders in a given message with the provided arguments.
      *
-     * @param params     The array of parameters to replace the placeholders with.
-     * @param message    The message string containing the placeholders.
+     * @param params  The array of parameters to replace the placeholders with.
+     * @param message The message string containing the placeholders.
      * @return The updated message string with placeholders replaced by the corresponding parameters.
      */
     public String replaceArguments(

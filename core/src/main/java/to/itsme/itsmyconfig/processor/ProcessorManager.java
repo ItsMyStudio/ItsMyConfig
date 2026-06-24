@@ -7,7 +7,10 @@ import to.itsme.itsmyconfig.processor.packetevents.PEventsListener;
 import to.itsme.itsmyconfig.processor.protocollib.PLibListener;
 import to.itsme.itsmyconfig.util.reflect.Reflections;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ProcessorManager {
 

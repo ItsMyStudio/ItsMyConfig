@@ -29,15 +29,6 @@ public final class MathPlaceholder extends Placeholder {
         UPDATE_FORMATTINGS();
     }
 
-    public static void UPDATE_FORMATTINGS() {
-        final FileConfiguration config = ItsMyConfig.getInstance().getConfig();
-        GLOBAL_SUFFIXES.put(1_000L, config.getString("formatting.thousands", "k"));
-        GLOBAL_SUFFIXES.put(1_000_000L, config.getString("formatting.millions", "M"));
-        GLOBAL_SUFFIXES.put(1_000_000_000L, config.getString("formatting.billions", "B"));
-        GLOBAL_SUFFIXES.put(1_000_000_000_000L, config.getString("formatting.trillions", "T"));
-        GLOBAL_SUFFIXES.put(1_000_000_000_000_000L, config.getString("formatting.quadrillions", "Q"));
-    }
-
     private final CompiledExpression expression;
     private final int variablesRequired;
 
@@ -69,6 +60,15 @@ public final class MathPlaceholder extends Placeholder {
                 this.compileVariant("fixed", this::getFixedResult, this.variablesRequired, this.variablesRequired),
                 this.compileVariant("formatted", this::getFormattedResult, this.variablesRequired, this.variablesRequired)
         );
+    }
+
+    public static void UPDATE_FORMATTINGS() {
+        final FileConfiguration config = ItsMyConfig.getInstance().getConfig();
+        GLOBAL_SUFFIXES.put(1_000L, config.getString("formatting.thousands", "k"));
+        GLOBAL_SUFFIXES.put(1_000_000L, config.getString("formatting.millions", "M"));
+        GLOBAL_SUFFIXES.put(1_000_000_000L, config.getString("formatting.billions", "B"));
+        GLOBAL_SUFFIXES.put(1_000_000_000_000L, config.getString("formatting.trillions", "T"));
+        GLOBAL_SUFFIXES.put(1_000_000_000_000_000L, config.getString("formatting.quadrillions", "Q"));
     }
 
     @Override

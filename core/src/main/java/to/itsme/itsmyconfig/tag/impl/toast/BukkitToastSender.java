@@ -8,8 +8,6 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.util.Scheduler;
 
 import java.util.Set;
@@ -36,10 +34,10 @@ public class BukkitToastSender implements ToastSender {
     /**
      * Sends a custom toast message to the player.
      *
-     * @param player     The player to receive the toast.
-     * @param title      The title component of the toast.
-     * @param icon       The material to show as the icon.
-     * @param frameType  The frame type: "task", "goal", or "challenge".
+     * @param player    The player to receive the toast.
+     * @param title     The title component of the toast.
+     * @param icon      The material to show as the icon.
+     * @param frameType The frame type: "task", "goal", or "challenge".
      */
     public void sendToast(Player player, Component title, Material icon, String frameType) {
         String titleJson = GsonComponentSerializer.gson().serialize(title);
@@ -52,32 +50,32 @@ public class BukkitToastSender implements ToastSender {
 
         NamespacedKey key = new NamespacedKey("itsmyconfig", "toast_" + UUID.randomUUID());
         String advancementJson = String.format(
-            """
-            {
-              "criteria": {
-                "impossible": {
-                  "trigger": "minecraft:impossible"
-                }
-              },
-              "display": {
-                "icon": {
-                  "item": "%s",
-                  "id": "%s"
-                },
-                "title": %s,
-                "description": %s,
-                "frame": "%s",
-                "announce_to_chat": false,
-                "show_toast": true,
-                "hidden": true
-              }
-            }
-            """,
-            icon.getKey(),
-            icon.getKey(),
-            titleJson,
-            descJson,
-            sanitizedFrame
+                """
+                        {
+                          "criteria": {
+                            "impossible": {
+                              "trigger": "minecraft:impossible"
+                            }
+                          },
+                          "display": {
+                            "icon": {
+                              "item": "%s",
+                              "id": "%s"
+                            },
+                            "title": %s,
+                            "description": %s,
+                            "frame": "%s",
+                            "announce_to_chat": false,
+                            "show_toast": true,
+                            "hidden": true
+                          }
+                        }
+                        """,
+                icon.getKey(),
+                icon.getKey(),
+                titleJson,
+                descJson,
+                sanitizedFrame
         );
 
         Advancement advancement = Bukkit.getUnsafe().loadAdvancement(key, advancementJson);

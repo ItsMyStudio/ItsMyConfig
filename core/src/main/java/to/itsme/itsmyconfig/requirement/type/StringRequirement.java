@@ -23,9 +23,9 @@ public final class StringRequirement extends Requirement<String> {
     /**
      * Validates the input and output strings based on the given identifier and syntax rules.
      *
-     * @param identifier    The identifier for the syntax rule. It can include special modifiers like 'ignorecase' and 'ignorecolor'.
-     * @param inputString   The input string to be validated.
-     * @param outputString  The output string to be validated.
+     * @param identifier   The identifier for the syntax rule. It can include special modifiers like 'ignorecase' and 'ignorecolor'.
+     * @param inputString  The input string to be validated.
+     * @param outputString The output string to be validated.
      * @return true if the input and output strings pass the validation against the identifier and syntax rules, false otherwise.
      */
     @Override
@@ -60,9 +60,9 @@ public final class StringRequirement extends Requirement<String> {
     /**
      * Handle special identifiers and return the modified values.
      *
-     * @param identifier     the special identifier to handle
-     * @param inputString    the input string to modify
-     * @param outputString   the output string to modify
+     * @param identifier   the special identifier to handle
+     * @param inputString  the input string to modify
+     * @param outputString the output string to modify
      * @return an array of strings containing the modified identifier, input, and output
      */
     // Handle special identifiers and return the modified values
@@ -93,10 +93,10 @@ public final class StringRequirement extends Requirement<String> {
      * Validates input and output strings based on syntax arguments and the 'reverse' flag.
      * It checks if the input and output strings satisfy the given requirement.
      *
-     * @param reverse          a boolean indicating whether to reverse the requirement
-     * @param syntaxArguments  an array of syntax arguments representing the requirements
-     * @param input            a String representing the input value to be checked
-     * @param output           a String representing the output value to be checked against
+     * @param reverse         a boolean indicating whether to reverse the requirement
+     * @param syntaxArguments an array of syntax arguments representing the requirements
+     * @param input           a String representing the input value to be checked
+     * @param output          a String representing the output value to be checked against
      * @return true if the input and output strings satisfy the requirements, false otherwise
      */
     // Validate input and output strings based on syntaxArguments and 'reverse' flag

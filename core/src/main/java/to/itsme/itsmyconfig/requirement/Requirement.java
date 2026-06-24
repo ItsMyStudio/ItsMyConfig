@@ -1,7 +1,7 @@
 package to.itsme.itsmyconfig.requirement;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The Requirement class is an abstract class that represents a requirement. It provides utility methods to add syntax rules and check if an input and output satisfy the requirement
@@ -62,7 +62,7 @@ public abstract class Requirement<V> {
      * Checks if the input and output satisfy the given requirement.
      *
      * @param syntax the syntax of the requirement
-     * @param input the input value to be checked
+     * @param input  the input value to be checked
      * @param output the output value to be checked against
      * @return true if the requirement is satisfied, false otherwise
      */
@@ -84,8 +84,8 @@ public abstract class Requirement<V> {
      * Validates if the given input and output satisfy a specific requirement.
      *
      * @param identifier the unique identifier of the requirement
-     * @param input the input data
-     * @param output the output data
+     * @param input      the input data
+     * @param output     the output data
      * @return true if the input and output satisfy the requirement, false otherwise
      */
     public abstract boolean validate(final String identifier, final String input, final String output);

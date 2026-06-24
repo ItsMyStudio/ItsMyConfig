@@ -16,15 +16,15 @@ public class HoverEvent {
     private String action;
     private Object value;
 
-  /**
-   * Empty Constructor
-   */
+    /**
+     * Empty Constructor
+     */
     public HoverEvent() {
     }
 
-  /**
-   * {@link net.kyori.adventure.text.event.HoverEvent} convetrer to a {@link HoverEvent}
-   */
+    /**
+     * {@link net.kyori.adventure.text.event.HoverEvent} convetrer to a {@link HoverEvent}
+     */
     public HoverEvent(net.kyori.adventure.text.event.HoverEvent event) {
         this.action = event.action().toString();
         switch (this.action) {

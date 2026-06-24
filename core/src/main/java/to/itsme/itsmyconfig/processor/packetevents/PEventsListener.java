@@ -23,15 +23,14 @@ import java.util.Optional;
 
 public class PEventsListener implements PacketListener, com.github.retrooper.packetevents.event.PacketListener {
 
-    private PacketListenerCommon common;
     private static final String FAIL_MESSAGE_PREFIX = "<color:red><lang:multiplayer.message_not_delivered:";
-
     /* Cache packet processors for quick access */
     private final Map<PacketType.Play.Server, PacketProcessor<?>> packetTypeMap = Map.of(
             /*PacketType.Play.Server.CHAT_MESSAGE, PEventsProcessor.CHAT_MESSAGE,*/
             PacketType.Play.Server.SYSTEM_CHAT_MESSAGE, PEventsProcessor.SYSTEM_CHAT_MESSAGE,
             PacketType.Play.Server.DISCONNECT, PEventsProcessor.DISCONNECT
     );
+    private PacketListenerCommon common;
 
     @Override
     public String name() {

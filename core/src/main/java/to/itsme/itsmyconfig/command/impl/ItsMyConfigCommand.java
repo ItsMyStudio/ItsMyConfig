@@ -16,9 +16,9 @@ import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.command.suggest.ModifiablePlaceholderProvider;
 import to.itsme.itsmyconfig.command.util.PlayerSelector;
 import to.itsme.itsmyconfig.message.AudienceResolver;
+import to.itsme.itsmyconfig.message.Message;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
-import to.itsme.itsmyconfig.message.Message;
 import to.itsme.itsmyconfig.util.Utilities;
 
 import java.io.IOException;
@@ -60,10 +60,10 @@ public final class ItsMyConfigCommand {
 
         // Create a text block for the hover message
         final String hoverMessage = """
-            <white>Name: <gold>%s
-            <white>Version: <gold>%s
-            <white>Support Server: <gold>https://discord.gg/itsme-to
-            """.formatted(description.getName(), description.getVersion());
+                <white>Name: <gold>%s
+                <white>Version: <gold>%s
+                <white>Support Server: <gold>https://discord.gg/itsme-to
+                """.formatted(description.getName(), description.getVersion());
 
         // Return the TagResolver with the plugin information
         return TagResolver.resolver("plugin", (argumentQueue, context) -> {
@@ -81,9 +81,9 @@ public final class ItsMyConfigCommand {
     private TagResolver authorInfo() {
         // Create a text block for the hover message
         final String hoverMessage = """
-            <white>Discord: <aqua>@iiAhmedYT</aqua>
-            <white>Github: <aqua>https://github.com/iiAhmedYT</aqua>
-            """;
+                <white>Discord: <aqua>@iiAhmedYT</aqua>
+                <white>Github: <aqua>https://github.com/iiAhmedYT</aqua>
+                """;
 
         // Return the TagResolver with the author information
         return TagResolver.resolver("author", (argumentQueue, context) -> Tag.selfClosingInserting(

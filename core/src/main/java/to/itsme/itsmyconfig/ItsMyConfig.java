@@ -1,27 +1,26 @@
 package to.itsme.itsmyconfig;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import com.github.retrooper.packetevents.PacketEvents;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import to.itsme.itsmyconfig.api.ItsMyConfigAPI;
 import to.itsme.itsmyconfig.command.CommandManager;
-import to.itsme.itsmyconfig.processor.PacketListener;
-import to.itsme.itsmyconfig.processor.ProcessorManager;
 import to.itsme.itsmyconfig.hook.PAPIHook;
 import to.itsme.itsmyconfig.message.AudienceResolver;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderManager;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
 import to.itsme.itsmyconfig.placeholder.type.*;
-import to.itsme.itsmyconfig.placeholder.type.ProgressbarPlaceholder;
+import to.itsme.itsmyconfig.processor.ConsoleFilter;
+import to.itsme.itsmyconfig.processor.PacketListener;
+import to.itsme.itsmyconfig.processor.ProcessorManager;
 import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Versions;
-import to.itsme.itsmyconfig.processor.ConsoleFilter;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,11 +37,10 @@ public final class ItsMyConfig extends JavaPlugin {
     private static ItsMyConfigAPI api;
 
     private final PlaceholderManager placeholderManager = new PlaceholderManager();
+    ProcessorManager processorManager;
     private FileConfiguration config;
     private String symbolPrefix;
     private boolean debug;
-
-    ProcessorManager processorManager;
     private ConsoleFilter consoleFilter;
 
     /**
@@ -117,8 +115,8 @@ public final class ItsMyConfig extends JavaPlugin {
         }
 
         //if (Versions.IS_PAPER && Versions.isOrOver(1, 17, 2) && Versions.isBelow(1, 21, 6)) {
-            //this.getLogger().info("Registering Kick Listener");
-            //this.getServer().getPluginManager().registerEvents(new PlayerListener(),this);
+        //  this.getLogger().info("Registering Kick Listener");
+        //  this.getServer().getPluginManager().registerEvents(new PlayerListener(),this);
         //}
 
         this.getLogger().info("ItsMyConfig loaded in " + (System.currentTimeMillis() - start) + "ms");
@@ -175,7 +173,7 @@ public final class ItsMyConfig extends JavaPlugin {
         if (IMCSerializer.currentSerializerType() != SerializerType.MM_COPY) {
             this.getLogger().warning("Your server is running with an outdated version of the Adventure library. This may be caused by an old server jar or a plugin that includes Adventure without properly relocating it. This can lead to compatibility issues with serialization.");
         }*/
-    
+
         // 8 - 9:  Maps to keep track of registered placeholders and progress bars
         final Map<String, List<String>> placeholderPaths = new HashMap<>();
 
@@ -186,7 +184,7 @@ public final class ItsMyConfig extends JavaPlugin {
             this.saveResource("placeholders/default.yml", false);
             this.saveResource("placeholders/example.yml", false);
         }
-        
+
         this.migrateConfig(folder);
         this.loadFolder(folder, placeholderPaths);
 
@@ -217,11 +215,11 @@ public final class ItsMyConfig extends JavaPlugin {
 
         // 18: Send the placeholders loaded message
         this.getLogger().info(
-                 String.format(
-                         "Loaded all %d Placeholders in %dms",
-                         placeholderManager.getPlaceholderKeys().size(),
-                         System.currentTimeMillis() - time
-                 )
+                String.format(
+                        "Loaded all %d Placeholders in %dms",
+                        placeholderManager.getPlaceholderKeys().size(),
+                        System.currentTimeMillis() - time
+                )
         );
     }
 
@@ -239,8 +237,8 @@ public final class ItsMyConfig extends JavaPlugin {
      * Recursively loads .yml files from the specified folder.
      * It iterates through the files in the folder, loading each .yml file using the `loadCustomYml` method if it meets the criteria.
      *
-     * @param folder                 The folder from which to load .yml files.
-     * @param placeholderPaths       A map of registered placeholders to avoid duplicates.
+     * @param folder           The folder from which to load .yml files.
+     * @param placeholderPaths A map of registered placeholders to avoid duplicates.
      */
     private void loadFolder(
             final File folder,
@@ -268,8 +266,8 @@ public final class ItsMyConfig extends JavaPlugin {
      * Loads custom data from a .yml file.
      * It reads the file using `YamlConfiguration` and extracts custom progress bars and placeholders if they exist.
      *
-     * @param file                   The .yml file to load custom data from.
-     * @param placeholderPaths       A map of registered placeholders to avoid duplicates.
+     * @param file             The .yml file to load custom data from.
+     * @param placeholderPaths A map of registered placeholders to avoid duplicates.
      */
     private void loadYAMLFile(
             final File file,
@@ -299,9 +297,9 @@ public final class ItsMyConfig extends JavaPlugin {
             this.saveConfig();
         }
 
-        final boolean needsMigration = 
-            this.config.isConfigurationSection("custom-placeholder")
-            || this.config.isConfigurationSection("custom-progress");
+        final boolean needsMigration =
+                this.config.isConfigurationSection("custom-placeholder")
+                        || this.config.isConfigurationSection("custom-progress");
         if (needsMigration) {
             File migratedConfig = new File(directory, "migrated-config.yml");
             if (migratedConfig.exists()) {
@@ -345,8 +343,8 @@ public final class ItsMyConfig extends JavaPlugin {
      * Loads custom placeholders from a YAML configuration section.
      * It iterates over each placeholder defined in the section, constructs a corresponding `PlaceholderData` object, and registers it with the `placeholderManager`.
      *
-     * @param section                The YAML configuration section containing placeholder data.
-     * @param paths                  A map of registered placeholders to avoid duplicates.
+     * @param section The YAML configuration section containing placeholder data.
+     * @param paths   A map of registered placeholders to avoid duplicates.
      */
     @SuppressWarnings("ConstantConditions")
     private void loadPlaceholdersSection(

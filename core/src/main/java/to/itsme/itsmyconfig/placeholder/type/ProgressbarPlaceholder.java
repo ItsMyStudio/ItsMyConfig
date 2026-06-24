@@ -52,7 +52,7 @@ public final class ProgressbarPlaceholder extends Placeholder {
     ) {
         super(section, filePath, PlaceholderType.PROGRESS_BAR, PlaceholderDependancy.NONE);
         this.pattern = section.getString("value");
-        this.completedColor =  section.getString("completed-color");
+        this.completedColor = section.getString("completed-color");
         this.progressColor = section.getString("progress-color");
         this.remainingColor = section.getString("remaining-color");
     }
@@ -71,7 +71,7 @@ public final class ProgressbarPlaceholder extends Placeholder {
      * Renders a progress bar based on the given value and max.
      *
      * @param value The current value of the progress bar.
-     * @param max The maximum value of the progress bar.
+     * @param max   The maximum value of the progress bar.
      * @return The rendered progress bar as a string.
      */
     public String render(

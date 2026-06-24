@@ -1,6 +1,8 @@
 package to.itsme.itsmyconfig.placeholder.type;
 
-import net.kyori.adventure.text.format.*;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -19,9 +21,18 @@ import java.util.*;
 public final class ColorPlaceholder extends Placeholder {
 
     /**
-     * Represents the style of a variable.
+     * Represents a map of decoration properties.
      */
-    private Tag style;
+    private final static Map<String, String> DECORATIONS_PROPERTIES = new HashMap<>() {
+        {
+            put("bold", "&l");
+            put("italic", "&o");
+            put("obfuscated", "&k");
+            put("underlined", "&n");
+            put("strikethrough", "&m");
+        }
+    };
+
     /**
      * Represents a legacy color value.
      */
@@ -46,6 +57,10 @@ public final class ColorPlaceholder extends Placeholder {
      * Represents a color placeholder data object.
      */
     hexValue;
+    /**
+     * Represents the style of a variable.
+     */
+    private Tag style;
     /***/
     private String properties = "", /**
      * Represents a placeholder data object with a mini prefix property.
@@ -55,21 +70,7 @@ public final class ColorPlaceholder extends Placeholder {
      */
     propertiesMiniSuffix = "",
 
-    legacyString = "",
-    consoleString = "";
-
-    /**
-     * Represents a map of decoration properties.
-     */
-    private final static Map<String, String> DECORATIONS_PROPERTIES = new HashMap<>() {
-        {
-            put("bold", "&l");
-            put("italic", "&o");
-            put("obfuscated", "&k");
-            put("underlined", "&n");
-            put("strikethrough", "&m");
-        }
-    };
+    legacyString = "", consoleString = "";
 
     /**
      * Represents a color placeholder data object.
