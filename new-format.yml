@@ -166,10 +166,7 @@ custom-placeholder:
 
   # Placeholders
   # - %itsmyconfig_{placeholder_name}:{current_value}:{max_value}% -> returns a progress bar with the specified value and max value
-  # - %itsmyconfig_{placeholder_name}:{current_value}:{max_value}:{arg-1}:{arg-2}% -> returns a progress bar with the specified value, max value, and args
-
   # - <placeholder:{placeholder_name}:{current_value}:{max_value}> -> returns a progress bar with the specified value and max value
-  # - <placeholder:{placeholder_name}:{current_value}:{max_value}:{arg-1}:{arg-2}> -> returns a progress bar with the specified value, max value, and args
 
 ##########################################################################################
 
