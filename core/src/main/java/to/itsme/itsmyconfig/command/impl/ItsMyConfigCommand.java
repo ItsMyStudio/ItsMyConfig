@@ -45,8 +45,9 @@ public final class ItsMyConfigCommand {
                     <gray>• <white>/itsmyconfig message <gold><target> <message>
                     <gray>• <white>/itsmyconfig config <gold><placeholder> <value>
                 
-                  <gray>• <white>Project: <aqua>ItsMe.to
-                  <gray>• <white>Support: <click:open_url:'https://discord.gg/itsme-to'><green>discord.gg/itsme-to</click>
+                  <gray>• <white>Project: <aqua>ItsMyStudio
+                  <gray>• <white>Support: <click:open_url:'https://itsmy.studio/discord'><green>itsmy.studio/discord</click>
+                  <gray>• <white>Documentation: <click:open_url:'https://itsmy.studio/docs/itsmyconfig'><green>itsmy.studio/docs/itsmyconfig</click>
                   <gray>• <white>Developer: <yellow><author> <gray>(%s)
                 
                 """.formatted(plugin.getDescription().getVersion());
