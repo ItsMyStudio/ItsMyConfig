@@ -14,7 +14,7 @@ public interface Font {
     @NotNull Component apply(final @NotNull Component component);
 
     static Collection<Font> values() {
-        return List.of(MappedFont.SMALL_CAPS);
+        return List.of(UppercaseFont.INSTANCE, LowercaseFont.INSTANCE, MappedFont.SMALL_CAPS);
     }
 
 }

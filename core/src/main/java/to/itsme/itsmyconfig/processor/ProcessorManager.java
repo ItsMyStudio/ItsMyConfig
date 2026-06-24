@@ -47,7 +47,7 @@ public class ProcessorManager {
         final List<Map.Entry<String, Integer>> sorted = new ArrayList<>(availableListeners.entrySet());
         sorted.sort(Map.Entry.comparingByValue());
 
-        final String chosenPlugin = sorted.get(0).getKey();
+        final String chosenPlugin = sorted.getFirst().getKey();
         plugin.getLogger().info("Using packet listener: " + chosenPlugin);
 
         return switch (chosenPlugin) {

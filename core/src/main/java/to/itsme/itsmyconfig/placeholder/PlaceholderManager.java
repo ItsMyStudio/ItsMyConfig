@@ -97,6 +97,7 @@ public final class PlaceholderManager {
     }
 
     private void rebuildCompiledPlaceholders() {
+        this.papiPlaceholderKeys.clear();
         this.compiledPlaceholders.clear();
         for (final Map.Entry<String, Placeholder> entry : this.placeholders.entrySet()) {
             this.compile(entry.getValue());

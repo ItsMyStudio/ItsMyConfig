@@ -20,7 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.font.Font;
-import to.itsme.itsmyconfig.font.FontTag;
+import to.itsme.itsmyconfig.tag.adventure.FontTag;
+import to.itsme.itsmyconfig.tag.adventure.PlainTag;
 import to.itsme.itsmyconfig.placeholder.CompiledPlaceholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.type.ColorPlaceholder;
@@ -49,6 +50,7 @@ public final class Utilities {
 
     static {
         final TagResolver.Builder builder = TagResolver.builder();
+        builder.tag(PlainTag.NAME, new PlainTag());
         for (final @Subst("") Font font : Font.values()) {
             builder.tag(font.getName(), new FontTag(font));
         }

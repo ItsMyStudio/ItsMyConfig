@@ -1,8 +1,6 @@
 package to.itsme.itsmyconfig.util;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.internal.serializer.Emitable;
-import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.component.AbstractComponent;
 
 import java.util.function.Function;

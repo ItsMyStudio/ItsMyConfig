@@ -105,21 +105,6 @@ public abstract class Placeholder {
     /**
      * Converts the given Player and arguments to a formatted string.
      *
-     * @param args   The array of strings.
-     * @return The formatted string.
-     */
-    @SuppressWarnings("unused")
-    public String asString(final String[] args) {
-        if (this.hasDependency(PlaceholderDependancy.NONE)) {
-            throw new RuntimeException("This method requires a player / offline player to be used.");
-        }
-
-        return this.getResult(null, args);
-    }
-
-    /**
-     * Converts the given Player and arguments to a formatted string.
-     *
      * @param player The Player object.
      * @param args   The array of strings.
      * @return The formatted string.
