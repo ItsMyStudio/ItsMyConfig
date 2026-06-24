@@ -7,9 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.font.MappedFont;
-import to.itsme.itsmyconfig.placeholder.Placeholder;
+import to.itsme.itsmyconfig.placeholder.CompiledPlaceholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
-import to.itsme.itsmyconfig.placeholder.PlaceholderVariant;
 import to.itsme.itsmyconfig.tag.TagManager;
 import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
@@ -182,11 +181,11 @@ public final class PAPIHook extends PlaceholderExpansion {
         String content = contentBuilder.toString();
         
         // Check if there's a format specification at the end (e.g., _legacy, _mini, _console)
-        PlaceholderVariant variant = PlaceholderVariant.LEGACY;
+        String variant = "legacy";
         final String[] formatParts = content.split("_");
         if (formatParts.length > 0) {
-            final PlaceholderVariant found = PlaceholderVariant.find(formatParts[formatParts.length - 1]);
-            if (found != PlaceholderVariant.RAW) {
+            final String found = parseFormatVariant(formatParts[formatParts.length - 1]);
+            if (found != null) {
                 variant = found;
                 content = content.substring(0, content.lastIndexOf("_" + formatParts[formatParts.length - 1]));
             }
@@ -197,9 +196,9 @@ public final class PAPIHook extends PlaceholderExpansion {
             final var component = Utilities.translate(processedContent, player);
 
             return switch (variant) {
-                case LEGACY, CONSOLE -> Utilities.LEGACY_SERIALIZER.serialize(component);
-                case MINI -> IMCSerializer.toMiniMessage(component);
-                case RAW -> IMCSerializer.toMiniMessage(component);
+                case "legacy", "console" -> Utilities.LEGACY_SERIALIZER.serialize(component);
+                case "mini" -> IMCSerializer.toMiniMessage(component);
+                default -> IMCSerializer.toMiniMessage(component);
             };
             
         } catch (Exception e) {
@@ -219,33 +218,33 @@ public final class PAPIHook extends PlaceholderExpansion {
         final CachedResult cached = CACHE.get(joined);
 
         int nameLength = 0;
-        Placeholder placeholder = null;
+        CompiledPlaceholder compiled = null;
 
         if (cached != null) {
-            placeholder = plugin.getPlaceholderManager().get(cached.name());
-            if (placeholder != null) {
+            compiled = plugin.getPlaceholderManager().getCompiled(cached.name());
+            if (compiled != null) {
                 nameLength = cached.length();
             } else {
                 CACHE.remove(joined);
             }
         }
 
-        if (placeholder == null) {
+        if (compiled == null) {
             for (int i = params.length; i > 0; i--) {
                 final StringBuilder candidateBuilder = new StringBuilder(params[0]);
                 for (int j = 1; j < i; j++) {
                     candidateBuilder.append("_").append(params[j]);
                 }
                 final String candidate = candidateBuilder.toString();
-                if (plugin.getPlaceholderManager().has(candidate)) {
+                compiled = plugin.getPlaceholderManager().getCompiled(candidate);
+                if (compiled != null) {
                     nameLength = i;
-                    placeholder = plugin.getPlaceholderManager().get(candidate);
                     CACHE.put(joined, new CachedResult(candidate, nameLength));
                     break;
                 }
             }
 
-            if (placeholder == null) {
+            if (compiled == null) {
                 return PLACEHOLDER_NOT_FOUND_MSG;
             }
         }
@@ -253,47 +252,32 @@ public final class PAPIHook extends PlaceholderExpansion {
         final int remaining = params.length - nameLength;
 
         if (remaining == 0) {
-            return placeholder.asString(player, new String[0]);
+            return compiled.caller().call(player, new String[0]);
         }
 
-        final String firstArg = params[nameLength];
-        if (remaining == 1) {
-            return placeholder.asString(player, firstArg.split("::"));
-        }
-
-        final PlaceholderType type = placeholder.getType();
-        final StringBuilder builder = new StringBuilder(firstArg);
-
-        switch (type) {
-            case COLOR:
-            case COLORED_TEXT:
-                if (PlaceholderVariant.find(firstArg) != PlaceholderVariant.RAW) {
-                    builder.append("::");
-                } else {
-                    builder.append("_");
-                }
-                break;
-            case MATH:
-                final String lower = firstArg.toLowerCase();
-                if (lower.endsWith("dp") || lower.equals("commas") || lower.equals("fixed") || lower.equals("formatted")) {
-                    builder.append("::");
-                } else {
-                    builder.append("_");
-                }
-                break;
-            default:
-                builder.append("_");
-                break;
-        }
-
+        final StringBuilder builder = new StringBuilder(params[nameLength]);
         for (int i = nameLength + 1; i < params.length; i++) {
+            builder.append("_");
             builder.append(params[i]);
-            if (i < params.length - 1) {
-                builder.append("_");
-            }
         }
 
-        return placeholder.asString(player, builder.toString().split(type == PlaceholderType.PROGRESS_BAR ? "_" : "::"));
+        return compiled.caller().call(
+                player,
+                builder.toString().split(compiled.placeholder().getType() == PlaceholderType.PROGRESS_BAR ? "_" : "::")
+        );
+    }
+
+    private static String parseFormatVariant(final String input) {
+        if (input == null || input.isEmpty()) {
+            return null;
+        }
+
+        return switch (input.toLowerCase()) {
+            case "legacy", "l" -> "legacy";
+            case "console", "c" -> "console";
+            case "mini", "m", "raw", "r" -> "mini";
+            default -> null;
+        };
     }
 
 }
