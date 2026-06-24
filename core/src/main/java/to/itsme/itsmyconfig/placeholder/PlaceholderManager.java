@@ -1,9 +1,6 @@
 package to.itsme.itsmyconfig.placeholder;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The PlaceholderManager class is responsible for managing placeholders.
@@ -17,6 +14,8 @@ public final class PlaceholderManager {
      */
     private final Map<String, Placeholder> placeholders = Collections.synchronizedMap(new LinkedHashMap<>());
     private final Map<String, CompiledPlaceholder> compiledPlaceholders = Collections.synchronizedMap(new LinkedHashMap<>());
+
+    private final List<String> papiPlaceholderKeys = new ArrayList<>();
 
     /**
      * Registers a placeholder with the provided key and value.
@@ -93,11 +92,19 @@ public final class PlaceholderManager {
         return placeholders.keySet();
     }
 
+    public List<String> getPapiPlaceholderKeys() {
+        return papiPlaceholderKeys;
+    }
+
     private void rebuildCompiledPlaceholders() {
         this.compiledPlaceholders.clear();
         for (final Map.Entry<String, Placeholder> entry : this.placeholders.entrySet()) {
             this.compile(entry.getValue());
         }
+
+        this.compiledPlaceholders.keySet().forEach(
+                s -> this.papiPlaceholderKeys.add("%itsmyconfig_" + s + "%")
+        );
     }
 
     private void compile(final Placeholder placeholder) {

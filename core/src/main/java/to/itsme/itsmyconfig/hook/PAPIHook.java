@@ -114,7 +114,7 @@ public final class PAPIHook extends PlaceholderExpansion {
      */
     @Override
     public @Nullable String onPlaceholderRequest(final Player player, @NotNull String params) {
-        params = PlaceholderAPI.setPlaceholders(player, params.replaceAll("\\$\\((.*?)\\)\\$", "%$1%"));
+        params = PlaceholderAPI.setPlaceholders(player, params);
         params = PlaceholderAPI.setBracketPlaceholders(player, params);
 
         final String[] splitParams = params.split("_", -1);
@@ -130,6 +130,11 @@ public final class PAPIHook extends PlaceholderExpansion {
             return handleFont(splitParams);
         }
         return handlePlaceholder(splitParams, player);
+    }
+
+    @Override
+    public @NotNull List<String> getPlaceholders() {
+        return this.plugin.getPlaceholderManager().getPapiPlaceholderKeys();
     }
 
     /**
