@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import to.itsme.itsmyconfig.component.AbstractComponent;
 
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("all")
 public class IMCSerializer {
@@ -42,11 +43,17 @@ public class IMCSerializer {
     }
 
     public static String toMiniMessage(final String json) {
-        return JSON_SERIALIZER.apply(json);
+        return sanitize(JSON_SERIALIZER.apply(json));
     }
 
     public static String toMiniMessage(final Component component) {
-        return COMPONENT_SERIALIZER.apply(component);
+        return sanitize(COMPONENT_SERIALIZER.apply(component));
+    }
+
+    private static final Pattern CLOSE_COLOR_TAG = Pattern.compile("(</#[0-9A-Fa-f]{6}>)+$");
+
+    private static String sanitize(final String input) {
+        return CLOSE_COLOR_TAG.matcher(input).replaceAll("");
     }
 
     private static Function<String, String> createJsonSerializer(final SerializerType serializerType) {
