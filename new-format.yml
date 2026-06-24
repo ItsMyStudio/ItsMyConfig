@@ -139,7 +139,7 @@ custom-placeholder:
 
   switch:
     type: switch
-    values:
+    cases:
       key1: "Value 1"
       "test": "Value 2"
       key3: "Value 3"
