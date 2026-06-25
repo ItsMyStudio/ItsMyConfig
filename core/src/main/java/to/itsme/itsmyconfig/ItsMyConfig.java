@@ -2,10 +2,13 @@ package to.itsme.itsmyconfig;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import to.itsme.itsmyconfig.api.ItsMyConfigAPI;
 import to.itsme.itsmyconfig.command.CommandManager;
@@ -78,12 +81,26 @@ public final class ItsMyConfig extends JavaPlugin {
         }
 
         final long start = System.currentTimeMillis();
+        if (!this.init()) {
+            this.getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        this.getLogger().info("ItsMyConfig loaded in " + (System.currentTimeMillis() - start) + "ms");
+    }
+
+    /**
+     * Initializes the plugin, registering services, loading configuration,
+     * and setting up packet listeners and metrics.
+     *
+     * @return {@code true} if initialization succeeded, {@code false} otherwise.
+     */
+    private boolean init() {
         api = new DefaultIMCAPI(this);
         this.getServer().getServicesManager().register(
                 ItsMyConfigAPI.class,
                 api,
                 this,
-                org.bukkit.plugin.ServicePriority.Normal
+                ServicePriority.Normal
         );
         AudienceResolver.load(this);
         List.of("imc", "itsmyconfig").forEach(alias -> new PAPIHook(this, alias).register());
@@ -98,8 +115,7 @@ public final class ItsMyConfig extends JavaPlugin {
         final PacketListener listener = this.processorManager.getListener();
         if (listener == null) {
             this.getLogger().warning("No suitable packet listener found. Disabling plugin...");
-            this.getServer().getPluginManager().disablePlugin(this);
-            return;
+            return false;
         }
 
         this.getLogger().info("Using packet listener: " + listener.name());
@@ -108,21 +124,21 @@ public final class ItsMyConfig extends JavaPlugin {
         if (getConfig().getBoolean("translate-console")) {
             // Register Console Filter
             this.consoleFilter = new ConsoleFilter();
-            final org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
-            final org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
-            config.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME).addFilter(this.consoleFilter);
+            final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+            final var config = ctx.getConfiguration();
+            config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME).addFilter(this.consoleFilter);
             ctx.updateLoggers();
         }
 
-        this.getLogger().info("ItsMyConfig loaded in " + (System.currentTimeMillis() - start) + "ms");
+        return true;
     }
 
     @Override
     public void onDisable() {
         if (this.consoleFilter != null) {
-            final org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
-            final org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
-            config.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME).removeFilter(this.consoleFilter);
+            final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+            final var config = ctx.getConfiguration();
+            config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME).removeFilter(this.consoleFilter);
             ctx.updateLoggers();
         }
         AudienceResolver.close();
