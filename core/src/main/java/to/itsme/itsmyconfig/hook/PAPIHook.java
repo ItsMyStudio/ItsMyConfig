@@ -127,7 +127,7 @@ public final class PAPIHook extends PlaceholderExpansion {
         params = PlaceholderAPI.setPlaceholders(player, params);
         params = PlaceholderAPI.setBracketPlaceholders(player, params);
         if (Strings.startsWithIgnoreCase(params, PARSE_PREFIX)) {
-            return handleParse(params.substring(6), player);
+            return handleParse(params.substring(PARSE_PREFIX.length()), player);
         }
         if ((Strings.startsWithIgnoreCase(params, FONT_PREFIX) || Strings.startsWithIgnoreCase(params, FONT_SHORTCUT))) {
             return handleFont(params);

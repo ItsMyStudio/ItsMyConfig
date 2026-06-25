@@ -25,7 +25,7 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
             PacketType.Play.Server.BOSS_BAR, BossBarProcessor.INSTANCE,
 
             // titles
-            PacketType.Play.Server.TITLE, TitleProcessor.INSTANCE,
+            PacketType.Play.Server.SET_TITLE_TEXT, TitleProcessor.INSTANCE,
             PacketType.Play.Server.SET_TITLE_SUBTITLE, SubtitleProcessor.INSTANCE
     );
     private PacketListenerCommon common;

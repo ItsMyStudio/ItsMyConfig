@@ -14,7 +14,7 @@ import java.util.Optional;
  * Utility methods shared across PacketEvents-based packet processors.
  * <p>
  * Provides the common pipeline for extracting, parsing, translating and
- * re-serialising chat-like components from intercepted packets.
+ * re-serializing chat-like components from intercepted packets.
  */
 public final class PacketUtil {
 
@@ -29,7 +29,7 @@ public final class PacketUtil {
      * @param processor the processor emitting the debug output
      */
     public static void startDebug(final PacketProcessor processor) {
-        Utilities.debug(() -> "################# %s PACKET #################\nProcessing packet %s".formatted(processor.name(), processor.name()));
+        Utilities.debug(() -> "################# %s PACKET #################".formatted(processor.name()));
     }
 
     /**
@@ -51,7 +51,7 @@ public final class PacketUtil {
      * @param player    the player who will receive the packet
      * @param component the component extracted from the raw packet
      * @return {@code null} if the packet should be left untouched,
-     *         {@link Component#empty()} if the packet should be cancelled,
+     *         {@link Component#empty()} if the packet should be canceled,
      *         or the translated component that should replace the original
      */
     @Nullable
