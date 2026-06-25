@@ -39,6 +39,14 @@ public class MappedFont extends FontImpl {
         return mapping;
     }
 
+    /**
+     * Applies the font mapping to a string.
+     *
+     * <p>After {@link Strings#englishify} normalises the input, all remaining
+     * characters are basic ASCII. Iterating byte-by-byte is therefore safe
+     * and avoids surrogate-pair issues. Each byte is mapped through
+     * {@link #characterMap} or passed through unchanged if no mapping exists.</p>
+     */
     @Override
     public @NotNull String apply(final @NotNull String text) {
         final byte[] bytes = Strings.englishify(text).getBytes(StandardCharsets.UTF_8);

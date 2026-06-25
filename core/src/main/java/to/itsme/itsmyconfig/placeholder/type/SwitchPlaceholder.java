@@ -72,6 +72,18 @@ public final class SwitchPlaceholder extends Placeholder {
         }
     }
 
+    /**
+     * Parses a numeric range.
+     *
+     * <p>Examples:
+     * <ul>
+     *   <li>{@code -10}  → (-∞, 10]</li>
+     *   <li>{@code 10-}  → [10, +∞)</li>
+     *   <li>{@code 5-10} → [5, 10]</li>
+     * </ul>
+     *
+     * @return the parsed range, or {@code null} if the input is not a valid range
+     */
     private static Range parseRangeKey(final String keyRaw) {
         if (keyRaw == null) return null;
         final String key = keyRaw.trim();
@@ -105,6 +117,10 @@ public final class SwitchPlaceholder extends Placeholder {
         }
     }
 
+    /**
+     * Substitutes {@code {0}, {1}, ...} in the matched value with args[1], args[2], ...
+     * args[0] is the switch key, not a template variable.
+     */
     private static String applyArgs(final String template, final String[] args) {
         String out = template;
         for (int i = 1; i < args.length; i++) {
@@ -118,11 +134,18 @@ public final class SwitchPlaceholder extends Placeholder {
         return 1;
     }
 
+    /**
+     * Resolves a value using the following lookup order:
+     *
+     * <ol>
+     *   <li>Exact key match in {@link #exactCases}</li>
+     *   <li>Empty-string key (for blank input)</li>
+     *   <li>Numeric key matched against a range using binary search</li>
+     *   <li>{@link #defaultValue}</li>
+     * </ol>
+     */
     @Override
-    public String getResult(
-            final OfflinePlayer player,
-            final String[] args
-    ) {
+    public String getResult(final OfflinePlayer player, final String[] args) {
         if (args.length == 0) {
             return defaultValue;
         }
@@ -159,6 +182,10 @@ public final class SwitchPlaceholder extends Placeholder {
         return applyArgs(value, args);
     }
 
+    /**
+     * Binary search: finds the range entry whose [start, end] contains x.
+     * Ranges are non-overlapping and sorted by start then end.
+     */
     private int findRangeIndex(final long x) {
         if (rangeStarts.length == 0) return -1;
         int lo = 0, hi = rangeStarts.length - 1;

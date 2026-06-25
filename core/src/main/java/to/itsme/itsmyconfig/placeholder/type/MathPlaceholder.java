@@ -46,6 +46,11 @@ public final class MathPlaceholder extends Placeholder {
         this.precision = section.getInt("precision");
         this.roundingMode = RoundingMode.valueOf(section.getString("rounding", section.getString("mode", "HALF_UP")));
 
+        /*
+         * Crunch uses {@code $1, $2, ...} for variable references while this
+         * placeholder uses {@code {0}, {1}, ...}. This block remaps:
+         * <pre>{@code {n} -> $(n+1)}</pre>
+         */
         String copy = value;
         for (final int argument : this.arguments) {
             copy = copy.replace("{" + argument + "}", "$" + (argument + 1));
@@ -62,6 +67,20 @@ public final class MathPlaceholder extends Placeholder {
         );
     }
 
+    /**
+     * Reloads the global number suffix mappings from the config file.
+     *
+     * <p>Called on plugin startup and on {@code /itsmyconfig reload}.</p>
+     *
+     * <p>Reads the following keys from {@code formatting.*}:
+     * <ul>
+     *   <li>{@code thousands}    → {@code k}</li>
+     *   <li>{@code millions}     → {@code M}</li>
+     *   <li>{@code billions}     → {@code B}</li>
+     *   <li>{@code trillions}    → {@code T}</li>
+     *   <li>{@code quadrillions} → {@code Q}</li>
+     * </ul>
+     */
     public static void UPDATE_FORMATTINGS() {
         final FileConfiguration config = ItsMyConfig.getInstance().getConfig();
         GLOBAL_SUFFIXES.put(1_000L, config.getString("formatting.thousands", "k"));
@@ -128,6 +147,16 @@ public final class MathPlaceholder extends Placeholder {
         return "One of the arguments is an invalid number";
     }
 
+    /**
+     * Parses the first {@code limit} arguments as {@code double} values.
+     *
+     * <p>Returns {@code null} if any argument is not a valid number —
+     * the caller is responsible for handling the fallback.</p>
+     *
+     * @param args  the raw string arguments
+     * @param limit how many arguments to parse
+     * @return an array of parsed doubles, or {@code null} on failure
+     */
     public double[] convertArray(final String[] args, final int limit) {
         final double[] doubleArgs = new double[limit];
         for (int i = 0; i < limit; i++) {
@@ -146,6 +175,12 @@ public final class MathPlaceholder extends Placeholder {
         return this.variablesRequired;
     }
 
+    /**
+     * Formats a large number with a configurable suffix (e.g. {@code 1_500 → "1.5k"}).
+     *
+     * <p>Shows one decimal place only when the truncated value is less than 100
+     * and the decimal part is non-zero; otherwise displays an integer plus suffix.</p>
+     */
     @SuppressWarnings("all")
     private String formatNumber(long balance) {
         if (balance == Long.MIN_VALUE) {

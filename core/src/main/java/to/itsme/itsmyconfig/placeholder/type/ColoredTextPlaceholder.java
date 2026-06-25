@@ -13,6 +13,10 @@ import java.util.Set;
 
 public final class ColoredTextPlaceholder extends Placeholder {
 
+    /**
+     * Serializer using {@code §} as the legacy colour character.
+     * <p>Intended for console output where {@code §}-codes are natively supported.</p>
+     */
     private final static LegacyComponentSerializer SECTION_SERIALIZER = LegacyComponentSerializer
             .builder()
             .character('§')
@@ -21,6 +25,10 @@ public final class ColoredTextPlaceholder extends Placeholder {
             .useUnusualXRepeatedCharacterHexFormat()
             .build();
 
+    /**
+     * Serializer using {@code &} as the legacy colour character.
+     * <p>Intended for chat and config interchange where {@code &}-codes are standard.</p>
+     */
     private final static LegacyComponentSerializer AMPERSAND_SERIALIZER = LegacyComponentSerializer
             .builder()
             .character('&')
@@ -83,6 +91,10 @@ public final class ColoredTextPlaceholder extends Placeholder {
         return this.replaceArguments(args, this.miniText);
     }
 
+    /**
+     * Renders the placeholder as {@code &}-legacy format.
+     * <p>Example output: {@code "&a&lHello"}</p>
+     */
     private String getLegacyResult(final OfflinePlayer player, final String[] args) {
         return this.asVariantString(player, this.replaceArguments(
                 args,
@@ -92,6 +104,10 @@ public final class ColoredTextPlaceholder extends Placeholder {
         ));
     }
 
+    /**
+     * Renders the placeholder as {@code §}-legacy format.
+     * <p>Example output: {@code "§a§lHello"}</p>
+     */
     private String getConsoleResult(final OfflinePlayer player, final String[] args) {
         return this.asVariantString(player, this.replaceArguments(
                 args,
@@ -101,6 +117,7 @@ public final class ColoredTextPlaceholder extends Placeholder {
         ));
     }
 
+    /** Variant: raw MiniMessage (passthrough) */
     private String getMiniResult(final OfflinePlayer player, final String[] args) {
         return this.asVariantString(player, this.replaceArguments(args, this.miniText));
     }
