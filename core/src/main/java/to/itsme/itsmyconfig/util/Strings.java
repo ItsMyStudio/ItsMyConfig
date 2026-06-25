@@ -19,7 +19,6 @@ public final class Strings {
 
     public static final Pattern LETTERS_PATTERN = Pattern.compile("[A-Za-zÀ-ÿ]");
     public static final Pattern HEX_PATTERN = Pattern.compile("#[a-fA-F0-9]{6}");
-    public static final Pattern COLOR_SYMBOL_PATTERN = Pattern.compile(Pattern.quote("§"));
     public static final Pattern TAG_PATTERN = Pattern.compile("<(\\w+)(?::\"([^\"]*)\"|:([^<]*))*>");
 
     private static final Pattern COLOR_FILTER = Pattern.compile("[§&][a-zA-Z0-9]");
@@ -277,7 +276,7 @@ public final class Strings {
      * @param collection The collection of strings to be converted to a string.
      * @return The string representation of the list.
      */
-    public static String toString(final @NotNull Collection<String> collection) {
+    public static String joinLines(final @NotNull Collection<String> collection) {
         return String.join(System.lineSeparator(), collection);
     }
 
@@ -363,53 +362,46 @@ public final class Strings {
     }
 
     /**
-     * Checks if the provided message starts with the "$" symbol
+     * Extracts arguments from a colon-separated string, supporting quoted values using
+     * {@code "}, {@code '}, or {@code `} as delimiters. A leading {@code :} is skipped
+     * automatically if present. Additional stop characters can be provided to terminate
+     * unquoted argument parsing early.
      *
-     * @param message the checked message
-     * @deprecated This method is deprecated and will be removed in a future release.
+     * @param raw       the raw string to extract arguments from.
+     * @param extraStops additional characters that terminate an unquoted argument.
+     * @return an array of extracted argument strings.
      */
-    @Deprecated
-    public static boolean startsWithSymbol(final String message) {
-        if (message == null || message.isEmpty()) {
-            return false;
+    public static String[] extractArguments(final String raw, final char... extraStops) {
+        final List<String> args = new ArrayList<>();
+
+        int i = raw.startsWith(":") ? 1 : 0;
+        while (i < raw.length()) {
+            final char delimiter = raw.charAt(i);
+
+            if (delimiter == '"' || delimiter == '\'' || delimiter == '`') {
+                i++; // skip opening quote
+                final int end = raw.indexOf(delimiter, i);
+                if (end == -1) break;
+                args.add(raw.substring(i, end));
+                i = end + 1;
+                if (i < raw.length() && raw.charAt(i) == ':') i++; // skip trailing ':'
+            } else {
+                int end = i;
+                outer:
+                while (end < raw.length()) {
+                    final char c = raw.charAt(end);
+                    if (c == ':' || Character.isWhitespace(c)) break;
+                    for (final char stop : extraStops) {
+                        if (c == stop) break outer;
+                    }
+                    end++;
+                }
+                args.add(raw.substring(i, end));
+                i = end + 1; // skip trailing ':'
+            }
         }
 
-        int tagDepth = 0;
-        for (var i = 0; i < message.length(); i++) {
-            char character = message.charAt(i);
-            if (character == '&' || character == '§') {
-                i++;
-                continue;
-            }
-            if (character == '<') {
-                tagDepth++;
-                continue;
-            } else if (character == '>' && tagDepth > 0) {
-                tagDepth--;
-                continue;
-            }
-
-            if (tagDepth > 0 || Character.isWhitespace(character)) {
-                continue;
-            }
-
-            return message.startsWith(symbolPrefix, i);
-        }
-
-        return false;
-    }
-
-    /**
-     * Removes the '§' symbol and replaces it with '&'
-     * <br>
-     * Also removes the first '$' symbol it meets
-     *
-     * @param message the provided message
-     * @deprecated This method is deprecated and will be removed in a future release.
-     */
-    @Deprecated
-    public static String processMessage(final String message) {
-        return Strings.COLOR_SYMBOL_PATTERN.matcher(symbolPrefixPattern.matcher(message).replaceFirst("")).replaceAll("&");
+        return args.toArray(new String[0]);
     }
 
 }

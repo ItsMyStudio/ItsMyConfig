@@ -13,7 +13,6 @@ import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Utilities;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,37 +48,6 @@ public final class PAPIHook extends PlaceholderExpansion {
     public PAPIHook(final ItsMyConfig plugin, final String identifier) {
         this.plugin = plugin;
         this.identifier = identifier;
-    }
-
-    private static String[] extractArguments(final String raw) {
-        final List<String> args = new ArrayList<>();
-
-        int i = 0;
-        while (i < raw.length()) {
-            char delimiter = raw.charAt(i);
-
-            int end;
-            if (delimiter == '"' || delimiter == '\'' || delimiter == '`') {
-                i++; // skip opening quote
-                end = raw.indexOf(delimiter, i);
-                if (end == -1) break;
-                args.add(raw.substring(i, end));
-                i = end + 1;
-                // skip trailing ':' separator
-                if (i < raw.length() && raw.charAt(i) == ':') i++;
-            } else {
-                end = i;
-                while (end < raw.length()) {
-                    char c = raw.charAt(end);
-                    if (c == ':' || Character.isWhitespace(c)) break;
-                    end++;
-                }
-                args.add(raw.substring(i, end));
-                i = end + 1; // skip ':'
-            }
-        }
-
-        return args.toArray(new String[0]);
     }
 
     private static String parseFormatVariant(final String input) {
@@ -269,7 +237,7 @@ public final class PAPIHook extends PlaceholderExpansion {
             return compiled.caller().call(player);
         }
 
-        final String[] args = extractArguments(params.substring(colonIndex + 1));
+        final String[] args = Strings.extractArguments(params.substring(colonIndex + 1));
         if (!compiled.accepts(args.length)) {
             return compiled.invalidArgumentsMessage(args.length);
         }

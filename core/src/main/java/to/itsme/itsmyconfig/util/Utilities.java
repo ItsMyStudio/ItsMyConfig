@@ -50,6 +50,8 @@ public final class Utilities {
     private static final TagResolver FONT_RESOLVER;
     private static final Field TEXT_COMPONENT_CONTENT;
 
+    private static final TagResolver EMPTY_IMC_TAG = itsMyConfigTag(null);
+
     static {
         final TagResolver.Builder builder = TagResolver.builder();
         builder.tag(PlainTag.NAME, new PlainTag());
@@ -114,8 +116,8 @@ public final class Utilities {
     ) {
         final Component translated = EMPTY_MM.deserialize(
                 Strings.quote(text),
-                emptyItsMyConfigTag(),
-                FONT_RESOLVER, StandardTags.defaults(),
+                EMPTY_IMC_TAG, FONT_RESOLVER,
+                StandardTags.defaults(),
                 TagResolver.resolver(placeholders)
         );
 
@@ -178,9 +180,11 @@ public final class Utilities {
     /**
      * Provides a ItsMyConfig placeholders tag resolver.
      *
+     * @param player The player for whom the resolver is being created,
+     *               or {@code null} to resolve player-independent placeholders only.
      * @return The ItsMyConfig placeholder tag resolver.
      */
-    public static TagResolver emptyItsMyConfigTag() {
+    public static TagResolver itsMyConfigTag(@Nullable final OfflinePlayer player) {
         return TagResolver.resolver("p", (argumentQueue, context) -> {
             if (!argumentQueue.hasNext()) {
                 return Tag.preProcessParsed("Unknown Placeholder");
@@ -201,45 +205,8 @@ public final class Utilities {
                 args.add(argumentQueue.pop().value());
             }
 
-            if (!compiled.placeholder().hasDependency(PlaceholderDependancy.NONE)) {
+            if (player == null && !compiled.placeholder().hasDependency(PlaceholderDependancy.NONE)) {
                 return Tag.preProcessParsed("");
-            }
-
-            final String[] parsedArgs = args.toArray(new String[0]);
-            if (!compiled.accepts(parsedArgs.length)) {
-                return Tag.preProcessParsed(compiled.invalidArgumentsMessage(parsedArgs.length));
-            }
-
-            final String parsed = compiled.caller().call(null, parsedArgs);
-            return Tag.preProcessParsed((parsed == null ? "" : parsed).replace("§", "&"));
-        });
-    }
-
-    /**
-     * Provides a ItsMyConfig placeholders tag resolver.
-     *
-     * @param player The player for whom the resolver is being created.
-     * @return The ItsMyConfig placeholder tag resolver.
-     */
-    public static TagResolver itsMyConfigTag(final OfflinePlayer player) {
-        return TagResolver.resolver("p", (argumentQueue, context) -> {
-            if (!argumentQueue.hasNext()) {
-                return Tag.preProcessParsed("Unknown Placeholder");
-            }
-
-            final String name = argumentQueue.popOr("").value();
-            final CompiledPlaceholder compiled = plugin.getPlaceholderManager().getCompiled(name);
-            if (compiled == null) {
-                return Tag.preProcessParsed("Unknown Placeholder");
-            }
-
-            if (plugin.getPlaceholderManager().get(name) instanceof ColorPlaceholder colorPlaceholder) {
-                return colorPlaceholder.getStyle();
-            }
-
-            final List<String> args = new LinkedList<>();
-            while (argumentQueue.hasNext()) {
-                args.add(argumentQueue.pop().value());
             }
 
             final String[] parsedArgs = args.toArray(new String[0]);

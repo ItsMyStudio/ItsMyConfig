@@ -9,8 +9,8 @@ import to.itsme.itsmyconfig.tag.impl.*;
 import to.itsme.itsmyconfig.tag.impl.title.SubtitleTag;
 import to.itsme.itsmyconfig.tag.impl.title.TitleTag;
 import to.itsme.itsmyconfig.tag.impl.toast.ToastTag;
+import to.itsme.itsmyconfig.util.Strings;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +22,6 @@ public final class TagManager {
 
     private static final Pattern ARG_TAG_PATTERN = Pattern.compile("<(\\w+)((?::(?:\"([^\"]*)\"|'([^']*)'|`([^`]*)`|([^:\\s>]+)))*?)>");
 
-    private static final int INITIAL_CAPACITY;
     private static final Map<String, Tag> tags = new LinkedHashMap<>();
 
     static {
@@ -36,8 +35,6 @@ public final class TagManager {
             tags.put(tag.name(), tag);
             defaultCapacity.set(Math.max(tag.maxArguments(), defaultCapacity.get()));
         });
-
-        INITIAL_CAPACITY = defaultCapacity.get();
     }
 
     public static String process(
@@ -71,7 +68,7 @@ public final class TagManager {
             }
 
             final String arguments = matcher.group(2);
-            final String[] args = extractArguments(arguments);
+            final String[] args = Strings.extractArguments(arguments, '>');
             if (args.length == 1 && "cancel".equals(args[0])) {
                 if (tag instanceof Cancellable cancellable) {
                     cancellable.cancelFor(player);
@@ -95,42 +92,6 @@ public final class TagManager {
         }
 
         return text;
-    }
-
-    public static String[] extractArguments(final String rawArgs) {
-        final List<String> args = new ArrayList<>(INITIAL_CAPACITY);
-
-        int i = 0;
-        while (i < rawArgs.length()) {
-            if (rawArgs.charAt(i) != ':') {
-                i++;
-                continue;
-            }
-            i++; // skip ':'
-            if (i >= rawArgs.length()) break;
-
-            char delimiter = rawArgs.charAt(i);
-            int end;
-
-            if (delimiter == '"' || delimiter == '\'' || delimiter == '`') {
-                i++; // skip opening quote
-                end = rawArgs.indexOf(delimiter, i);
-                if (end == -1) break;
-                args.add(rawArgs.substring(i, end));
-                i = end + 1;
-            } else {
-                end = i;
-                while (end < rawArgs.length()) {
-                    char c = rawArgs.charAt(end);
-                    if (c == ':' || c == '>' || Character.isWhitespace(c)) break;
-                    end++;
-                }
-                args.add(rawArgs.substring(i, end));
-                i = end;
-            }
-        }
-
-        return args.toArray(new String[0]);
     }
 
 }

@@ -48,7 +48,7 @@ public enum Message {
 
         final String result;
         if (msg instanceof List<?>) {
-            result = Strings.toString((List<String>) msg);
+            result = Strings.joinLines((List<String>) msg);
         } else if (msg instanceof String) {
             result = (String) msg;
         } else {
