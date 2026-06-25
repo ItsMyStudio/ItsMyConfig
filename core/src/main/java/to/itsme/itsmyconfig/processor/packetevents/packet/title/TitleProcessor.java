@@ -1,7 +1,7 @@
 package to.itsme.itsmyconfig.processor.packetevents.packet.title;
 
 import com.github.retrooper.packetevents.event.PacketSendEvent;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTitle;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetTitleText;
 import net.kyori.adventure.text.Component;
 import to.itsme.itsmyconfig.processor.packetevents.PEventsProcessor;
 import to.itsme.itsmyconfig.processor.packetevents.PacketUtil;
@@ -20,7 +20,7 @@ public class TitleProcessor implements PEventsProcessor {
     @Override
     public void process(final PacketSendEvent event) {
         PacketUtil.startDebug(this);
-        final WrapperPlayServerTitle wrapper = new WrapperPlayServerTitle(event);
+        final WrapperPlayServerSetTitleText wrapper = new WrapperPlayServerSetTitleText(event);
         final Component result = PacketUtil.processComponent(event.getPlayer(), wrapper.getTitle());
         if (result == null) {
             return;
