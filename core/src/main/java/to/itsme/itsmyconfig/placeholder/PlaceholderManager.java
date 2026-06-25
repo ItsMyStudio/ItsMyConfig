@@ -80,7 +80,7 @@ public final class PlaceholderManager {
      * @return a map containing placeholders as keys and their corresponding {@link Placeholder} objects as values
      */
     public Map<String, Placeholder> getPlaceholdersMap() {
-        return placeholders;
+        return Map.copyOf(placeholders);
     }
 
     /**
