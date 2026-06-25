@@ -274,7 +274,6 @@ public final class ItsMyConfig extends JavaPlugin {
         }
     }
 
-    @SuppressWarnings("ConstantConditions")
     private void migrateConfig(final File directory) {
         if (!this.config.isConfigurationSection("listeners")) {
             ConfigurationSection listeners = this.config.createSection("listeners");
@@ -317,6 +316,7 @@ public final class ItsMyConfig extends JavaPlugin {
                 if (this.config.isConfigurationSection("custom-progress")) {
                     for (final String name : Objects.requireNonNull(this.config.getConfigurationSection("custom-progress")).getKeys(false)) {
                         final ConfigurationSection section = this.config.getConfigurationSection("custom-progress." + name);
+                        if (section == null) continue;
                         section.set("value", section.getString("symbol"));
                         section.set("type", "progress_bar");
                         section.set("symbol", null);
@@ -341,7 +341,6 @@ public final class ItsMyConfig extends JavaPlugin {
      * @param section The YAML configuration section containing placeholder data.
      * @param paths   A map of registered placeholders to avoid duplicates.
      */
-    @SuppressWarnings("ConstantConditions")
     private void loadPlaceholdersSection(
             final ConfigurationSection section,
             final File file,
