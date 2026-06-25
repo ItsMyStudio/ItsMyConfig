@@ -20,7 +20,6 @@ public interface PacketListener {
     /**
      * Closes the packet listener.
      */
-    default void close() {
-    }
+    default void close() {}
 
 }

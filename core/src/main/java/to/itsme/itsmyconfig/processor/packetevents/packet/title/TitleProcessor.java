@@ -1,0 +1,39 @@
+package to.itsme.itsmyconfig.processor.packetevents.packet.title;
+
+import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTitle;
+import net.kyori.adventure.text.Component;
+import to.itsme.itsmyconfig.processor.packetevents.PEventsProcessor;
+import to.itsme.itsmyconfig.processor.packetevents.PacketUtil;
+import to.itsme.itsmyconfig.util.Strings;
+import to.itsme.itsmyconfig.util.Utilities;
+
+public class TitleProcessor implements PEventsProcessor {
+
+    public static final TitleProcessor INSTANCE = new TitleProcessor();
+
+    @Override
+    public String name() {
+        return "TITLE";
+    }
+
+    @Override
+    public void process(final PacketSendEvent event) {
+        PacketUtil.startDebug(this);
+        final WrapperPlayServerTitle wrapper = new WrapperPlayServerTitle(event);
+        final Component result = PacketUtil.processComponent(event.getPlayer(), wrapper.getTitle());
+        if (result == null) {
+            return;
+        }
+
+        if (result.equals(Component.empty())) {
+            event.setCancelled(true);
+            return;
+        }
+
+        event.markForReEncode(true);
+        wrapper.setTitle(result);
+        Utilities.debug(() -> Strings.DEBUG_HYPHEN);
+    }
+
+}

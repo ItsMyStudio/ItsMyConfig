@@ -16,6 +16,7 @@ public final class Strings {
 
     public static final String[] EMPTY_STRING_ARRAY = new String[0];
     public static final String DEBUG_HYPHEN = "###############################################";
+    public static final String FAIL_MESSAGE_PREFIX = "<color:red><lang:multiplayer.message_not_delivered:";
 
     public static final Pattern LETTERS_PATTERN = Pattern.compile("[A-Za-zÀ-ÿ]");
     public static final Pattern HEX_PATTERN = Pattern.compile("#[a-fA-F0-9]{6}");
