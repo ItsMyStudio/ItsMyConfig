@@ -35,6 +35,14 @@ public final class PAPIHook extends PlaceholderExpansion {
      * PLACEHOLDER_NOT_FOUND_MSG is a constant variable that represents the message displayed when a placeholder is not found.
      */
     public static final String PLACEHOLDER_NOT_FOUND_MSG = "Placeholder not found";
+
+    /** Prefix for {@code %imc_parse_<content>_<variant>} */
+    private static final String PARSE_PREFIX = "parse_";
+    /** Prefix for {@code %imc_font_<type>_<args>} */
+    private static final String FONT_PREFIX = "font_";
+    /** Shorthand prefix for {@code %imc_f_<type>_<args>} */
+    private static final String FONT_SHORTCUT = "f_";
+
     /**
      * This variable is an instance of the ItsMyConfig class.
      */
@@ -118,18 +126,11 @@ public final class PAPIHook extends PlaceholderExpansion {
     public @Nullable String onPlaceholderRequest(final Player player, @NotNull String params) {
         params = PlaceholderAPI.setPlaceholders(player, params);
         params = PlaceholderAPI.setBracketPlaceholders(player, params);
-
-        final String[] splitParams = params.split("_", -1);
-        if (splitParams.length == 0) {
-            return ILLEGAL_ARGUMENT_MSG;
+        if (Strings.startsWithIgnoreCase(params, PARSE_PREFIX)) {
+            return handleParse(params.substring(6), player);
         }
-
-        final String firstParam = splitParams[0].toLowerCase();
-        if ("parse".equals(firstParam)) {
-            return handleParse(splitParams, player);
-        }
-        if (("font".equals(firstParam) || "f".equals(firstParam)) && splitParams.length >= 3) {
-            return handleFont(splitParams);
+        if ((Strings.startsWithIgnoreCase(params, FONT_PREFIX) || Strings.startsWithIgnoreCase(params, FONT_SHORTCUT))) {
+            return handleFont(params);
         }
         return handlePlaceholder(params, player);
     }
@@ -142,11 +143,16 @@ public final class PAPIHook extends PlaceholderExpansion {
     /**
      * Handles font-related operations based on the given parameters.
      *
-     * @param splitParams The array of parameters, where the font type is at index 1 and additional parameters are at subsequent indices.
+     * @param params The full placeholder params string (e.g. {@code font_latin_42}).
      * @return The processed font or an error message if the font type is unknown or if an error occurs during font processing.
      */
-    private String handleFont(final String[] splitParams) {
-        String fontType = splitParams[1].toLowerCase();
+    private String handleFont(final String params) {
+        final String[] splitParams = params.split("_", -1);
+        if (splitParams.length < 3) {
+            return ILLEGAL_ARGUMENT_MSG;
+        }
+
+        final String fontType = splitParams[1].toLowerCase();
         if ("latin".equals(fontType)) {
             try {
                 int integer = Integer.parseInt(splitParams[2]);
@@ -166,27 +172,14 @@ public final class PAPIHook extends PlaceholderExpansion {
     }
 
     /**
-     * Handles the imc_parse_ placeholder that processes text with tags and placeholders.
+     * Handles the {@code imc_parse_} placeholder that processes text with tags and placeholders.
      *
-     * @param splitParams The array of parameters, where the content to parse starts at index 1.
-     * @param player      The player for whom the placeholder is being processed.
+     * @param content The content to parse (everything after the {@code parse_} prefix).
+     * @param player  The player for whom the placeholder is being processed.
      * @return The parsed text with tags and placeholders processed.
      */
-    private String handleParse(final String[] splitParams, final Player player) {
-        if (splitParams.length < 2) {
-            return ILLEGAL_ARGUMENT_MSG;
-        }
-
-        // Join all parameters after "parse" to reconstruct the content
-        final StringBuilder contentBuilder = new StringBuilder();
-        for (int i = 1; i < splitParams.length; i++) {
-            if (i > 1) {
-                contentBuilder.append("_");
-            }
-            contentBuilder.append(splitParams[i]);
-        }
-
-        String content = contentBuilder.toString();
+    private String handleParse(String content, final Player player) {
+        if (content.isEmpty()) return ILLEGAL_ARGUMENT_MSG;
 
         // Check if there's a format specification at the end (e.g., _legacy, _mini, _console)
         String variant = "legacy";
@@ -205,7 +198,6 @@ public final class PAPIHook extends PlaceholderExpansion {
 
             return switch (variant) {
                 case "legacy", "console" -> Utilities.LEGACY_SERIALIZER.serialize(component);
-                case "mini" -> IMCSerializer.toMiniMessage(component);
                 default -> IMCSerializer.toMiniMessage(component);
             };
 

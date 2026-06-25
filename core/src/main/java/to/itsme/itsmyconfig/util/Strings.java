@@ -299,6 +299,19 @@ public final class Strings {
     }
 
     /**
+     * Case-insensitive prefix check using {@link String#regionMatches}.
+     *
+     * <p>Avoids allocating lowercased copies of the content string.</p>
+     *
+     * @param content the string to test
+     * @param prefix  the prefix to look for
+     * @return {@code true} if {@code content} starts with {@code prefix} ignoring case
+     */
+    public static boolean startsWithIgnoreCase(final String content, final String prefix) {
+        return content.regionMatches(true, 0, prefix, 0, prefix.length());
+    }
+
+    /**
      * Parses a message that starts with a defined symbol prefix, ignoring formatting codes
      * and legacy MiniMessage-style tags. If the prefix is found, it removes the prefix,
      * replaces all occurrences of the '§' color symbol with '&', and returns the result.
