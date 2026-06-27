@@ -5,18 +5,15 @@ import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.bstats.bukkit.Metrics;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import to.itsme.itsmyconfig.api.ItsMyConfigAPI;
 import to.itsme.itsmyconfig.command.CommandManager;
 import to.itsme.itsmyconfig.hook.PAPIHook;
 import to.itsme.itsmyconfig.message.AudienceResolver;
-import to.itsme.itsmyconfig.placeholder.Placeholder;
+import to.itsme.itsmyconfig.migration.MigrationManager;
 import to.itsme.itsmyconfig.placeholder.PlaceholderManager;
-import to.itsme.itsmyconfig.placeholder.PlaceholderType;
 import to.itsme.itsmyconfig.placeholder.type.*;
 import to.itsme.itsmyconfig.processor.ConsoleFilter;
 import to.itsme.itsmyconfig.processor.PacketListener;
@@ -26,7 +23,6 @@ import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Versions;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -39,9 +35,10 @@ public final class ItsMyConfig extends JavaPlugin {
     private static ItsMyConfig instance;
     private static ItsMyConfigAPI api;
 
-    private final PlaceholderManager placeholderManager = new PlaceholderManager();
+    private final PlaceholderManager placeholderManager = new PlaceholderManager(this);
     ProcessorManager processorManager;
     private FileConfiguration config;
+    private File placeholdersFolder;
     private String symbolPrefix;
     private boolean debug;
     private ConsoleFilter consoleFilter;
@@ -106,6 +103,7 @@ public final class ItsMyConfig extends JavaPlugin {
         List.of("imc", "itsmyconfig").forEach(alias -> new PAPIHook(this, alias).register());
         new CommandManager(this);
 
+        this.placeholdersFolder = new File(this.getDataFolder(), "placeholders");
         this.loadConfig();
 
         new Metrics(this, 21713);
@@ -190,14 +188,13 @@ public final class ItsMyConfig extends JavaPlugin {
 
         // 10 - 11: Load and register placeholders and progress bars from the main configuration file
         // 12: Load and register placeholders and progress bars from additional custom .yml files
-        final File folder = new File(this.getDataFolder(), "placeholders");
-        if (folder.mkdirs()) {
+        if (placeholdersFolder.mkdirs()) {
             this.saveResource("placeholders/default.yml", false);
             this.saveResource("placeholders/example.yml", false);
         }
 
-        this.migrateConfig(folder);
-        this.loadFolder(folder, placeholderPaths);
+        new MigrationManager(this).migrate();
+        this.placeholderManager.loadFolder(placeholdersFolder, placeholderPaths);
 
         // 13 - 14: Print all info about duplicated placeholders and bars
         final String listSeparator = "\n   - ";
@@ -242,194 +239,6 @@ public final class ItsMyConfig extends JavaPlugin {
         this.symbolPrefix = this.config.getString("symbol-prefix");
         Strings.setSymbolPrefix(this.symbolPrefix);
         MathPlaceholder.UPDATE_FORMATTINGS();
-    }
-
-    /**
-     * Recursively loads .yml files from the specified folder.
-     * It iterates through the files in the folder, loading each .yml file using the `loadCustomYml` method if it meets the criteria.
-     *
-     * @param folder           The folder from which to load .yml files.
-     * @param placeholderPaths A map of registered placeholders to avoid duplicates.
-     */
-    private void loadFolder(
-            final File folder,
-            final Map<String, List<String>> placeholderPaths
-    ) {
-        if (folder == null || !folder.isDirectory()) {
-            return;
-        }
-
-        final File[] files = folder.listFiles();
-        if (files == null) {
-            return;
-        }
-
-        for (final File file : files) {
-            if (file.isDirectory()) {
-                this.loadFolder(file, placeholderPaths);
-            } else if (file.isFile() && file.getName().endsWith(".yml")) {
-                this.loadYAMLFile(file, placeholderPaths);
-            }
-        }
-    }
-
-    /**
-     * Loads custom data from a .yml file.
-     * It reads the file using `YamlConfiguration` and extracts custom progress bars and placeholders if they exist.
-     *
-     * @param file             The .yml file to load custom data from.
-     * @param placeholderPaths A map of registered placeholders to avoid duplicates.
-     */
-    private void loadYAMLFile(
-            final File file,
-            final Map<String, List<String>> placeholderPaths
-    ) {
-        final YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        if (config.isConfigurationSection("custom-placeholder")) {
-            loadPlaceholdersSection(config.getConfigurationSection("custom-placeholder"), file, placeholderPaths);
-        }
-    }
-
-    private void migrateConfig(final File directory) {
-        if (!this.config.isConfigurationSection("listeners")) {
-            ConfigurationSection listeners = this.config.createSection("listeners");
-            ConfigurationSection packetEvents = listeners.createSection("PacketEvents");
-            packetEvents.set("priority", 1);
-
-            ConfigurationSection protocolLib = listeners.createSection("ProtocolLib");
-            protocolLib.set("priority", 2);
-            protocolLib.set("cache-processors", false);
-            this.saveConfig();
-        }
-
-        if (!this.config.contains("config-version")) {
-            this.config.set("config-version", 1);
-            this.saveConfig();
-        }
-
-        final boolean needsMigration =
-                this.config.isConfigurationSection("custom-placeholder")
-                        || this.config.isConfigurationSection("custom-progress");
-        if (needsMigration) {
-            File migratedConfig = new File(directory, "migrated-config.yml");
-            if (migratedConfig.exists()) {
-                migratedConfig = new File(directory, UUID.randomUUID() + ".yml");
-            }
-            try {
-                final boolean created = migratedConfig.createNewFile();
-                if (!created) {
-                    return;
-                }
-
-                final YamlConfiguration migratedConf = YamlConfiguration.loadConfiguration(migratedConfig);
-                final ConfigurationSection newSection = migratedConf.createSection("custom-placeholder");
-                if (this.config.isConfigurationSection("custom-placeholder")) {
-                    for (final String name : Objects.requireNonNull(this.config.getConfigurationSection("custom-placeholder")).getKeys(false)) {
-                        newSection.set(name, this.config.get("custom-placeholder." + name));
-                    }
-                }
-
-                if (this.config.isConfigurationSection("custom-progress")) {
-                    for (final String name : Objects.requireNonNull(this.config.getConfigurationSection("custom-progress")).getKeys(false)) {
-                        final ConfigurationSection section = this.config.getConfigurationSection("custom-progress." + name);
-                        if (section == null) continue;
-                        section.set("value", section.getString("symbol"));
-                        section.set("type", "progress_bar");
-                        section.set("symbol", null);
-                        newSection.set(name, section);
-                    }
-                }
-
-                migratedConf.save(migratedConfig);
-                this.config.set("custom-progress", null);
-                this.config.set("custom-placeholder", null);
-                this.saveConfig();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    /**
-     * Loads custom placeholders from a YAML configuration section.
-     * It iterates over each placeholder defined in the section, constructs a corresponding `PlaceholderData` object, and registers it with the `placeholderManager`.
-     *
-     * @param section The YAML configuration section containing placeholder data.
-     * @param paths   A map of registered placeholders to avoid duplicates.
-     */
-    private void loadPlaceholdersSection(
-            final ConfigurationSection section,
-            final File file,
-            final Map<String, List<String>> paths
-    ) {
-        final String filePath = formatPath("ItsMyConfig\\" + file.getPath().replace("/", "\\").replace(getDataFolder().getPath() + "\\", ""));
-        if (section == null) {
-            getLogger().warning(String.format("No custom placeholders found in file %s", filePath));
-            return;
-        }
-
-        for (final String identifier : section.getKeys(false)) {
-            if (placeholderManager.has(identifier)) {
-                paths.get(identifier).add(filePath);
-                continue;
-            }
-
-            final ConfigurationSection placeholderSection = section.getConfigurationSection(identifier);
-            if (placeholderSection == null) {
-                getLogger().warning(String.format("Invalid placeholder configuration for %s in file %s", identifier, filePath));
-                continue;
-            }
-
-            final Placeholder placeholder = this.getPlaceholder(file.getPath(), placeholderSection);
-
-            placeholderManager.register(identifier, placeholder);
-            paths.computeIfAbsent(identifier, v -> new ArrayList<>()).add(filePath);
-        }
-    }
-
-    /**
-     * Retrieves the placeholder data based on the provided configuration section and identifier.
-     *
-     * @param filePath The path of the file config is from
-     * @param section  The configuration section containing the placeholder data.
-     * @return The placeholder data object.
-     */
-    private Placeholder getPlaceholder(String filePath, final ConfigurationSection section) {
-        final PlaceholderType type = PlaceholderType.find(section.getString("type"));
-        return switch (type) {
-            case MATH -> new MathPlaceholder(filePath, section);
-            case RANDOM -> new RandomPlaceholder(filePath, section);
-            case LIST -> new ListPlaceholder(filePath, section);
-            case ANIMATION -> new AnimatedPlaceholder(filePath, section);
-            case COLOR -> new ColorPlaceholder(filePath, section);
-            case COLORED_TEXT -> new ColoredTextPlaceholder(filePath, section);
-            case PROGRESS_BAR -> new ProgressbarPlaceholder(filePath, section);
-            case CONDITIONAL -> new ConditionalPlaceholder(filePath, section);
-            case SWITCH -> new SwitchPlaceholder(filePath, section);
-            default -> new StringPlaceholder(filePath, section);
-        };
-    }
-
-    /**
-     * Formats a file path to start with "ItsMyConfig" and shortens it if it contains more than 5 directories.
-     *
-     * @param path The original file path.
-     * @return The formatted file path.
-     */
-    private String formatPath(final String path) {
-        final String separator = File.separator;
-        final String normalizedPath = path.replace("/", separator).replace("\\", separator);
-        final String[] parts = normalizedPath.split(separator.equals("\\") ? "\\\\" : separator);
-        if (parts.length > 5) {
-            final StringBuilder shortenedPath = new StringBuilder(parts[0]);
-            shortenedPath.append(separator).append(parts[1]);
-            for (int i = 2; i < parts.length - 2; i++) {
-                shortenedPath.append(separator).append("..");
-            }
-            shortenedPath.append(separator).append(parts[parts.length - 2]).append(separator).append(parts[parts.length - 1]);
-            return shortenedPath.toString();
-        }
-        return path;
     }
 
     /**
@@ -479,4 +288,12 @@ public final class ItsMyConfig extends JavaPlugin {
         return this.placeholderManager;
     }
 
+    /**
+     * Retrieves the folder used to store custom placeholder .yml files.
+     *
+     * @return The placeholders folder (e.g. /plugins/ItsMyConfig/placeholders).
+     */
+    public File getPlaceholdersFolder() {
+        return placeholdersFolder;
+    }
 }

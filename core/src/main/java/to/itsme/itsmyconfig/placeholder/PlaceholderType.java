@@ -40,10 +40,22 @@ public enum PlaceholderType {
      * @return The PlaceholderType for the given type, or STRING if the type is not found or an exception occurs.
      */
     public static PlaceholderType find(final String type) {
+        return findOrElse(type, STRING);
+    }
+
+    /**
+     * Finds the PlaceholderType for the given type.
+     *
+     * @param type         The string value representing the type of placeholder.
+     * @param defaultValue The default PlaceholderType to return if the type is not found or an exception occurs.
+     *
+     * @return The PlaceholderType for the given type, or {@param defaultValue} if the type is not found or an exception occurs.
+     */
+    public static PlaceholderType findOrElse(final String type, final PlaceholderType defaultValue) {
         try {
             return PlaceholderType.valueOf(type.toUpperCase(Locale.ENGLISH));
         } catch (final Exception exception) {
-            return STRING;
+            return defaultValue;
         }
     }
 
