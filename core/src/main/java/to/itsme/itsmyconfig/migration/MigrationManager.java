@@ -18,6 +18,7 @@ public final class MigrationManager {
     public MigrationManager(final ItsMyConfig plugin) {
         this.plugin = plugin;
         this.migrations.add(new Migration_V2_V3());
+        this.migrations.add(new Migration_V4_V5());
     }
 
     public void migrate() {
