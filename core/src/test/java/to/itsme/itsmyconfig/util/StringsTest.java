@@ -134,4 +134,132 @@ class StringsTest {
         assertEquals("", Strings.textless("no numbers"));
     }
 
+    @Test
+    void testExtractArguments() {
+        // --- Basic colon-separated parsing ---
+
+        // Empty string
+        assertArrayEquals(new String[]{}, ea(""));
+
+        // Single argument, no colon
+        assertArrayEquals(new String[]{"hello"}, ea("hello"));
+
+        // Multiple colon-separated arguments
+        assertArrayEquals(new String[]{"a", "b", "c"}, ea("a:b:c"));
+
+        // Leading colon is skipped
+        assertArrayEquals(new String[]{"a", "b"}, ea(":a:b"));
+
+        // Leading colon only
+        assertArrayEquals(new String[]{}, ea(":"));
+
+        // --- Double-quoted values ---
+
+        // Simple double-quoted arg
+        assertArrayEquals(new String[]{"hello world"}, ea("\"hello world\""));
+
+        // Double-quoted with leading colon
+        assertArrayEquals(new String[]{"hello world"}, ea(":\"hello world\""));
+
+        // Double-quoted containing colon
+        assertArrayEquals(new String[]{"a:b"}, ea("\"a:b\""));
+
+        // Double-quoted followed by unquoted arg
+        assertArrayEquals(new String[]{"hello world", "foo"}, ea("\"hello world\":foo"));
+
+        // Multiple double-quoted args
+        assertArrayEquals(new String[]{"foo bar", "baz qux"}, ea("\"foo bar\":\"baz qux\""));
+
+        // Empty double-quoted string
+        assertArrayEquals(new String[]{""}, ea("\"\""));
+
+        // --- Single-quoted values ---
+
+        // Simple single-quoted arg
+        assertArrayEquals(new String[]{"hello world"}, ea("'hello world'"));
+
+        // Single-quoted containing colons
+        assertArrayEquals(new String[]{"a:b:c"}, ea("'a:b:c'"));
+
+        // Empty single-quoted string
+        assertArrayEquals(new String[]{""}, ea("''"));
+
+        // --- Backtick-quoted values ---
+
+        // Simple backtick-quoted arg
+        assertArrayEquals(new String[]{"hello world"}, ea("`hello world`"));
+
+        // Backtick-quoted containing colon
+        assertArrayEquals(new String[]{"a:b"}, ea("`a:b`"));
+
+        // --- Mixed quoted and unquoted ---
+
+        // Unquoted first, then double-quoted
+        assertArrayEquals(new String[]{"plain", "quoted value"}, ea("plain:\"quoted value\""));
+
+        // Double-quoted first, then unquoted
+        assertArrayEquals(new String[]{"quoted value", "plain"}, ea("\"quoted value\":plain"));
+
+        // All three quote types in one string
+        assertArrayEquals(new String[]{"double", "single", "backtick"}, ea("\"double\":'single':`backtick`"));
+
+        // --- Whitespace termination of unquoted args ---
+
+        // Space terminates unquoted arg
+        assertEquals("hello", ea("hello world")[0]);
+
+        // Tab terminates unquoted arg
+        assertEquals("hello", ea("hello\tworld")[0]);
+
+        // --- Extra stop characters ---
+
+        // Single extra stop terminates unquoted arg
+        assertArrayEquals(new String[]{"hello"}, ea("hello|world", '|'));
+
+        // Semicolon as stop character
+        assertArrayEquals(new String[]{"hello"}, ea("hello;world", ';'));
+
+        // Extra stop is ignored inside quoted args
+        assertArrayEquals(new String[]{"hello|world"}, ea("\"hello|world\"", '|'));
+
+        // Extra stop interacts correctly with colon separation
+        assertArrayEquals(new String[]{"a", "b"}, ea("a:b|c", '|'));
+
+        // No extra stops — normal colon separation
+        assertArrayEquals(new String[]{"a", "b", "c"}, ea("a:b:c"));
+
+        // --- Unterminated quoted strings ---
+
+        // Unterminated double quote yields no arg
+        assertArrayEquals(new String[]{}, ea("\"unterminated"));
+
+        // Unterminated single quote yields no arg
+        assertArrayEquals(new String[]{}, ea("'unterminated"));
+
+        // Unterminated backtick yields no arg
+        assertArrayEquals(new String[]{}, ea("`unterminated"));
+
+        // Valid arg before unterminated quote is still returned
+        assertArrayEquals(new String[]{"hello"}, ea("hello:\"unterminated"));
+
+        // --- Trailing colon after quoted value ---
+
+        // Colon between two quoted segments is consumed correctly
+        assertArrayEquals(new String[]{"foo", "bar"}, ea("\"foo\":\"bar\""));
+
+        // --- Return type contract ---
+
+        // Result is never null
+        assertNotNull(ea(""));
+        assertNotNull(ea("a:b"));
+
+        // Single arg without delimiter has length 1
+        assertEquals(1, ea("only").length);
+    }
+
+    /** Delegates to the static method under test. Replace class name as needed. */
+    private static String[] ea(String raw, char... extraStops) {
+        return Strings.extractArguments(raw, extraStops);
+    }
+
 }
