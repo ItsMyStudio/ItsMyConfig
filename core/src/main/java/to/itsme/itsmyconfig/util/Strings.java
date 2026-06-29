@@ -382,13 +382,13 @@ public final class Strings {
      * unquoted argument parsing early.
      *
      * @param raw       the raw string to extract arguments from.
-     * @param extraStops additional characters that terminate an unquoted argument.
+     * @param extraStops additional characters that terminate parsing in an unquoted argument.
      * @return an array of extracted argument strings.
      */
     public static String[] extractArguments(final String raw, final char... extraStops) {
         final List<String> args = new ArrayList<>();
 
-        int i = raw.startsWith(":") ? 1 : 0;
+        int i = (!raw.isEmpty() && raw.charAt(0) == ':') ? 1 : 0;
         while (i < raw.length()) {
             final char delimiter = raw.charAt(i);
 
