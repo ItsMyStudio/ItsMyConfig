@@ -401,16 +401,18 @@ public final class Strings {
                 if (i < raw.length() && raw.charAt(i) == ':') i++; // skip trailing ':'
             } else {
                 int end = i;
+                boolean stopped = false;
                 outer:
                 while (end < raw.length()) {
                     final char c = raw.charAt(end);
                     if (c == ':' || Character.isWhitespace(c)) break;
                     for (final char stop : extraStops) {
-                        if (c == stop) break outer;
+                        if (c == stop) { stopped = true; break outer; }
                     }
                     end++;
                 }
                 args.add(raw.substring(i, end));
+                if (stopped) break; // abort the entire parse
                 i = end + 1; // skip trailing ':'
             }
         }
