@@ -13,15 +13,22 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.annotations.types.*;
 import to.itsme.itsmyconfig.ItsMyConfig;
+import to.itsme.itsmyconfig.command.impl.migration.MigrationResult;
+import to.itsme.itsmyconfig.command.impl.migration.MigrationSession;
+import to.itsme.itsmyconfig.command.suggest.MigrationTargetProvider;
 import to.itsme.itsmyconfig.command.suggest.ModifiablePlaceholderProvider;
 import to.itsme.itsmyconfig.command.util.PlayerSelector;
 import to.itsme.itsmyconfig.message.AudienceResolver;
 import to.itsme.itsmyconfig.message.Message;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
+import to.itsme.itsmyconfig.util.Scheduler;
+import to.itsme.itsmyconfig.util.StringMigrator;
 import to.itsme.itsmyconfig.util.Utilities;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 @RootCommand("itsmyconfig")
 @Permission("itsmyconfig.admin")
@@ -190,6 +197,70 @@ public final class ItsMyConfigCommand {
 
         AudienceResolver.send(source, Utilities.MM.deserialize("<green>Placeholder <yellow>" + section.getName() + "</yellow>'s value was updated successfully!</green>"));
         if (!placeholder.reloadFromSection()) this.reload(source);
+    }
+
+    @SubCommand("migrate")
+    @Permission("itsmyconfig.migrate")
+    @Description("Migrates old placeholders to new format")
+    public void migrate(
+            final BukkitCommandSource source,
+            final @SuggestionProvider(MigrationTargetProvider.class)
+            @Named("target") String target,
+            @Switch("shallow") boolean shallow
+    ) {
+        Scheduler.runAsync(wrappedTask -> {
+            final File pluginsDir = plugin.getDataFolder().getParentFile();
+            final File resolved = new File(pluginsDir, target);
+
+            if (!resolved.exists()) {
+                AudienceResolver.send(source, Utilities.MM.deserialize(
+                        "<red>Target not found: <yellow>" + target + "</yellow></red>"
+                ));
+                return;
+            }
+
+            AudienceResolver.send(source, Utilities.MM.deserialize(
+                    "<gray>Starting migration for <yellow>" + target + "</yellow>...</gray>"
+            ));
+
+            final StringMigrator migrator = new StringMigrator(plugin.getPlaceholderManager());
+            final MigrationSession session = new MigrationSession(migrator, pluginsDir);
+            final List<MigrationResult> results = session.run(target, !shallow);
+
+            // tally
+            int totalChanged = 0;
+            int totalFiles = 0;
+            int totalSkipped = 0;
+
+            for (final MigrationResult result : results) {
+                if (result.skipped()) {
+                    totalSkipped++;
+                    // always warn about skipped files
+                    AudienceResolver.send(source, Utilities.MM.deserialize(
+                            "<red>Skipped <yellow>" + result.file().getName() +
+                                    "</yellow>: " + result.skipReason() + "</red>"
+                    ));
+                } else {
+                    if (result.stringsChanged() > 0) {
+                        totalFiles++;
+                        totalChanged += result.stringsChanged();
+                    }
+                    if (plugin.isDebug()) {
+                        final String msg = result.stringsChanged() > 0
+                                ? "<gray>Migrated <white>" + result.stringsChanged() +
+                                "</white> string(s) in <yellow>" + result.file().getName() + "</yellow></gray>"
+                                : "<dark_gray>No changes in " + result.file().getName() + "</dark_gray>";
+                        AudienceResolver.send(source, Utilities.MM.deserialize(msg));
+                    }
+                }
+            }
+
+            AudienceResolver.send(source, Utilities.MM.deserialize(
+                    "<green>Migration complete!</green> <gray>Changed <white>" + totalChanged +
+                            "</white> string(s) across <white>" + totalFiles +
+                            "</white> file(s), skipped <white>" + totalSkipped + "</white>.</gray>"
+            ));
+        });
     }
 
     @RootCommand("message")
