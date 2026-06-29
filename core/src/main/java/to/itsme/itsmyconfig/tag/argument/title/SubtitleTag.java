@@ -1,4 +1,4 @@
-package to.itsme.itsmyconfig.tag.impl.title;
+package to.itsme.itsmyconfig.tag.argument.title;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
@@ -10,11 +10,11 @@ import to.itsme.itsmyconfig.tag.api.ArgumentsTag;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Utilities;
 
-public class TitleTag extends ArgumentsTag {
+public class SubtitleTag extends ArgumentsTag {
 
     @Override
     public String name() {
-        return "title";
+        return "subtitle";
     }
 
     @Override
@@ -24,7 +24,7 @@ public class TitleTag extends ArgumentsTag {
 
     @Override
     public int maxArguments() {
-        return 5;
+        return 4;
     }
 
     @Override
@@ -32,15 +32,10 @@ public class TitleTag extends ArgumentsTag {
             final Player player,
             final String[] arguments
     ) {
-        final Title title;
 
+        final Title title;
         if (arguments.length == 1) {
-            final Component titleText = Utilities.translate(arguments[0], player);
-            title = Title.title(titleText, Component.empty());
-        } else if (arguments.length == 2) {
-            final Component titleText = Utilities.translate(arguments[0], player);
-            final Component subtitleText = Utilities.translate(arguments[1], player);
-            title = Title.title(titleText, subtitleText);
+            title = Title.title(Component.empty(), Utilities.translate(arguments[0], player));
         } else if (arguments.length == 4) {
             final Title.Times times = this.createTimes(
                     Strings.intOrDefault(arguments[0], 10),
@@ -48,18 +43,7 @@ public class TitleTag extends ArgumentsTag {
                     Strings.intOrDefault(arguments[2], 20)
             );
 
-            final Component titleText = Utilities.translate(arguments[3], player);
-            title = Title.title(titleText, Component.empty(), times);
-        } else if (arguments.length == 5) {
-            final Title.Times times = this.createTimes(
-                    Strings.intOrDefault(arguments[0], 10),
-                    Strings.intOrDefault(arguments[1], 70),
-                    Strings.intOrDefault(arguments[2], 20)
-            );
-
-            final Component titleText = Utilities.translate(arguments[3], player);
-            final Component subtitleText = Utilities.translate(arguments[4], player);
-            title = Title.title(titleText, subtitleText, times);
+            title = Title.title(Component.empty(), Utilities.translate(arguments[3], player), times);
         } else {
             title = null;
         }

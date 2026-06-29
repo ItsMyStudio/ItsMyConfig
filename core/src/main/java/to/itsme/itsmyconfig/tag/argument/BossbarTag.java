@@ -1,4 +1,4 @@
-package to.itsme.itsmyconfig.tag.impl;
+package to.itsme.itsmyconfig.tag.argument;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.bossbar.BossBar;

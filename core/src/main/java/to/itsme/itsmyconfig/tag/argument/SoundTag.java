@@ -1,4 +1,4 @@
-package to.itsme.itsmyconfig.tag.impl;
+package to.itsme.itsmyconfig.tag.argument;
 
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;

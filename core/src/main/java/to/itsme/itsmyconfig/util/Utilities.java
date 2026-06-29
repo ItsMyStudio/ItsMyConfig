@@ -25,7 +25,6 @@ import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.type.ColorPlaceholder;
 import to.itsme.itsmyconfig.tag.TagManager;
 import to.itsme.itsmyconfig.tag.adventure.FontTag;
-import to.itsme.itsmyconfig.tag.adventure.PlainTag;
 
 import java.lang.reflect.Field;
 import java.util.LinkedList;
@@ -54,7 +53,6 @@ public final class Utilities {
 
     static {
         final TagResolver.Builder builder = TagResolver.builder();
-        builder.tag(PlainTag.NAME, new PlainTag());
         for (final @Subst("") Font font : Font.values()) {
             builder.tag(font.getName(), new FontTag(font));
         }

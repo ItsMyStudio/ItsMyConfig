@@ -1,4 +1,4 @@
-package to.itsme.itsmyconfig.tag.impl.toast;
+package to.itsme.itsmyconfig.tag.argument.toast;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;

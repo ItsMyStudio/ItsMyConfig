@@ -1,4 +1,4 @@
-package to.itsme.itsmyconfig.tag.impl;
+package to.itsme.itsmyconfig.tag.argument;
 
 import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.kyori.adventure.text.Component;

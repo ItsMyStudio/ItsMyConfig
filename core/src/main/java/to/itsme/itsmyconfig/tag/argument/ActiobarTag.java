@@ -1,4 +1,4 @@
-package to.itsme.itsmyconfig.tag.impl;
+package to.itsme.itsmyconfig.tag.argument;
 
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatMessageType;
