@@ -13,6 +13,8 @@ public final class StringMigrator {
 
     private static final Pattern PAPI_PREFIX = Pattern.compile("%(?:imc|itsmyconfig)_");
     private static final Pattern TAG_P_PLACEHOLDER = Pattern.compile("<p:([^>]+?)>");
+    private static final Pattern FONT_LEGACY =
+            Pattern.compile("^(?:font|f)_(smallcaps|latin)_(.+)$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     private final PlaceholderManager manager;
 
@@ -67,27 +69,19 @@ public final class StringMigrator {
             }
 
             final String inner = input.substring(contentStart, closingPercent);
+
+            final Matcher fontMatch = FONT_LEGACY.matcher(inner);
+            if (fontMatch.matches()) {
+                final String type = fontMatch.group(1).toLowerCase();
+                final String arg = fontMatch.group(2);
+                sb.append(prefix).append(type).append(':').append(arg).append('%');
+                last = closingPercent + 1;
+                continue;
+            }
+
             final String key = resolveRegisteredKey(inner);
 
             if (key == null) {
-                final int colon = inner.indexOf(':');
-                if (colon != -1 && this.manager.get(inner.substring(0, colon)) != null) {
-                    sb.append(prefix).append(inner).append('%');
-                    last = closingPercent + 1;
-                    continue;
-                }
-                final int heuristicUnderscore = inner.indexOf('_');
-                if (heuristicUnderscore != -1) {
-                    final String heuristicKey = inner.substring(0, heuristicUnderscore);
-                    final String rest = inner.substring(heuristicUnderscore + 1);
-                    sb.append(prefix).append(heuristicKey);
-                    for (final String arg : rest.split("::", -1)) {
-                        sb.append(':').append(quoteArg(arg));
-                    }
-                    sb.append('%');
-                    last = closingPercent + 1;
-                    continue;
-                }
                 sb.append(prefix).append(inner).append('%');
                 last = closingPercent + 1;
                 continue;
@@ -140,6 +134,9 @@ public final class StringMigrator {
             if (closing != -1) {
                 final String between = input.substring(next + 1, closing);
                 if (!between.isEmpty() && !between.contains(" ") && !between.contains("%")) {
+                    // don't skip if this % simultaneously opens a new PAPI placeholder
+                    final Matcher c = original.region(closing, input.length());
+                    if (c.lookingAt()) return -1;
                     if (closing + 1 < input.length()) {
                         i = closing + 1;
                         continue;

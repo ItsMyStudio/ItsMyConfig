@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import to.itsme.itsmyconfig.placeholder.PlaceholderManager;
 import to.itsme.itsmyconfig.placeholder.type.ListPlaceholder;
+import to.itsme.itsmyconfig.placeholder.type.StringPlaceholder;
 
 import java.util.List;
 
@@ -29,6 +30,21 @@ class StringMigratorTest {
         section2.set("type", "list");
         section2.set("values", List.of("x", "y", "z"));
         manager.register("with_underscore", new ListPlaceholder("test.yml", section2));
+
+        registerNonList("greet");
+        registerNonList("msg");
+        registerNonList("score");
+        registerNonList("key");
+        registerNonList("test");
+        registerNonList("example");
+        registerNonList("myplaceholder");
+    }
+
+    private static void registerNonList(final String name) {
+        final var config = new YamlConfiguration();
+        final var section = config.createSection(name);
+        section.set("value", name);
+        manager.register(name, new StringPlaceholder("test.yml", section));
     }
 
     private static StringMigrator migrator() {
@@ -180,6 +196,46 @@ class StringMigratorTest {
     @Test
     void papiPlaceholderFollowedByLiteralPercent() {
         check("%imc_greet:hello% gives 50% off", "%imc_greet_hello% gives 50% off");
+    }
+
+    @Test
+    void papiFontSmallcapsMigrates() {
+        check("%imc_smallcaps:hello_world%", "%imc_font_smallcaps_hello_world%");
+    }
+
+    @Test
+    void papiFontShorthandSmallcapsMigrates() {
+        check("%imc_smallcaps:test%", "%imc_f_smallcaps_test%");
+    }
+
+    @Test
+    void papiFontLatinMigrates() {
+        check("%imc_latin:42%", "%imc_font_latin_42%");
+    }
+
+    @Test
+    void papiFontShorthandLatinMigrates() {
+        check("%imc_latin:9%", "%imc_f_latin_9%");
+    }
+
+    @Test
+    void papiFontItsmyconfigPrefix() {
+        check("%itsmyconfig_smallcaps:hello_world%", "%itsmyconfig_font_smallcaps_hello_world%");
+        check("%itsmyconfig_latin:42%", "%itsmyconfig_f_latin_42%");
+    }
+
+    @Test
+    void papiFontAlreadyMigratedUnchanged() {
+        check("%imc_smallcaps:hello_world%", "%imc_smallcaps:hello_world%");
+        check("%imc_latin:42%", "%imc_latin:42%");
+    }
+
+    @Test
+    void papiFontMixedWithOtherPlaceholders() {
+        check(
+                "%imc_smallcaps:hello% %imc_greet:hello%",
+                "%imc_font_smallcaps_hello% %imc_greet_hello%"
+        );
     }
 
 }

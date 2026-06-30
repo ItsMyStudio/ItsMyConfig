@@ -38,10 +38,10 @@ public final class PAPIHook extends PlaceholderExpansion {
 
     /** Prefix for {@code %imc_parse_<content>_<variant>} */
     private static final String PARSE_PREFIX = "parse_";
-    /** Prefix for {@code %imc_font_<type>_<args>} */
-    private static final String FONT_PREFIX = "font_";
-    /** Shorthand prefix for {@code %imc_f_<type>_<args>} */
-    private static final String FONT_SHORTCUT = "f_";
+    /** Prefix for {@code %imc_smallcaps:<text>} */
+    private static final String SMALLCAPS_PREFIX = "smallcaps";
+    /** Prefix for {@code %imc_latin:<number>} */
+    private static final String LATIN_PREFIX = "latin";
 
     /**
      * This variable is an instance of the ItsMyConfig class.
@@ -129,8 +129,11 @@ public final class PAPIHook extends PlaceholderExpansion {
         if (Strings.startsWithIgnoreCase(params, PARSE_PREFIX)) {
             return handleParse(params.substring(PARSE_PREFIX.length()), player);
         }
-        if ((Strings.startsWithIgnoreCase(params, FONT_PREFIX) || Strings.startsWithIgnoreCase(params, FONT_SHORTCUT))) {
-            return handleFont(params);
+        if (isPrefixedBy(params, SMALLCAPS_PREFIX)) {
+            return handleSmallCaps(params);
+        }
+        if (isPrefixedBy(params, LATIN_PREFIX)) {
+            return handleLatin(params);
         }
         return handlePlaceholder(params, player);
     }
@@ -141,34 +144,35 @@ public final class PAPIHook extends PlaceholderExpansion {
     }
 
     /**
-     * Handles font-related operations based on the given parameters.
-     *
-     * @param params The full placeholder params string (e.g. {@code font_latin_42}).
-     * @return The processed font or an error message if the font type is unknown or if an error occurs during font processing.
+     * Handles {@code smallcaps:<text>}.
      */
-    private String handleFont(final String params) {
-        final String[] splitParams = params.split("_", -1);
-        if (splitParams.length < 3) {
+    private String handleSmallCaps(final String params) {
+        final int colonIndex = params.indexOf(':');
+        final String text = colonIndex == -1 ? "" : params.substring(colonIndex + 1);
+        if (text.isEmpty()) {
             return ILLEGAL_ARGUMENT_MSG;
         }
+        return MappedFont.SMALL_CAPS.apply(text.toLowerCase());
+    }
 
-        final String fontType = splitParams[1].toLowerCase();
-        if ("latin".equals(fontType)) {
-            try {
-                int integer = Integer.parseInt(splitParams[2]);
-                return Strings.integerToRoman(integer);
-            } catch (NumberFormatException e) {
-                return ILLEGAL_NUMBER_FORMAT_MSG;
-            }
-        } else if ("smallcaps".equals(fontType)) {
-            final StringBuilder messageBuilder = new StringBuilder();
-            for (int i = 2; i < splitParams.length; i++) {
-                if (i > 2) messageBuilder.append("_");
-                messageBuilder.append(splitParams[i]);
-            }
-            return MappedFont.SMALL_CAPS.apply(messageBuilder.toString().toLowerCase());
+    /**
+     * Handles {@code latin:<number>}.
+     */
+    private String handleLatin(final String params) {
+        final int colonIndex = params.indexOf(':');
+        if (colonIndex == -1) {
+            return ILLEGAL_ARGUMENT_MSG;
         }
-        return "ERROR";
+        try {
+            return Strings.integerToRoman(Integer.parseInt(params.substring(colonIndex + 1)));
+        } catch (NumberFormatException e) {
+            return ILLEGAL_NUMBER_FORMAT_MSG;
+        }
+    }
+
+    private static boolean isPrefixedBy(final String params, final String prefix) {
+        return Strings.startsWithIgnoreCase(params, prefix)
+                && (params.length() == prefix.length() || params.charAt(prefix.length()) == ':');
     }
 
     /**
