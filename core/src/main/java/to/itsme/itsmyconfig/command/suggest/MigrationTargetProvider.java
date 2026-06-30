@@ -5,6 +5,7 @@ import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import to.itsme.itsmyconfig.ItsMyConfig;
+import to.itsme.itsmyconfig.command.impl.migration.FileHandlerRegistry;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,12 +37,13 @@ public class MigrationTargetProvider implements SuggestionProvider<BukkitCommand
 
         final List<String> suggestions = new ArrayList<>();
         for (final File child : children) {
-            if (child.getName().startsWith("itsmyconfig-backup-")) continue;
-            final String suggestion = prefix + child.getName();
+            final String name = child.getName();
+            if (name.startsWith("itsmyconfig-backup-")) continue;
+
             if (child.isDirectory()) {
-                suggestions.add(suggestion + "/");
-            } else {
-                suggestions.add(suggestion);
+                suggestions.add(prefix + name + "/");
+            } else if (FileHandlerRegistry.forFile(child) != null) {
+                suggestions.add(prefix + name);
             }
         }
 

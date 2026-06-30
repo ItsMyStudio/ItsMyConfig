@@ -10,9 +10,9 @@ import java.util.Map;
 
 public final class FileHandlerRegistry {
 
-    private final Map<String, FileHandler> handlers = new HashMap<>();
+    public static final Map<String, FileHandler> handlers = new HashMap<>();
 
-    public FileHandlerRegistry() {
+    static  {
         final var yamlFileHandler = new YamlFileHandler();
         register("yml", yamlFileHandler);
         register("yaml", yamlFileHandler);
@@ -20,11 +20,11 @@ public final class FileHandlerRegistry {
         register("properties", new PropertiesFileHandler());
     }
 
-    public void register(final String extension, final FileHandler handler) {
+    public static void register(final String extension, final FileHandler handler) {
         handlers.put(extension.toLowerCase(), handler);
     }
 
-    public FileHandler forFile(final File file) {
+    public static FileHandler forFile(final File file) {
         final String name = file.getName();
         final int dot = name.lastIndexOf('.');
         if (dot == -1) return null;

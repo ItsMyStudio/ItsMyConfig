@@ -38,14 +38,16 @@ public final class YamlFileHandler implements FileHandler {
                     if (element instanceof String s) {
                         final String migratedStr = session.migrator().migrate(s);
                         migrated.add(migratedStr);
-                        if (!migratedStr.equals(s)) listChanged = true;
+                        if (!migratedStr.equals(s)) {
+                            listChanged = true;
+                            changed++;
+                        }
                     } else {
                         migrated.add(element);
                     }
                 }
                 if (listChanged) {
                     config.set(key, migrated);
-                    changed++;
                 }
             }
         }

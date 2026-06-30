@@ -12,13 +12,11 @@ public final class MigrationSession {
 
     private final StringMigrator migrator;
     private final File pluginsDir;
-    private final FileHandlerRegistry registry;
     private final BackupManager backupManager;
 
     public MigrationSession(final StringMigrator migrator, final File pluginsDir) {
         this.migrator = migrator;
         this.pluginsDir = pluginsDir;
-        this.registry = new FileHandlerRegistry();
         this.backupManager = new BackupManager(String.valueOf(Instant.now().getEpochSecond()));
     }
 
@@ -75,7 +73,7 @@ public final class MigrationSession {
     }
 
     private void processFile(final File file, final List<MigrationResult> results) {
-        final FileHandler handler = registry.forFile(file);
+        final FileHandler handler = FileHandlerRegistry.forFile(file);
         if (handler == null) return; // unsupported extension, silently skip
         results.add(handler.migrate(file, this));
     }
