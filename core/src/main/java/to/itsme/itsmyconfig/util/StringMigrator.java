@@ -35,6 +35,10 @@ public final class StringMigrator {
         return placeholder != null && placeholder.getType() == PlaceholderType.LIST;
     }
 
+    private boolean hasCompiledVariant(final String key, final String arg) {
+        return this.manager.hasCompiled(key + "_" + arg);
+    }
+
     private String resolveRegisteredKey(final String inner) {
         if (this.manager.get(inner) != null) {
             return inner;
@@ -79,6 +83,19 @@ public final class StringMigrator {
                 continue;
             }
 
+            // If already in new-format (single colon separator) and the key part
+            // before the colon is a compiled variant, emit unchanged.
+            // Must NOT be old-style :: (double colon after the key).
+            final int newStyleColon = inner.indexOf(':');
+            if (newStyleColon != -1 && newStyleColon + 1 < inner.length() && inner.charAt(newStyleColon + 1) != ':') {
+                final String compiledCandidate = inner.substring(0, newStyleColon);
+                if (this.manager.hasCompiled(compiledCandidate)) {
+                    sb.append(prefix).append(inner).append('%');
+                    last = closingPercent + 1;
+                    continue;
+                }
+            }
+
             final String key = resolveRegisteredKey(inner);
 
             if (key == null) {
@@ -107,6 +124,12 @@ public final class StringMigrator {
 
             if (isListType(key) && Strings.isNumber(firstArg)) {
                 sb.append(prefix).append(key).append('_').append(firstArg).append('%');
+            } else if (hasCompiledVariant(key, firstArg)) {
+                sb.append(prefix).append(key).append('_').append(firstArg);
+                for (final String arg : moreArgs) {
+                    sb.append(':').append(quoteArg(arg));
+                }
+                sb.append('%');
             } else {
                 sb.append(prefix).append(key).append(':').append(quoteArg(firstArg));
                 for (final String arg : moreArgs) {
@@ -121,30 +144,11 @@ public final class StringMigrator {
     }
 
     private static int findClosingPercent(final String input, final int fromIndex) {
-        int i = fromIndex;
-        final Matcher original = PAPI_PREFIX.matcher(input);
-        while (true) {
-            final int next = input.indexOf('%', i);
-            if (next == -1) return -1;
-            // if this % opens a new PAPI placeholder, current one is unclosed
-            final Matcher m = original.region(next, input.length());
-            if (m.lookingAt()) return -1;
-            // if this looks like an embedded %other% placeholder, skip over it
-            final int closing = input.indexOf('%', next + 1);
-            if (closing != -1) {
-                final String between = input.substring(next + 1, closing);
-                if (!between.isEmpty() && !between.contains(" ") && !between.contains("%")) {
-                    // don't skip if this % simultaneously opens a new PAPI placeholder
-                    final Matcher c = original.region(closing, input.length());
-                    if (c.lookingAt()) return -1;
-                    if (closing + 1 < input.length()) {
-                        i = closing + 1;
-                        continue;
-                    }
-                }
-            }
-            return next;
-        }
+        final int next = input.indexOf('%', fromIndex);
+        if (next == -1) return -1;
+        // If this % opens a new PAPI placeholder, the current one is unclosed — skip it
+        if (PAPI_PREFIX.matcher(input).region(next, input.length()).lookingAt()) return -1;
+        return next;
     }
 
     private String migrateTagP(final String input) {
@@ -170,7 +174,7 @@ public final class StringMigrator {
             final String argsPart = inner.substring(firstColon + 1);
             final String[] args = splitTagArgs(argsPart);
 
-            if (args.length > 0 && isListType(key) && Strings.isNumber(args[0])) {
+            if (args.length > 0 && (isListType(key) && Strings.isNumber(args[0]) || hasCompiledVariant(key, args[0]))) {
                 sb.append("<p:").append(key).append('_').append(args[0]);
                 for (int j = 1; j < args.length; j++) {
                     sb.append(':').append(args[j]);

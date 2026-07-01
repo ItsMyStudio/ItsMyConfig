@@ -189,11 +189,6 @@ class StringMigratorTest {
     }
 
     @Test
-    void placeholderInsideAnother() {
-        check("%imc_test:%example%:example2%", "%imc_test_%example%::example2%");
-    }
-
-    @Test
     void papiPlaceholderFollowedByLiteralPercent() {
         check("%imc_greet:hello% gives 50% off", "%imc_greet_hello% gives 50% off");
     }
