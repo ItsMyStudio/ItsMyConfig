@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import to.itsme.itsmyconfig.placeholder.PlaceholderManager;
 import to.itsme.itsmyconfig.placeholder.type.ListPlaceholder;
+import to.itsme.itsmyconfig.placeholder.type.ProgressbarPlaceholder;
 import to.itsme.itsmyconfig.placeholder.type.StringPlaceholder;
 
 import java.util.List;
@@ -38,6 +39,17 @@ class StringMigratorTest {
         registerNonList("test");
         registerNonList("example");
         registerNonList("myplaceholder");
+        registerProgressBar("job-progress");
+    }
+
+    private static void registerProgressBar(final String name) {
+        final var config = new YamlConfiguration();
+        final var section = config.createSection(name);
+        section.set("value", "||||||||||");
+        section.set("completed-color", "&a");
+        section.set("progress-color", "&e");
+        section.set("remaining-color", "&7");
+        manager.register(name, new ProgressbarPlaceholder("test.yml", section));
     }
 
     private static void registerNonList(final String name) {
@@ -113,6 +125,24 @@ class StringMigratorTest {
     void papiKeyWithUnderscoreResolvesCorrectly() {
         check("%imc_with_underscore_3%", "%imc_with_underscore_3%");
         check("%imc_with_underscore:hello:world%", "%imc_with_underscore_hello::world%");
+    }
+
+    @Test
+    void papiProgressBarWithPapiPlaceholderArgs() {
+        check(
+                "%imc_job-progress:{jobsr_user_jexpunf}:{jobsr_user_jmaxexpunf}%",
+                "%imc_job-progress_{jobsr_user_jexpunf}_{jobsr_user_jmaxexpunf}%"
+        );
+    }
+
+    @Test
+    void papiProgressBarWithSimpleNumericArgs() {
+        check("%imc_job-progress:42:100%", "%imc_job-progress_42_100%");
+    }
+
+    @Test
+    void papiProgressBarWithLiteralPercent() {
+        check("%imc_job-progress:{jobsr_user_jexpunf}% gives 50% off", "%imc_job-progress_{jobsr_user_jexpunf}% gives 50% off");
     }
 
     @Test

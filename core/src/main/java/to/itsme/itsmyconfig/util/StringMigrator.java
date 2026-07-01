@@ -5,6 +5,7 @@ import to.itsme.itsmyconfig.placeholder.PlaceholderManager;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -165,11 +166,19 @@ public final class StringMigrator {
             if (variantSep != -1) {
                 variant = afterKey.substring(0, variantSep);
                 firstArg = variantSep + 1 < afterKey.length() ? afterKey.substring(variantSep + 1) : "";
+                moreArgs = new String[0];
             } else {
                 variant = null;
-                firstArg = afterKey;
+                final Placeholder placeholder = this.manager.get(key);
+                if (placeholder != null && placeholder.getType() == PlaceholderType.PROGRESS_BAR) {
+                    final String[] splitArgs = splitOnUnderscoreOutsideBraces(afterKey);
+                    firstArg = splitArgs[0];
+                    moreArgs = Arrays.copyOfRange(splitArgs, 1, splitArgs.length);
+                } else {
+                    firstArg = afterKey;
+                    moreArgs = new String[0];
+                }
             }
-            moreArgs = new String[0];
         }
 
         final StringBuilder out = new StringBuilder();
@@ -190,6 +199,30 @@ public final class StringMigrator {
             }
         }
         return out.toString();
+    }
+
+    /**
+     * Splits {@code input} on underscores that are NOT inside {@code {…}} blocks.
+     * Treats each {@code {…}} PAPI placeholder as an atomic unit, so underscores
+     * within it are ignored while underscores between blocks act as separators.
+     */
+    private static String[] splitOnUnderscoreOutsideBraces(final String input) {
+        final List<String> parts = new ArrayList<>();
+        int braceDepth = 0;
+        int partStart = 0;
+        for (int i = 0; i < input.length(); i++) {
+            final char c = input.charAt(i);
+            if (c == '{') {
+                braceDepth++;
+            } else if (c == '}') {
+                braceDepth--;
+            } else if (c == '_' && braceDepth == 0) {
+                parts.add(input.substring(partStart, i));
+                partStart = i + 1;
+            }
+        }
+        parts.add(input.substring(partStart));
+        return parts.toArray(new String[0]);
     }
 
     private static int findClosingDelimiter(final String input, final int fromIndex, final DelimiterStyle style) {
