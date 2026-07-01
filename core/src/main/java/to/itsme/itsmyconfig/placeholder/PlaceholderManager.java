@@ -37,7 +37,7 @@ public final class PlaceholderManager {
      */
     public void register(final String key, final Placeholder value) {
         this.placeholders.put(key, value);
-        this.rebuildCompiledPlaceholders();
+        this.compileIncremental(value);
     }
 
     /**
@@ -55,8 +55,10 @@ public final class PlaceholderManager {
      * @param key The key of the placeholder to unregister.
      */
     public void unregister(final String key) {
-        this.placeholders.remove(key);
-        this.rebuildCompiledPlaceholders();
+        final Placeholder removed = this.placeholders.remove(key);
+        if (removed != null) {
+            this.removeCompiled(removed);
+        }
     }
 
     /**
@@ -109,24 +111,19 @@ public final class PlaceholderManager {
         return papiPlaceholderKeys;
     }
 
-    private void rebuildCompiledPlaceholders() {
-        this.papiPlaceholderKeys.clear();
-        this.compiledPlaceholders.clear();
-        for (final Map.Entry<String, Placeholder> entry : this.placeholders.entrySet()) {
-            this.compile(entry.getValue());
+    private void compileIncremental(final Placeholder placeholder) {
+        for (final CompiledPlaceholder compiled : placeholder.getCompiledPlaceholders()) {
+            this.compiledPlaceholders.put(compiled.key(), compiled);
+            this.papiPlaceholderKeys.add("%itsmyconfig_" + compiled.key() + "%");
+            this.papiPlaceholderKeys.add("%imc_" + compiled.key() + "%");
         }
-
-        this.compiledPlaceholders.keySet().forEach(
-                s -> {
-                    this.papiPlaceholderKeys.add("%itsmyconfig_" + s + "%");
-                    this.papiPlaceholderKeys.add("%imc_" + s + "%");
-                }
-        );
     }
 
-    private void compile(final Placeholder placeholder) {
-        for (final CompiledPlaceholder compiledPlaceholder : placeholder.getCompiledPlaceholders()) {
-            this.compiledPlaceholders.put(compiledPlaceholder.key(), compiledPlaceholder);
+    private void removeCompiled(final Placeholder placeholder) {
+        for (final CompiledPlaceholder compiled : placeholder.getCompiledPlaceholders()) {
+            this.compiledPlaceholders.remove(compiled.key());
+            this.papiPlaceholderKeys.remove("%itsmyconfig_" + compiled.key() + "%");
+            this.papiPlaceholderKeys.remove("%imc_" + compiled.key() + "%");
         }
     }
 
