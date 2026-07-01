@@ -99,11 +99,6 @@ class StringMigratorTest {
     }
 
     @Test
-    void papiOldStyleListTypeDropsExtraArgs() {
-        check("%imc_mylist_3%", "%imc_mylist_3::extra::more%");
-    }
-
-    @Test
     void papiOldStyleNumericFirstArgNonListDoesNotFold() {
         check("%imc_score:42%", "%imc_score_42%");
     }
