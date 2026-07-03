@@ -205,7 +205,7 @@ public final class ItsMyConfigCommand {
     public void migrate(
             final BukkitCommandSource source,
             final @SuggestionProvider(MigrationTargetProvider.class)
-            @Named("target") String target,
+            @Named("target") @Greedy String target,
             @Switch("shallow") boolean shallow
     ) {
         Scheduler.runAsync(wrappedTask -> {

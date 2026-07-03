@@ -38,7 +38,7 @@ public class MigrationTargetProvider implements SuggestionProvider<BukkitCommand
         final List<String> suggestions = new ArrayList<>();
         for (final File child : children) {
             final String name = child.getName();
-            if (name.startsWith("itsmyconfig-backup-")) continue;
+            if (name.startsWith("itsmyconfig-backup-") || name.startsWith(".")) continue;
 
             if (child.isDirectory()) {
                 suggestions.add(prefix + name + "/");
