@@ -22,6 +22,7 @@ allprojects {
                 SPONGE                : "platform-spongeapi",
                 MINI_MESSAGE          : "text-minimessage",
                 GSON_SERIALIZER       : "text-serializer-gson",
+                PLAIN_SERIALIZER      : "text-serializer-plain",
                 LEGACY_SERIALIZER     : "text-serializer-legacy",
                 BUNGEE_SERIALIZER     : "text-serializer-bungeecord",
                 LEGACY_SERIALIZER_IMPL: "text-serializer-json-legacy-impl"

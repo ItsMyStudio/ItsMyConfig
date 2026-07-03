@@ -55,6 +55,7 @@ dependencies {
     //adventure ->
     implementation "${kyori(KyoriModule.MINI_MESSAGE)}"
     implementation "${kyori(KyoriModule.GSON_SERIALIZER)}"
+    implementation "${kyori(KyoriModule.PLAIN_SERIALIZER)}"
     implementation "${kyori(KyoriModule.LEGACY_SERIALIZER)}"
     implementation "${kyori(KyoriModule.LEGACY_SERIALIZER_IMPL)}"
 
