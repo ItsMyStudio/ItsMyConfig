@@ -8,14 +8,12 @@ import org.jetbrains.annotations.Nullable;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.font.MappedFont;
 import to.itsme.itsmyconfig.placeholder.CompiledPlaceholder;
-import to.itsme.itsmyconfig.placeholder.PlaceholderType;
 import to.itsme.itsmyconfig.tag.TagManager;
 import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Utilities;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 /**
  * DynamicPlaceHolder class is a PlaceholderExpansion that handles dynamic placeholders for the ItsMyConfig plugin.
@@ -24,10 +22,6 @@ import java.util.Map;
  */
 public final class PAPIHook extends PlaceholderExpansion {
 
-    /**
-     * This variable is an instance of the ItsMyConfig class.
-     */
-    private final ItsMyConfig plugin;
     /**
      * ILLEGAL_NUMBER_FORMAT_MSG represents the error message when an illegal number format is encountered.
      */
@@ -41,15 +35,19 @@ public final class PAPIHook extends PlaceholderExpansion {
      * PLACEHOLDER_NOT_FOUND_MSG is a constant variable that represents the message displayed when a placeholder is not found.
      */
     public static final String PLACEHOLDER_NOT_FOUND_MSG = "Placeholder not found";
+
+    /** Prefix for {@code %imc_parse_<content>_<variant>} */
+    private static final String PARSE_PREFIX = "parse_";
+    /** Prefix for {@code %imc_smallcaps:<text>} */
+    private static final String SMALLCAPS_PREFIX = "smallcaps";
+    /** Prefix for {@code %imc_latin:<number>} */
+    private static final String LATIN_PREFIX = "latin";
+
+    /**
+     * This variable is an instance of the ItsMyConfig class.
+     */
+    private final ItsMyConfig plugin;
     private final String identifier;
-
-    private static final Map<String, CachedResult> CACHE = new HashMap<>();
-
-    private record CachedResult(String name, int length) {}
-
-    public static void clearCache() {
-        CACHE.clear();
-    }
 
     /**
      * DynamicPlaceHolder is a class that represents a dynamic placeholder for a placeholder expansion.
@@ -58,6 +56,19 @@ public final class PAPIHook extends PlaceholderExpansion {
     public PAPIHook(final ItsMyConfig plugin, final String identifier) {
         this.plugin = plugin;
         this.identifier = identifier;
+    }
+
+    private static String parseFormatVariant(final String input) {
+        if (input == null || input.isEmpty()) {
+            return null;
+        }
+
+        return switch (input.toLowerCase()) {
+            case "legacy", "l" -> "legacy";
+            case "console", "c" -> "console";
+            case "mini", "m", "raw", "r" -> "mini";
+            default -> null;
+        };
     }
 
     /**
@@ -74,7 +85,7 @@ public final class PAPIHook extends PlaceholderExpansion {
      * Retrieves the author(s) of the plugin.
      *
      * @return The author(s) of the plugin as a string. If there are multiple authors,
-     *         they are joined by commas.
+     * they are joined by commas.
      */
     @Override
     @SuppressWarnings("deprecation")
@@ -113,73 +124,67 @@ public final class PAPIHook extends PlaceholderExpansion {
      */
     @Override
     public @Nullable String onPlaceholderRequest(final Player player, @NotNull String params) {
-        params = PlaceholderAPI.setPlaceholders(player, params.replaceAll("\\$\\((.*?)\\)\\$", "%$1%"));
+        params = PlaceholderAPI.setPlaceholders(player, params);
         params = PlaceholderAPI.setBracketPlaceholders(player, params);
+        if (Strings.startsWithIgnoreCase(params, PARSE_PREFIX)) {
+            return handleParse(params.substring(PARSE_PREFIX.length()), player);
+        }
+        if (isPrefixedBy(params, SMALLCAPS_PREFIX)) {
+            return handleSmallCaps(params);
+        }
+        if (isPrefixedBy(params, LATIN_PREFIX)) {
+            return handleLatin(params);
+        }
+        return handlePlaceholder(params, player);
+    }
 
-        final String[] splitParams = params.split("_", -1);
-        if (splitParams.length == 0) {
+    @Override
+    public @NotNull List<String> getPlaceholders() {
+        return this.plugin.getPlaceholderManager().getPapiPlaceholderKeys();
+    }
+
+    /**
+     * Handles {@code smallcaps:<text>}.
+     */
+    private String handleSmallCaps(final String params) {
+        final int colonIndex = params.indexOf(':');
+        final String text = colonIndex == -1 ? "" : params.substring(colonIndex + 1);
+        if (text.isEmpty()) {
             return ILLEGAL_ARGUMENT_MSG;
         }
-
-        final String firstParam = splitParams[0].toLowerCase();
-        if ("parse".equals(firstParam)) {
-            return handleParse(splitParams, player);
-        }
-        if (("font".equals(firstParam) || "f".equals(firstParam)) && splitParams.length >= 3) {
-            return handleFont(splitParams);
-        }
-        return handlePlaceholder(splitParams, player);
+        return MappedFont.SMALL_CAPS.apply(text.toLowerCase());
     }
 
     /**
-     * Handles font-related operations based on the given parameters.
-     *
-     * @param splitParams The array of parameters, where the font type is at index 1 and additional parameters are at subsequent indices.
-     * @return The processed font or an error message if the font type is unknown or if an error occurs during font processing.
+     * Handles {@code latin:<number>}.
      */
-    private String handleFont(final String[] splitParams) {
-        String fontType = splitParams[1].toLowerCase();
-        if ("latin".equals(fontType)) {
-            try {
-                int integer = Integer.parseInt(splitParams[2]);
-                return Strings.integerToRoman(integer);
-            } catch (NumberFormatException e) {
-                return ILLEGAL_NUMBER_FORMAT_MSG;
-            }
-        } else if ("smallcaps".equals(fontType)) {
-            final StringBuilder messageBuilder = new StringBuilder();
-            for (int i = 2; i < splitParams.length; i++) {
-                if (i > 2) messageBuilder.append("_");
-                messageBuilder.append(splitParams[i]);
-            }
-            return MappedFont.SMALL_CAPS.apply(messageBuilder.toString().toLowerCase());
+    private String handleLatin(final String params) {
+        final int colonIndex = params.indexOf(':');
+        if (colonIndex == -1) {
+            return ILLEGAL_ARGUMENT_MSG;
         }
-        return "ERROR";
+        try {
+            return Strings.integerToRoman(Integer.parseInt(params.substring(colonIndex + 1)));
+        } catch (NumberFormatException e) {
+            return ILLEGAL_NUMBER_FORMAT_MSG;
+        }
+    }
+
+    private static boolean isPrefixedBy(final String params, final String prefix) {
+        return Strings.startsWithIgnoreCase(params, prefix)
+                && (params.length() == prefix.length() || params.charAt(prefix.length()) == ':');
     }
 
     /**
-     * Handles the imc_parse_ placeholder that processes text with tags and placeholders.
-     * 
-     * @param splitParams The array of parameters, where the content to parse starts at index 1.
-     * @param player The player for whom the placeholder is being processed.
+     * Handles the {@code imc_parse_} placeholder that processes text with tags and placeholders.
+     *
+     * @param content The content to parse (everything after the {@code parse_} prefix).
+     * @param player  The player for whom the placeholder is being processed.
      * @return The parsed text with tags and placeholders processed.
      */
-    private String handleParse(final String[] splitParams, final Player player) {
-        if (splitParams.length < 2) {
-            return ILLEGAL_ARGUMENT_MSG;
-        }
+    private String handleParse(String content, final Player player) {
+        if (content.isEmpty()) return ILLEGAL_ARGUMENT_MSG;
 
-        // Join all parameters after "parse" to reconstruct the content
-        final StringBuilder contentBuilder = new StringBuilder();
-        for (int i = 1; i < splitParams.length; i++) {
-            if (i > 1) {
-                contentBuilder.append("_");
-            }
-            contentBuilder.append(splitParams[i]);
-        }
-        
-        String content = contentBuilder.toString();
-        
         // Check if there's a format specification at the end (e.g., _legacy, _mini, _console)
         String variant = "legacy";
         final String[] formatParts = content.split("_");
@@ -197,10 +202,9 @@ public final class PAPIHook extends PlaceholderExpansion {
 
             return switch (variant) {
                 case "legacy", "console" -> Utilities.LEGACY_SERIALIZER.serialize(component);
-                case "mini" -> IMCSerializer.toMiniMessage(component);
                 default -> IMCSerializer.toMiniMessage(component);
             };
-            
+
         } catch (Exception e) {
             return "Parse Error: " + e.getMessage();
         }
@@ -210,74 +214,31 @@ public final class PAPIHook extends PlaceholderExpansion {
      * Handles the placeholder based on the params and player.
      *
      * @param params The array of split parameters.
-     * @param player      The player object.
+     * @param player The player object.
      * @return The formatted string.
      */
-    private String handlePlaceholder(final String[] params, final Player player) {
-        final String joined = String.join("_", params);
-        final CachedResult cached = CACHE.get(joined);
-
-        int nameLength = 0;
-        CompiledPlaceholder compiled = null;
-
-        if (cached != null) {
-            compiled = plugin.getPlaceholderManager().getCompiled(cached.name());
-            if (compiled != null) {
-                nameLength = cached.length();
-            } else {
-                CACHE.remove(joined);
-            }
-        }
+    private String handlePlaceholder(final String params, final Player player) {
+        final int colonIndex = params.indexOf(':');
+        final String candidate = colonIndex == -1 ? params : params.substring(0, colonIndex);
+        final CompiledPlaceholder compiled = plugin.getPlaceholderManager().getCompiled(candidate);
 
         if (compiled == null) {
-            for (int i = params.length; i > 0; i--) {
-                final StringBuilder candidateBuilder = new StringBuilder(params[0]);
-                for (int j = 1; j < i; j++) {
-                    candidateBuilder.append("_").append(params[j]);
-                }
-                final String candidate = candidateBuilder.toString();
-                compiled = plugin.getPlaceholderManager().getCompiled(candidate);
-                if (compiled != null) {
-                    nameLength = i;
-                    CACHE.put(joined, new CachedResult(candidate, nameLength));
-                    break;
-                }
+            return PLACEHOLDER_NOT_FOUND_MSG;
+        }
+
+        if (colonIndex == -1) {
+            if (!compiled.accepts(0)) {
+                return compiled.invalidArgumentsMessage(0);
             }
-
-            if (compiled == null) {
-                return PLACEHOLDER_NOT_FOUND_MSG;
-            }
+            return compiled.caller().call(player);
         }
 
-        final int remaining = params.length - nameLength;
-
-        if (remaining == 0) {
-            return compiled.caller().call(player, new String[0]);
+        final String[] args = Strings.extractArguments(params.substring(colonIndex + 1));
+        if (!compiled.accepts(args.length)) {
+            return compiled.invalidArgumentsMessage(args.length);
         }
 
-        final StringBuilder builder = new StringBuilder(params[nameLength]);
-        for (int i = nameLength + 1; i < params.length; i++) {
-            builder.append("_");
-            builder.append(params[i]);
-        }
-
-        return compiled.caller().call(
-                player,
-                builder.toString().split(compiled.placeholder().getType() == PlaceholderType.PROGRESS_BAR ? "_" : "::")
-        );
-    }
-
-    private static String parseFormatVariant(final String input) {
-        if (input == null || input.isEmpty()) {
-            return null;
-        }
-
-        return switch (input.toLowerCase()) {
-            case "legacy", "l" -> "legacy";
-            case "console", "c" -> "console";
-            case "mini", "m", "raw", "r" -> "mini";
-            default -> null;
-        };
+        return compiled.caller().call(player, args);
     }
 
 }

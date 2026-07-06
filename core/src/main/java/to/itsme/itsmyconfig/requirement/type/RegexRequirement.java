@@ -30,8 +30,8 @@ public final class RegexRequirement extends Requirement<String> {
      * Validates if the given input and output satisfy the regular expression matches requirement.
      *
      * @param identifier the unique identifier of the requirement
-     * @param input the input data to be checked
-     * @param output the output data to be checked against
+     * @param input      the input data to be checked
+     * @param output     the output data to be checked against
      * @return true if the input and output satisfy the requirement, false otherwise
      */
     @Override

@@ -4,7 +4,6 @@ package to.itsme.itsmyconfig.util.reflect;
  * An interface for retrieving the field content. (Credits: TinyProtocol)
  *
  * @param <T> - field type.
- *
  * @author Kristian
  */
 public interface FieldAccessor<T> {

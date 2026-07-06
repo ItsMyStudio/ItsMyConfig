@@ -18,7 +18,7 @@ custom-placeholder:
     value: "<p:server-name> <p:text-color>┃"
   error-prefix:
     value: "<red><bold>ERROR</bold></red> <p:text-color>┃"
-    
+
   # Can be #RRGGBB or color names: black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple, gold, gray, dark_gray, blue, green, aqua, red, light_purple, yellow, or white.
   primary-color:
     value: "yellow"
@@ -36,7 +36,7 @@ custom-placeholder:
   darkest-color:
     value: "dark_gray"
     type: color
-    
+
   # Just put the link without https://
   discord:
     value: "discord.gg/example"

@@ -4,46 +4,44 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import to.itsme.itsmyconfig.tag.api.ArgumentsTag;
 import to.itsme.itsmyconfig.tag.api.Cancellable;
+import to.itsme.itsmyconfig.tag.api.ClosableTag;
 import to.itsme.itsmyconfig.tag.api.Tag;
-import to.itsme.itsmyconfig.tag.impl.*;
-import to.itsme.itsmyconfig.tag.impl.title.SubtitleTag;
-import to.itsme.itsmyconfig.tag.impl.title.TitleTag;
-import to.itsme.itsmyconfig.tag.impl.toast.ToastTag;
+import to.itsme.itsmyconfig.tag.argument.*;
+import to.itsme.itsmyconfig.tag.closable.*;
+import to.itsme.itsmyconfig.tag.argument.title.SubtitleTag;
+import to.itsme.itsmyconfig.tag.argument.title.TitleTag;
+import to.itsme.itsmyconfig.tag.argument.toast.ToastTag;
+import to.itsme.itsmyconfig.util.Strings;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class TagManager {
 
+    // Matches opening tags: <tagname> or <tagname:arg1:arg2>
     private static final Pattern ARG_TAG_PATTERN = Pattern.compile("<(\\w+)((?::(?:\"([^\"]*)\"|'([^']*)'|`([^`]*)`|([^:\\s>]+)))*?)>");
-
-    private static final int INITIAL_CAPACITY;
     private static final Map<String, Tag> tags = new LinkedHashMap<>();
 
     static {
-        final AtomicInteger defaultCapacity = new AtomicInteger();
         List.of(
+                // argument tags
                 new RepeatTag(), new DelayTag(),
                 new BossbarTag(), new ActiobarTag(),
                 new TitleTag(), new SubtitleTag(),
-                new ToastTag(), new SoundTag()
-        ).forEach(tag -> {
-            tags.put(tag.name(), tag);
-            defaultCapacity.set(Math.max(tag.maxArguments(), defaultCapacity.get()));
-        });
-
-        INITIAL_CAPACITY = defaultCapacity.get();
+                new ToastTag(), new SoundTag(),
+                // closable tags
+                new UppercaseTag(), new LowercaseTag(), new PlainTag()
+        ).forEach(tag -> tags.put(tag.name(), tag));
     }
 
     public static String process(
             final Player player,
             @NotNull String text
     ) {
-        // handle argument tags
         text = processArgumentTags(player, text);
-
         return text;
     }
 
@@ -51,29 +49,68 @@ public final class TagManager {
             final Player player,
             @NotNull String text
     ) {
+        int searchFrom = 0;
         Matcher matcher = ARG_TAG_PATTERN.matcher(text);
-        while (matcher.find()) {
+        while (matcher.find(searchFrom)) {
             final int start = matcher.start();
             final int end = matcher.end();
 
             // Skip escaped tags
             if (start > 0 && text.charAt(start - 1) == '\\') {
+                searchFrom = end;
                 continue;
             }
 
             final String tagName = matcher.group(1);
             final Tag tag = tags.get(tagName);
+
+            // --- Closable tag ---
+            if (tag instanceof ClosableTag closableTag) {
+                final String closeToken = "</" + tagName + ">";
+                final int closeStart = text.indexOf(closeToken, end);
+
+                if (closeStart == -1) {
+                    searchFrom = end;
+                    continue; // no recreate — string unchanged
+                }
+
+                final int closeEnd = closeStart + closeToken.length();
+                final String inner = text.substring(end, closeStart);
+
+                final String arguments = matcher.group(2);
+                final String[] args = arguments.isEmpty()
+                        ? new String[0]
+                        : Strings.extractArguments(arguments, '>');
+
+                final String replaced;
+                if (args.length < closableTag.minArguments()) {
+                    replaced = "[Not enough arguments for Tag: " + tagName + "]";
+                } else if (args.length > closableTag.maxArguments()) {
+                    replaced = "[Too many arguments for Tag: " + tagName + "]";
+                } else {
+                    replaced = closableTag.process(player, inner, args);
+                }
+
+                text = text.substring(0, start) + replaced + text.substring(closeEnd);
+                matcher = ARG_TAG_PATTERN.matcher(text); // recreate — string changed
+                searchFrom = start;
+                continue;
+            }
+
+            // --- Argument tag ---
             if (!(tag instanceof ArgumentsTag argumentsTag)) {
-                continue; // unknown tag — skip safely, do NOT replace
+                searchFrom = start + 1; // re-scan from inside, not past the whole match
+                continue; // unknown tag - skip safely, do NOT replace
             }
 
             final String arguments = matcher.group(2);
-            final String[] args = extractArguments(arguments);
+            final String[] args = Strings.extractArguments(arguments, '>');
             if (args.length == 1 && "cancel".equals(args[0])) {
                 if (tag instanceof Cancellable cancellable) {
                     cancellable.cancelFor(player);
                     text = text.substring(0, start) + text.substring(end);
-                    matcher = ARG_TAG_PATTERN.matcher(text);
+                    matcher = ARG_TAG_PATTERN.matcher(text); // recreate — string changed
+                    searchFrom = start;
                     continue;
                 }
             }
@@ -88,46 +125,11 @@ public final class TagManager {
             }
 
             text = text.substring(0, start) + replaced + text.substring(end);
-            matcher = ARG_TAG_PATTERN.matcher(text);
+            matcher = ARG_TAG_PATTERN.matcher(text); // recreate — string changed
+            searchFrom = start + replaced.length();
         }
 
         return text;
-    }
-
-    public static String[] extractArguments(final String rawArgs) {
-        final List<String> args = new ArrayList<>(INITIAL_CAPACITY);
-
-        int i = 0;
-        while (i < rawArgs.length()) {
-            if (rawArgs.charAt(i) != ':') {
-                i++;
-                continue;
-            }
-            i++; // skip ':'
-            if (i >= rawArgs.length()) break;
-
-            char delimiter = rawArgs.charAt(i);
-            int end;
-
-            if (delimiter == '"' || delimiter == '\'' || delimiter == '`') {
-                i++; // skip opening quote
-                end = rawArgs.indexOf(delimiter, i);
-                if (end == -1) break;
-                args.add(rawArgs.substring(i, end));
-                i = end + 1;
-            } else {
-                end = i;
-                while (end < rawArgs.length()) {
-                    char c = rawArgs.charAt(end);
-                    if (c == ':' || c == '>' || Character.isWhitespace(c)) break;
-                    end++;
-                }
-                args.add(rawArgs.substring(i, end));
-                i = end;
-            }
-        }
-
-        return args.toArray(new String[0]);
     }
 
 }

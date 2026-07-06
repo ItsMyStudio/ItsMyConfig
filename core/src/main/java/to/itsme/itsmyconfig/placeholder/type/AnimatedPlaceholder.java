@@ -7,7 +7,7 @@ import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
 import to.itsme.itsmyconfig.util.Scheduler;
 
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 

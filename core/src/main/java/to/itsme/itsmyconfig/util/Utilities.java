@@ -20,14 +20,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.font.Font;
-import to.itsme.itsmyconfig.font.FontTag;
 import to.itsme.itsmyconfig.placeholder.CompiledPlaceholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.type.ColorPlaceholder;
 import to.itsme.itsmyconfig.tag.TagManager;
+import to.itsme.itsmyconfig.tag.adventure.FontTag;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -46,6 +48,8 @@ public final class Utilities {
 
     private static final TagResolver FONT_RESOLVER;
     private static final Field TEXT_COMPONENT_CONTENT;
+
+    private static final TagResolver EMPTY_IMC_TAG = itsMyConfigTag(null);
 
     static {
         final TagResolver.Builder builder = TagResolver.builder();
@@ -89,7 +93,7 @@ public final class Utilities {
     /**
      * Logs debug information along with an exception stack trace to the console if the debug mode is enabled.
      *
-     * @param supplier The supplier that provides the debug information to log.
+     * @param supplier  The supplier that provides the debug information to log.
      * @param exception The Exception object representing the exception to log.
      */
     public static void debug(final Supplier<String> supplier, final Throwable exception) {
@@ -110,8 +114,8 @@ public final class Utilities {
     ) {
         final Component translated = EMPTY_MM.deserialize(
                 Strings.quote(text),
-                emptyItsMyConfigTag(),
-                FONT_RESOLVER, StandardTags.defaults(),
+                EMPTY_IMC_TAG, FONT_RESOLVER,
+                StandardTags.defaults(),
                 TagResolver.resolver(placeholders)
         );
 
@@ -122,7 +126,7 @@ public final class Utilities {
     /**
      * Translates a String into a {@link Component}
      *
-     * @param text The text to translate.
+     * @param text   The text to translate.
      * @param player The player translated-for.
      * @return The translated {@link Component}.
      */
@@ -149,7 +153,7 @@ public final class Utilities {
     /**
      * Translates a String into a {@link Component}
      *
-     * @param text The text to translate.
+     * @param text   The text to translate.
      * @param player The player translated-for.
      * @return The translated {@link Component}.
      */
@@ -174,9 +178,11 @@ public final class Utilities {
     /**
      * Provides a ItsMyConfig placeholders tag resolver.
      *
+     * @param player The player for whom the resolver is being created,
+     *               or {@code null} to resolve player-independent placeholders only.
      * @return The ItsMyConfig placeholder tag resolver.
      */
-    public static TagResolver emptyItsMyConfigTag() {
+    public static TagResolver itsMyConfigTag(@Nullable final OfflinePlayer player) {
         return TagResolver.resolver("p", (argumentQueue, context) -> {
             if (!argumentQueue.hasNext()) {
                 return Tag.preProcessParsed("Unknown Placeholder");
@@ -197,43 +203,16 @@ public final class Utilities {
                 args.add(argumentQueue.pop().value());
             }
 
-            if (!compiled.placeholder().hasDependency(PlaceholderDependancy.NONE)) {
+            if (player == null && !compiled.placeholder().hasDependency(PlaceholderDependancy.NONE)) {
                 return Tag.preProcessParsed("");
             }
 
-            final String parsed = compiled.caller().call(null, args.toArray(new String[0]));
-            return Tag.preProcessParsed((parsed == null ? "" : parsed).replace("§", "&"));
-        });
-    }
-
-    /**
-     * Provides a ItsMyConfig placeholders tag resolver.
-     *
-     * @param player The player for whom the resolver is being created.
-     * @return The ItsMyConfig placeholder tag resolver.
-     */
-    public static TagResolver itsMyConfigTag(final OfflinePlayer player) {
-        return TagResolver.resolver("p", (argumentQueue, context) -> {
-            if (!argumentQueue.hasNext()) {
-                return Tag.preProcessParsed("Unknown Placeholder");
+            final String[] parsedArgs = args.toArray(new String[0]);
+            if (!compiled.accepts(parsedArgs.length)) {
+                return Tag.preProcessParsed(compiled.invalidArgumentsMessage(parsedArgs.length));
             }
 
-            final String name = argumentQueue.popOr("").value();
-            final CompiledPlaceholder compiled = plugin.getPlaceholderManager().getCompiled(name);
-            if (compiled == null) {
-                return Tag.preProcessParsed("Unknown Placeholder");
-            }
-
-            if (plugin.getPlaceholderManager().get(name) instanceof ColorPlaceholder colorPlaceholder) {
-                return colorPlaceholder.getStyle();
-            }
-
-            final List<String> args = new LinkedList<>();
-            while (argumentQueue.hasNext()) {
-                args.add(argumentQueue.pop().value());
-            }
-
-            final String parsed = compiled.caller().call(player, args.toArray(new String[0]));
+            final String parsed = compiled.caller().call(player, parsedArgs);
             return Tag.preProcessParsed((parsed == null ? "" : parsed).replace("§", "&"));
         });
     }
@@ -295,7 +274,7 @@ public final class Utilities {
      * Modifies the content of a TextComponent instance.
      *
      * @param component The TextComponent instance to modify.
-     * @param content       The new content for the TextComponent.
+     * @param content   The new content for the TextComponent.
      */
     private static void modifyTextComponent(
             final @NotNull TextComponent component,

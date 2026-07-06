@@ -7,7 +7,10 @@ import to.itsme.itsmyconfig.processor.packetevents.PEventsListener;
 import to.itsme.itsmyconfig.processor.protocollib.PLibListener;
 import to.itsme.itsmyconfig.util.reflect.Reflections;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ProcessorManager {
 
@@ -47,7 +50,7 @@ public class ProcessorManager {
         final List<Map.Entry<String, Integer>> sorted = new ArrayList<>(availableListeners.entrySet());
         sorted.sort(Map.Entry.comparingByValue());
 
-        final String chosenPlugin = sorted.get(0).getKey();
+        final String chosenPlugin = sorted.getFirst().getKey();
         plugin.getLogger().info("Using packet listener: " + chosenPlugin);
 
         return switch (chosenPlugin) {

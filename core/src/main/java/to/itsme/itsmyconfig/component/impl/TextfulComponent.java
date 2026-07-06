@@ -27,7 +27,7 @@ public final class TextfulComponent extends AbstractComponent {
         }
         SHADOW_COLOR_SUPPORTED = supported;
     }
-    
+
     private String text;
     private String color;
     private String shadowColor;
@@ -38,7 +38,7 @@ public final class TextfulComponent extends AbstractComponent {
     private boolean strikethrough;
     private boolean obfuscated;
 
-    public boolean forceUnitalic;
+    boolean forceUnitalic;
 
     private String insertion;
     private ClickEvent clickEvent;
@@ -47,7 +47,8 @@ public final class TextfulComponent extends AbstractComponent {
     /**
      * Empty Constructor
      */
-    public TextfulComponent() {}
+    public TextfulComponent() {
+    }
 
     /**
      * Only String component

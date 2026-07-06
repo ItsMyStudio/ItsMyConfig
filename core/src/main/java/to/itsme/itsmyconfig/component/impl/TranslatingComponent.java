@@ -2,16 +2,15 @@ package to.itsme.itsmyconfig.component.impl;
 
 import com.google.gson.*;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentLike;
-import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.format.TextColor;
 import to.itsme.itsmyconfig.component.AbstractComponent;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ArrayList;
 
 public class TranslatingComponent extends AbstractComponent {
 
@@ -36,8 +35,8 @@ public class TranslatingComponent extends AbstractComponent {
 
         List<TranslationArgument> argumentLikes = component.arguments();
         List<Component> args = new ArrayList<>(argumentLikes.size());
-        for (int i = 0, size = argumentLikes.size(); i < size; i++) {
-            args.add(argumentLikes.get(i).asComponent());
+        for (TranslationArgument argumentLike : argumentLikes) {
+            args.add(argumentLike.asComponent());
         }
         if (!args.isEmpty()) {
             for (final Component arg : args) {

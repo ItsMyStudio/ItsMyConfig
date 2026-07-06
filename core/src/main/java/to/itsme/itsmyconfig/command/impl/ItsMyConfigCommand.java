@@ -13,15 +13,22 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.annotations.types.*;
 import to.itsme.itsmyconfig.ItsMyConfig;
+import to.itsme.itsmyconfig.command.impl.migration.MigrationResult;
+import to.itsme.itsmyconfig.command.impl.migration.MigrationSession;
+import to.itsme.itsmyconfig.command.suggest.MigrationTargetProvider;
 import to.itsme.itsmyconfig.command.suggest.ModifiablePlaceholderProvider;
 import to.itsme.itsmyconfig.command.util.PlayerSelector;
 import to.itsme.itsmyconfig.message.AudienceResolver;
+import to.itsme.itsmyconfig.message.Message;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
-import to.itsme.itsmyconfig.message.Message;
+import to.itsme.itsmyconfig.util.Scheduler;
+import to.itsme.itsmyconfig.util.StringMigrator;
 import to.itsme.itsmyconfig.util.Utilities;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 @RootCommand("itsmyconfig")
 @Permission("itsmyconfig.admin")
@@ -45,8 +52,9 @@ public final class ItsMyConfigCommand {
                     <gray>• <white>/itsmyconfig message <gold><target> <message>
                     <gray>• <white>/itsmyconfig config <gold><placeholder> <value>
                 
-                  <gray>• <white>Project: <aqua>ItsMe.to
-                  <gray>• <white>Support: <click:open_url:'https://discord.gg/itsme-to'><green>discord.gg/itsme-to</click>
+                  <gray>• <white>Project: <aqua>ItsMyStudio
+                  <gray>• <white>Support: <click:open_url:'https://itsmy.studio/discord'><green>itsmy.studio/discord</click>
+                  <gray>• <white>Documentation: <click:open_url:'https://itsmy.studio/docs/itsmyconfig'><green>itsmy.studio/docs/itsmyconfig</click>
                   <gray>• <white>Developer: <yellow><author> <gray>(%s)
                 
                 """.formatted(plugin.getDescription().getVersion());
@@ -59,10 +67,10 @@ public final class ItsMyConfigCommand {
 
         // Create a text block for the hover message
         final String hoverMessage = """
-            <white>Name: <gold>%s
-            <white>Version: <gold>%s
-            <white>Support Server: <gold>https://discord.gg/itsme-to
-            """.formatted(description.getName(), description.getVersion());
+                <white>Name: <gold>%s
+                <white>Version: <gold>%s
+                <white>Support Server: <gold>https://discord.gg/itsme-to
+                """.formatted(description.getName(), description.getVersion());
 
         // Return the TagResolver with the plugin information
         return TagResolver.resolver("plugin", (argumentQueue, context) -> {
@@ -80,9 +88,9 @@ public final class ItsMyConfigCommand {
     private TagResolver authorInfo() {
         // Create a text block for the hover message
         final String hoverMessage = """
-            <white>Discord: <aqua>@iiAhmedYT</aqua>
-            <white>Github: <aqua>https://github.com/iiAhmedYT</aqua>
-            """;
+                <white>Discord: <aqua>@iiAhmedYT</aqua>
+                <white>Github: <aqua>https://github.com/iiAhmedYT</aqua>
+                """;
 
         // Return the TagResolver with the author information
         return TagResolver.resolver("author", (argumentQueue, context) -> Tag.selfClosingInserting(
@@ -102,32 +110,20 @@ public final class ItsMyConfigCommand {
         Message.RELOAD.send(source);
     }
 
-    @SubCommand("messagedirectly")
-    @Permission("itsmyconfig.message")
-    @Description("Sends messages to players")
-    public void messageDirectly(
-            final BukkitCommandSource source,
-            final @Named("target") PlayerSelector players,
-            final @Named("message") @Greedy String message
-    ) {
-        for (final Player player : players) {
-            player.sendMessage(this.plugin.getSymbolPrefix() + message);
-        }
-
-        if (!source.isConsole()) {
-            Message.MESSAGE_SENT.send(source);
-        }
-    }
-
     @SubCommand("message")
     @Permission("itsmyconfig.message")
     @Description("Sends messages to players")
     public void message(
             final BukkitCommandSource source,
             final @Named("target") PlayerSelector players,
+            final @Switch("direct") boolean direct,
             final @Named("message") @Greedy String message
     ) {
-        for (final Player player : players) {
+        if (direct) {
+            for (final Player player : players) {
+                player.sendMessage(this.plugin.getSymbolPrefix() + message);
+            }
+        } else for (final Player player : players) {
             final Component component = Utilities.translate(message, player);
             if (!Component.empty().equals(component)) {
                 AudienceResolver.resolve(player).sendMessage(component);
@@ -203,14 +199,79 @@ public final class ItsMyConfigCommand {
         if (!placeholder.reloadFromSection()) this.reload(source);
     }
 
+    @SubCommand("migrate")
+    @Permission("itsmyconfig.migrate")
+    @Description("Migrates old placeholders to new format")
+    public void migrate(
+            final BukkitCommandSource source,
+            final @SuggestionProvider(MigrationTargetProvider.class)
+            @Named("target") @Greedy String target,
+            @Switch("shallow") boolean shallow
+    ) {
+        Scheduler.runAsync(wrappedTask -> {
+            final File pluginsDir = plugin.getDataFolder().getParentFile();
+            final File resolved = new File(pluginsDir, target);
+
+            if (!resolved.exists()) {
+                AudienceResolver.send(source, Utilities.MM.deserialize(
+                        "<red>Target not found: <yellow>" + target + "</yellow></red>"
+                ));
+                return;
+            }
+
+            AudienceResolver.send(source, Utilities.MM.deserialize(
+                    "<gray>Starting migration for <yellow>" + target + "</yellow>...</gray>"
+            ));
+
+            final StringMigrator migrator = new StringMigrator(plugin.getPlaceholderManager());
+            final MigrationSession session = new MigrationSession(migrator, pluginsDir);
+            final List<MigrationResult> results = session.run(target, !shallow);
+
+            // tally
+            int totalChanged = 0;
+            int totalFiles = 0;
+            int totalSkipped = 0;
+
+            for (final MigrationResult result : results) {
+                if (result.skipped()) {
+                    totalSkipped++;
+                    // always warn about skipped files
+                    AudienceResolver.send(source, Utilities.MM.deserialize(
+                            "<red>Skipped <yellow>" + result.file().getName() +
+                                    "</yellow>: " + result.skipReason() + "</red>"
+                    ));
+                } else {
+                    if (result.stringsChanged() > 0) {
+                        totalFiles++;
+                        totalChanged += result.stringsChanged();
+                    }
+                    if (plugin.isDebug()) {
+                        final String msg = result.stringsChanged() > 0
+                                ? "<gray>Migrated <white>" + result.stringsChanged() +
+                                "</white> string(s) in <yellow>" + result.file().getName() + "</yellow></gray>"
+                                : "<dark_gray>No changes in " + result.file().getName() + "</dark_gray>";
+                        AudienceResolver.send(source, Utilities.MM.deserialize(msg));
+                    }
+                }
+            }
+
+            AudienceResolver.send(source, Utilities.MM.deserialize(
+                    "<green>Migration complete!</green> <gray>Changed <white>" + totalChanged +
+                            "</white> string(s) across <white>" + totalFiles +
+                            "</white> file(s), skipped <white>" + totalSkipped + "</white>.</gray>"
+            ));
+        });
+    }
+
     @RootCommand("message")
     @Permission("itsmyconfig.message")
     public void msgCommand(
             final BukkitCommandSource source,
             final @Named("target") PlayerSelector players,
+            final @Switch("direct") boolean direct,
             final @Named("message") @Greedy String message
     ) {
-        this.message(source, players, message);
+        this.message(source, players, direct, message);
     }
 
     @RootCommand("config")

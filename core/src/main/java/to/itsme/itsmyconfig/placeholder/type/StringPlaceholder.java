@@ -35,7 +35,7 @@ public final class StringPlaceholder extends Placeholder {
     /**
      * Replaces arguments in a given message string.
      *
-     * @param params     The array of parameters to use for replacement.
+     * @param params The array of parameters to use for replacement.
      * @return The message string with replaced arguments.
      */
     @Override

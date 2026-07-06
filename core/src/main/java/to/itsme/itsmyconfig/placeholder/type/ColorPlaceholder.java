@@ -1,6 +1,8 @@
 package to.itsme.itsmyconfig.placeholder.type;
 
-import net.kyori.adventure.text.format.*;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -19,9 +21,18 @@ import java.util.*;
 public final class ColorPlaceholder extends Placeholder {
 
     /**
-     * Represents the style of a variable.
+     * Represents a map of decoration properties.
      */
-    private Tag style;
+    private final static Map<String, String> DECORATIONS_PROPERTIES = new HashMap<>() {
+        {
+            put("bold", "&l");
+            put("italic", "&o");
+            put("obfuscated", "&k");
+            put("underlined", "&n");
+            put("strikethrough", "&m");
+        }
+    };
+
     /**
      * Represents a legacy color value.
      */
@@ -46,6 +57,10 @@ public final class ColorPlaceholder extends Placeholder {
      * Represents a color placeholder data object.
      */
     hexValue;
+    /**
+     * Represents the style of a variable.
+     */
+    private Tag style;
     /***/
     private String properties = "", /**
      * Represents a placeholder data object with a mini prefix property.
@@ -55,21 +70,7 @@ public final class ColorPlaceholder extends Placeholder {
      */
     propertiesMiniSuffix = "",
 
-    legacyString = "",
-    consoleString = "";
-
-    /**
-     * Represents a map of decoration properties.
-     */
-    private final static Map<String, String> DECORATIONS_PROPERTIES = new HashMap<>() {
-        {
-            put("bold", "&l");
-            put("italic", "&o");
-            put("obfuscated", "&k");
-            put("underlined", "&n");
-            put("strikethrough", "&m");
-        }
-    };
+    legacyString = "", consoleString = "";
 
     /**
      * Represents a color placeholder data object.
@@ -110,6 +111,22 @@ public final class ColorPlaceholder extends Placeholder {
 
         this.consoleString = this.toConsoleString();
         this.legacyString = (legacy ? legacyColor + this.properties : '&' + this.hexValue + this.properties).replace("§", "&");
+
+        this.compiledPlaceholders = Set.of(
+                mainCompiledPlaceholder(),
+                this.compileVariant("closestname", this::getClosestNameResult, 0, 0),
+                this.compileVariant("legacy", this::getLegacyResult, 0, 0),
+                this.compileVariant("l", this::getLegacyResult, 0, 0),
+                this.compileVariant("console", this::getConsoleResult, 0, 0),
+                this.compileVariant("c", this::getConsoleResult, 0, 0),
+                this.compileVariant("mini", this::getMiniResult, 0, 1),
+                this.compileVariant("m", this::getMiniResult, 0, 1)
+        );
+    }
+
+    @Override
+    public int maxArgs() {
+        return 0;
     }
 
     /**
@@ -161,32 +178,29 @@ public final class ColorPlaceholder extends Placeholder {
             return this.value + this.properties;
         }
 
-        if ("closestname".equals(params[0].toLowerCase(Locale.ROOT))) {
-            return this.nameValue;
-        }
-
         return this.value;
     }
 
-    @Override
-    protected String getLegacyResult(final OfflinePlayer player, final String[] args) {
-        return this.invalid ? "" : this.legacyString;
+    private String getClosestNameResult(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, this.nameValue);
     }
 
-    @Override
-    protected String getConsoleResult(final OfflinePlayer player, final String[] args) {
-        return this.invalid ? "" : this.consoleString;
+    private String getLegacyResult(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, this.invalid ? "" : this.legacyString);
     }
 
-    @Override
-    protected String getMiniResult(final OfflinePlayer player, final String[] args) {
+    private String getConsoleResult(final OfflinePlayer player, final String[] args) {
+        return this.asVariantString(player, this.invalid ? "" : this.consoleString);
+    }
+
+    private String getMiniResult(final OfflinePlayer player, final String[] args) {
         if (this.invalid) {
             return "";
         }
 
         final String prefix = "<" + this.value + ">" + propertiesMiniPrefix;
         if (args.length == 0) {
-            return prefix;
+            return this.asVariantString(player, prefix);
         }
 
         final String suffix = "</" + this.value + ">" + propertiesMiniSuffix;
@@ -197,12 +211,8 @@ public final class ColorPlaceholder extends Placeholder {
                 result.append(" ");
             }
         }
-        return result.append(suffix).toString();
-    }
 
-    @Override
-    protected String getRawResult(final OfflinePlayer player, final String[] args) {
-        return this.invalid ? "" : this.value;
+        return this.asVariantString(player, result.append(suffix).toString());
     }
 
     /**
@@ -216,14 +226,14 @@ public final class ColorPlaceholder extends Placeholder {
 
     private String toConsoleString() {
         if (legacy) {
-            return legacyColor + this.properties.replaceAll("&", "§");
+            return legacyColor + this.properties.replace("&", "§");
         }
         final String hexColor = this.hexValue.substring(1);
         final StringBuilder minecraftFormat = new StringBuilder("§x");
         for (int i = 0; i < hexColor.length(); i++) {
             minecraftFormat.append("§").append(hexColor.charAt(i));
         }
-        return minecraftFormat + this.properties.replaceAll("&", "§");
+        return minecraftFormat + this.properties.replace("&", "§");
     }
 
 }

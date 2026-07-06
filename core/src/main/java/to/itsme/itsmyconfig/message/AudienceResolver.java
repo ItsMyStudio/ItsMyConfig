@@ -8,10 +8,11 @@ import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.context.CommandSource;
 import to.itsme.itsmyconfig.ItsMyConfig;
 
-@SuppressWarnings("all")
 public class AudienceResolver {
 
-    private static final Resolver AUDIENCE_RESOLVER = new BukkitResolver();
+    @SuppressWarnings("ConstantConditions")
+    private static final Resolver AUDIENCE_RESOLVER = Audience.class.isAssignableFrom(CommandSender.class)
+            ? new PaperResolver() : new BukkitResolver(); // since we relocate Adventure, Bukkit always returns
 
     /**
      * Dummy method to load resolvers onEnable, and just logs it.
@@ -80,7 +81,7 @@ public class AudienceResolver {
 
         @Override
         public Audience resolve(final CommandSender sender) {
-            return (Audience) sender;
+            return sender;
         }
 
     }

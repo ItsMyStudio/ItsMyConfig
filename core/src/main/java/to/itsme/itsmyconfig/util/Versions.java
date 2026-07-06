@@ -6,7 +6,9 @@ import to.itsme.itsmyconfig.util.reflect.Reflections;
 @SuppressWarnings("unused")
 public final class Versions {
 
-    public static final String VERSION_EXACT = Bukkit.getBukkitVersion().split("-")[0];
+    public static final String VERSION_EXACT = Bukkit.getBukkitVersion()
+            .split("-")[0]
+            .replaceAll("\\.build\\.\\d+", "");
     public static final boolean IS_FOLIA = Reflections.findClass("io.papermc.paper.threadedregions.RegionizedServer");
     public static final boolean IS_PAPER = Reflections.findClass("com.destroystokyo.paper.PaperConfig", "io.papermc.paper.configuration.Configuration");
 

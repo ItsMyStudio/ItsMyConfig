@@ -1,11 +1,11 @@
 package to.itsme.itsmyconfig.component.event;
 
 import com.google.gson.*;
-import java.lang.reflect.Type;
-
 import net.kyori.adventure.nbt.api.BinaryTagHolder;
 import net.kyori.adventure.text.event.ClickEvent.Payload;
 import to.itsme.itsmyconfig.util.Versions;
+
+import java.lang.reflect.Type;
 
 public class ClickEvent {
 
@@ -30,7 +30,8 @@ public class ClickEvent {
                     this.value = holder.string();
                 }
             }
-            default -> this.value = event.payload().toString(); // another incorrect handling, but should never reach here anyway
+            default ->
+                    this.value = event.payload().toString(); // another incorrect handling, but should never reach here anyway
         }
     }
 
@@ -56,14 +57,6 @@ public class ClickEvent {
             this.field = field;
         }
 
-        public String getName() {
-            return name;
-        }
-
-        public String getField() {
-            return field;
-        }
-
         public static Action fromName(String name) {
             for (Action action : values()) {
                 if (action.name.equalsIgnoreCase(name)) {
@@ -71,6 +64,14 @@ public class ClickEvent {
                 }
             }
             return UNKNOWN;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getField() {
+            return field;
         }
     }
 

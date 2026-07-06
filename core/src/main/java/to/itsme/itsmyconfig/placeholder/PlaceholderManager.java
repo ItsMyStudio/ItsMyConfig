@@ -1,9 +1,12 @@
 package to.itsme.itsmyconfig.placeholder;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
+import to.itsme.itsmyconfig.ItsMyConfig;
+import to.itsme.itsmyconfig.placeholder.type.*;
+
+import java.io.File;
+import java.util.*;
 
 /**
  * The PlaceholderManager class is responsible for managing placeholders.
@@ -11,12 +14,20 @@ import java.util.Set;
  */
 public final class PlaceholderManager {
 
+    private final ItsMyConfig plugin;
+
     /**
      * Represents a synchronized map of placeholder keys and PlaceholderData objects.
      * Placeholders are used to represent dynamic values that can be replaced in messages or text.
      */
     private final Map<String, Placeholder> placeholders = Collections.synchronizedMap(new LinkedHashMap<>());
     private final Map<String, CompiledPlaceholder> compiledPlaceholders = Collections.synchronizedMap(new LinkedHashMap<>());
+
+    private final List<String> papiPlaceholderKeys = new ArrayList<>();
+
+    public PlaceholderManager(final ItsMyConfig plugin) {
+        this.plugin = plugin;
+    }
 
     /**
      * Registers a placeholder with the provided key and value.
@@ -26,7 +37,7 @@ public final class PlaceholderManager {
      */
     public void register(final String key, final Placeholder value) {
         this.placeholders.put(key, value);
-        this.rebuildCompiledPlaceholders();
+        this.compileIncremental(value);
     }
 
     /**
@@ -34,6 +45,7 @@ public final class PlaceholderManager {
      */
     public void unregisterAll() {
         this.placeholders.clear();
+        this.papiPlaceholderKeys.clear();
         this.compiledPlaceholders.clear();
     }
 
@@ -43,8 +55,10 @@ public final class PlaceholderManager {
      * @param key The key of the placeholder to unregister.
      */
     public void unregister(final String key) {
-        this.placeholders.remove(key);
-        this.rebuildCompiledPlaceholders();
+        final Placeholder removed = this.placeholders.remove(key);
+        if (removed != null) {
+            this.removeCompiled(removed);
+        }
     }
 
     /**
@@ -81,7 +95,7 @@ public final class PlaceholderManager {
      * @return a map containing placeholders as keys and their corresponding {@link Placeholder} objects as values
      */
     public Map<String, Placeholder> getPlaceholdersMap() {
-        return placeholders;
+        return Map.copyOf(placeholders);
     }
 
     /**
@@ -93,46 +107,152 @@ public final class PlaceholderManager {
         return placeholders.keySet();
     }
 
-    private void rebuildCompiledPlaceholders() {
-        this.compiledPlaceholders.clear();
-        for (final Map.Entry<String, Placeholder> entry : this.placeholders.entrySet()) {
-            this.compile(entry.getKey(), entry.getValue());
+    public List<String> getPapiPlaceholderKeys() {
+        return papiPlaceholderKeys;
+    }
+
+    private void compileIncremental(final Placeholder placeholder) {
+        for (final CompiledPlaceholder compiled : placeholder.getCompiledPlaceholders()) {
+            this.compiledPlaceholders.put(compiled.key(), compiled);
+            this.papiPlaceholderKeys.add("%itsmyconfig_" + compiled.key() + "%");
+            this.papiPlaceholderKeys.add("%imc_" + compiled.key() + "%");
         }
     }
 
-    private void compile(final String key, final Placeholder placeholder) {
-        this.compiledPlaceholders.put(key, new CompiledPlaceholder(placeholder, placeholder::asString));
-
-        switch (placeholder.getType()) {
-            case COLOR, COLORED_TEXT:
-                this.compileVariant(key, placeholder, "legacy", placeholder::asLegacyString);
-                this.compileVariant(key, placeholder, "l", placeholder::asLegacyString);
-                this.compileVariant(key, placeholder, "console", placeholder::asConsoleString);
-                this.compileVariant(key, placeholder, "c", placeholder::asConsoleString);
-                this.compileVariant(key, placeholder, "mini", placeholder::asMiniString);
-                this.compileVariant(key, placeholder, "m", placeholder::asMiniString);
-                this.compileVariant(key, placeholder, "raw", placeholder::asRawString);
-                this.compileVariant(key, placeholder, "r", placeholder::asRawString);
-                break;
-            case MATH:
-                this.compileVariant(key, placeholder, "commas", placeholder::asCommasString);
-                this.compileVariant(key, placeholder, "fixed", placeholder::asFixedString);
-                this.compileVariant(key, placeholder, "formatted", placeholder::asFormattedString);
-                break;
-            default:
-                break;
+    private void removeCompiled(final Placeholder placeholder) {
+        for (final CompiledPlaceholder compiled : placeholder.getCompiledPlaceholders()) {
+            this.compiledPlaceholders.remove(compiled.key());
+            this.papiPlaceholderKeys.remove("%itsmyconfig_" + compiled.key() + "%");
+            this.papiPlaceholderKeys.remove("%imc_" + compiled.key() + "%");
         }
     }
 
-    private void compileVariant(
-            final String key,
-            final Placeholder placeholder,
-            final String variant,
-            final PlaceholderCaller caller
+    /**
+     * Recursively loads .yml files from the specified folder.
+     * It iterates through the files in the folder, loading each .yml file using the `loadCustomYml` method if it meets the criteria.
+     *
+     * @param folder           The folder from which to load .yml files.
+     * @param placeholderPaths A map of registered placeholders to avoid duplicates.
+     */
+    public void loadFolder(
+            final File folder,
+            final Map<String, List<String>> placeholderPaths
     ) {
-        final String compiledKey = key + "_" + variant;
-        if (!this.compiledPlaceholders.containsKey(compiledKey)) {
-            this.compiledPlaceholders.put(compiledKey, new CompiledPlaceholder(placeholder, caller));
+        if (folder == null || !folder.isDirectory()) {
+            return;
+        }
+
+        final File[] files = folder.listFiles();
+        if (files == null) {
+            return;
+        }
+
+        for (final File file : files) {
+            if (file.isDirectory()) {
+                this.loadFolder(file, placeholderPaths);
+            } else if (file.isFile() && file.getName().endsWith(".yml")) {
+                this.loadYAMLFile(file, placeholderPaths);
+            }
         }
     }
+
+    /**
+     * Loads custom data from a .yml file.
+     * It reads the file using `YamlConfiguration` and extracts custom progress bars and placeholders if they exist.
+     *
+     * @param file             The .yml file to load custom data from.
+     * @param placeholderPaths A map of registered placeholders to avoid duplicates.
+     */
+    private void loadYAMLFile(
+            final File file,
+            final Map<String, List<String>> placeholderPaths
+    ) {
+        final YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+        if (config.isConfigurationSection("custom-placeholder")) {
+            loadPlaceholdersSection(config.getConfigurationSection("custom-placeholder"), file, placeholderPaths);
+        }
+    }
+
+    /**
+     * Loads custom placeholders from a YAML configuration section.
+     * It iterates over each placeholder defined in the section, constructs a corresponding `PlaceholderData` object, and registers it with the `placeholderManager`.
+     *
+     * @param section The YAML configuration section containing placeholder data.
+     * @param paths   A map of registered placeholders to avoid duplicates.
+     */
+    private void loadPlaceholdersSection(
+            final ConfigurationSection section,
+            final File file,
+            final Map<String, List<String>> paths
+    ) {
+        final String filePath = formatPath("ItsMyConfig\\" + file.getPath().replace("/", "\\").replace(plugin.getDataFolder().getPath() + "\\", ""));
+        if (section == null) {
+            plugin.getLogger().warning(String.format("No custom placeholders found in file %s", filePath));
+            return;
+        }
+
+        for (final String identifier : section.getKeys(false)) {
+            if (has(identifier)) {
+                paths.get(identifier).add(filePath);
+                continue;
+            }
+
+            final ConfigurationSection placeholderSection = section.getConfigurationSection(identifier);
+            if (placeholderSection == null) {
+                plugin.getLogger().warning(String.format("Invalid placeholder configuration for %s in file %s", identifier, filePath));
+                continue;
+            }
+
+            final Placeholder placeholder = getPlaceholder(file.getPath(), placeholderSection);
+
+            register(identifier, placeholder);
+            paths.computeIfAbsent(identifier, v -> new ArrayList<>()).add(filePath);
+        }
+    }
+
+    /**
+     * Retrieves the placeholder data based on the provided configuration section and identifier.
+     *
+     * @param filePath The path of the file config is from
+     * @param section  The configuration section containing the placeholder data.
+     * @return The placeholder data object.
+     */
+    private Placeholder getPlaceholder(final String filePath, final ConfigurationSection section) {
+        final PlaceholderType type = PlaceholderType.find(section.getString("type"));
+        return switch (type) {
+            case MATH -> new MathPlaceholder(filePath, section);
+            case RANDOM -> new RandomPlaceholder(filePath, section);
+            case LIST -> new ListPlaceholder(filePath, section);
+            case ANIMATION -> new AnimatedPlaceholder(filePath, section);
+            case COLOR -> new ColorPlaceholder(filePath, section);
+            case COLORED_TEXT -> new ColoredTextPlaceholder(filePath, section);
+            case PROGRESS_BAR -> new ProgressbarPlaceholder(filePath, section);
+            case CONDITIONAL -> new ConditionalPlaceholder(filePath, section);
+            case SWITCH -> new SwitchPlaceholder(filePath, section);
+            default -> new StringPlaceholder(filePath, section);
+        };
+    }
+
+    /**
+     * Formats a file path to start with "ItsMyConfig" and shortens it if it contains more than 5 directories.
+     *
+     * @param path The original file path.
+     * @return The formatted file path.
+     */
+    private String formatPath(final String path) {
+        final String separator = File.separator;
+        final String normalizedPath = path.replace("/", separator).replace("\\", separator);
+        final String[] parts = normalizedPath.split(separator.equals("\\") ? "\\\\" : separator);
+        if (parts.length > 5) {
+            final StringBuilder shortenedPath = new StringBuilder(parts[0]);
+            shortenedPath.append(separator).append(parts[1]);
+            for (int i = 2; i < parts.length - 2; i++) {
+                shortenedPath.append(separator).append("..");
+            }
+            shortenedPath.append(separator).append(parts[parts.length - 2]).append(separator).append(parts[parts.length - 1]);
+            return shortenedPath.toString();
+        }
+        return path;
+    }
+
 }

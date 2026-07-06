@@ -16,15 +16,15 @@ public class HoverEvent {
     private String action;
     private Object value;
 
-  /**
-   * Empty Constructor
-   */
+    /**
+     * Empty Constructor
+     */
     public HoverEvent() {
     }
 
-  /**
-   * {@link net.kyori.adventure.text.event.HoverEvent} convetrer to a {@link HoverEvent}
-   */
+    /**
+     * {@link net.kyori.adventure.text.event.HoverEvent} convetrer to a {@link HoverEvent}
+     */
     public HoverEvent(net.kyori.adventure.text.event.HoverEvent event) {
         this.action = event.action().toString();
         switch (this.action) {
@@ -49,14 +49,12 @@ public class HoverEvent {
         }
         StringBuilder builder = new StringBuilder();
         builder.append("<hover:").append(this.action).append(":\"");
-        if (this.value instanceof String) {
-            builder.append(this.value);
-        } else if (this.value instanceof AbstractComponent component) {
-            builder.append(component.toMiniMessage());
-        } else if (this.value instanceof ShowItem item) {
-            builder.append(item.toMMArg());
-        } else if (this.value instanceof ShowEntity entity) {
-            builder.append(entity.toMMArg());
+        switch (this.value) {
+            case String s -> builder.append(this.value);
+            case AbstractComponent component -> builder.append(component.toMiniMessage());
+            case ShowItem item -> builder.append(item.toMMArg());
+            case ShowEntity entity -> builder.append(entity.toMMArg());
+            default -> {}
         }
         return builder.append("\">").toString();
     }
@@ -99,12 +97,13 @@ public class HoverEvent {
         }
 
         public String toMMArg() {
-            return this.type + ":" + this.id + ":\"" + this.name.toMiniMessage() + "\"";
+            final String nameStr = this.name != null ? this.name.toMiniMessage() : "";
+            return this.type + ":" + this.id + ":\"" + nameStr + "\"";
         }
     }
 
     public static final class Adapter implements JsonSerializer<HoverEvent>, JsonDeserializer<HoverEvent> {
-        private final boolean modern = Versions.isOrOver(1, 21, 5);
+        private static final boolean MODERN = Versions.isOrOver(1, 21, 5);
 
         @Override
         public JsonElement serialize(HoverEvent event, Type type, JsonSerializationContext context) {
@@ -121,7 +120,7 @@ public class HoverEvent {
                 }
                 case "show_item" -> {
                     if (event.value instanceof ShowItem item) {
-                        if (modern) {
+                        if (MODERN) {
                             json.addProperty("id", item.id);
                             json.addProperty("count", item.count);
                             if (item.tag != null && !item.tag.isEmpty()) {
@@ -134,7 +133,7 @@ public class HoverEvent {
                 }
                 case "show_entity" -> {
                     if (event.value instanceof ShowEntity entity) {
-                        if (modern) {
+                        if (MODERN) {
                             json.addProperty("id", entity.type); // renamed from type
                             json.addProperty("uuid", entity.id.toString()); // renamed from id
                             if (entity.name != null)
@@ -175,7 +174,7 @@ public class HoverEvent {
                     }
                 }
                 case "show_item" -> {
-                    if (modern) {
+                    if (MODERN) {
                         ShowItem item = new ShowItem();
                         item.id = obj.get("id").getAsString();
                         item.count = obj.has("count") ? obj.get("count").getAsInt() : 1;
@@ -186,7 +185,7 @@ public class HoverEvent {
                     }
                 }
                 case "show_entity" -> {
-                    if (modern) {
+                    if (MODERN) {
                         ShowEntity entity = new ShowEntity();
                         entity.type = obj.get("id").getAsString(); // renamed from type
                         entity.id = UUID.fromString(obj.get("uuid").getAsString()); // renamed from id

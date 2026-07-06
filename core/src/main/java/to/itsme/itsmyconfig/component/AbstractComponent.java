@@ -27,6 +27,8 @@ public abstract class AbstractComponent {
             .registerTypeAdapter(TranslatingComponent.class, new TranslatingComponent.Adapter())
             .create();
 
+    protected final List<AbstractComponent> extra = new LinkedList<>();
+
     /**
      * Translates {@link AbstractComponent} to a JSON String
      *
@@ -97,8 +99,6 @@ public abstract class AbstractComponent {
 
         return new PseudoComponent(element.getAsString());
     }
-
-    protected final List<AbstractComponent> extra = new LinkedList<>();
 
     public abstract String toMiniMessage();
 

@@ -1,13 +1,8 @@
 package to.itsme.itsmyconfig;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import to.itsme.itsmyconfig.api.ItsMyConfigAPI;
 import to.itsme.itsmyconfig.processor.PacketListener;
-import to.itsme.itsmyconfig.util.Utilities;
 
 public class DefaultIMCAPI implements ItsMyConfigAPI {
 

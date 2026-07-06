@@ -11,7 +11,6 @@ import to.itsme.itsmyconfig.command.util.PlayerSelector;
 import to.itsme.itsmyconfig.message.Message;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 
-
 public final class CommandManager {
 
     private final ItsMyConfig plugin;

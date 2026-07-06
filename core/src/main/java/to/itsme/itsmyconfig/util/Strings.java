@@ -14,11 +14,12 @@ public final class Strings {
     public static String incognitoPrefix;
     public static Pattern symbolPrefixPattern;
 
+    public static final String[] EMPTY_STRING_ARRAY = new String[0];
     public static final String DEBUG_HYPHEN = "###############################################";
+    public static final String FAIL_MESSAGE_PREFIX = "<color:red><lang:multiplayer.message_not_delivered:";
 
     public static final Pattern LETTERS_PATTERN = Pattern.compile("[A-Za-zÀ-ÿ]");
     public static final Pattern HEX_PATTERN = Pattern.compile("#[a-fA-F0-9]{6}");
-    public static final Pattern COLOR_SYMBOL_PATTERN = Pattern.compile(Pattern.quote("§"));
     public static final Pattern TAG_PATTERN = Pattern.compile("<(\\w+)(?::\"([^\"]*)\"|:([^<]*))*>");
 
     private static final Pattern COLOR_FILTER = Pattern.compile("[§&][a-zA-Z0-9]");
@@ -111,9 +112,8 @@ public final class Strings {
     /**
      * Escapes Tags based on the special properties provided.
      *
-     * @param text The text that contains tags to be escaped.
+     * @param text       The text that contains tags to be escaped.
      * @param properties The properties that the method should follow.
-     *
      * @return The text after escaping tags.
      */
     private static String escapeTags(final String text, final Set<String> properties) {
@@ -174,6 +174,7 @@ public final class Strings {
         }
         return false;
     }
+
     /**
      * Extracts only the numeric digits and at most a single decimal point from the input string.
      * <p>
@@ -226,27 +227,31 @@ public final class Strings {
     /**
      * Converts a string to an integer, returning a default value if the conversion fails.
      *
-     * @param text the string to convert
+     * @param text       the string to convert
      * @param defaultInt the default value to return if conversion fails
      * @return the converted integer or the default value
      */
     public static int intOrDefault(final String text, final int defaultInt) {
         try {
             return Integer.parseInt(textless(text));
-        } catch (final Throwable ignored) { return defaultInt; }
+        } catch (final Throwable ignored) {
+            return defaultInt;
+        }
     }
 
     /**
      * Converts a string to a long, returning a default value if the conversion fails.
      *
-     * @param text the string to convert
+     * @param text         the string to convert
      * @param defaultFloat the default value to return if conversion fails
      * @return the converted float or the default value
      */
     public static float floatOrDefault(final String text, final float defaultFloat) {
         try {
             return Float.parseFloat(textless(text));
-        } catch (final Throwable ignored) { return defaultFloat; }
+        } catch (final Throwable ignored) {
+            return defaultFloat;
+        }
     }
 
     /**
@@ -269,10 +274,10 @@ public final class Strings {
     /**
      * Converts a list of strings to a string, where each string is represented on a new line.
      *
-     * @param  collection The collection of strings to be converted to a string.
+     * @param collection The collection of strings to be converted to a string.
      * @return The string representation of the list.
      */
-    public static String toString(final @NotNull Collection<String> collection) {
+    public static String joinLines(final @NotNull Collection<String> collection) {
         return String.join(System.lineSeparator(), collection);
     }
 
@@ -295,10 +300,23 @@ public final class Strings {
     }
 
     /**
+     * Case-insensitive prefix check using {@link String#regionMatches}.
+     *
+     * <p>Avoids allocating lowercased copies of the content string.</p>
+     *
+     * @param content the string to test
+     * @param prefix  the prefix to look for
+     * @return {@code true} if {@code content} starts with {@code prefix} ignoring case
+     */
+    public static boolean startsWithIgnoreCase(final String content, final String prefix) {
+        return content.regionMatches(true, 0, prefix, 0, prefix.length());
+    }
+
+    /**
      * Parses a message that starts with a defined symbol prefix, ignoring formatting codes
      * and legacy MiniMessage-style tags. If the prefix is found, it removes the prefix,
      * replaces all occurrences of the '§' color symbol with '&', and returns the result.
-     * 
+     * <p>
      * The method skips over:
      * <ul>
      *   <li>Legacy formatting codes (e.g., &a or §a)</li>
@@ -308,7 +326,7 @@ public final class Strings {
      *
      * @param message the message to check and process
      * @return an {@link Optional} containing the processed message if the symbol prefix is found;
-     *         otherwise, {@link Optional#empty()}
+     * otherwise, {@link Optional#empty()}
      */
     public static Optional<String> parsePrefixedMessage(final String message) {
         if (message == null || message.isEmpty()) {
@@ -358,52 +376,48 @@ public final class Strings {
     }
 
     /**
-     * Checks if the provided message starts with the "$" symbol
-     * @param message the checked message
-     * @deprecated This method is deprecated and will be removed in a future release.
-     */
-    @Deprecated
-    public static boolean startsWithSymbol(final String message) {
-        if (message == null || message.isEmpty()) {
-            return false;
-        }
-
-        int tagDepth = 0;
-        for (var i = 0; i < message.length(); i++) {
-            char character = message.charAt(i);
-            if (character == '&' || character == '§') {
-                i++;
-                continue;
-            }
-            if (character == '<') {
-                tagDepth++;
-                continue;
-            } else if (character == '>' && tagDepth > 0) {
-                tagDepth--;
-                continue;
-            }
-
-            if (tagDepth > 0 || Character.isWhitespace(character)) {
-                continue;
-            }
-
-            return message.startsWith(symbolPrefix, i);
-        }
-
-        return false;
-    }
-
-    /**
-     * Removes the '§' symbol and replaces it with '&'
-     * <br>
-     * Also removes the first '$' symbol it meets
+     * Extracts arguments from a colon-separated string, supporting quoted values using
+     * {@code "}, {@code '}, or {@code `} as delimiters. A leading {@code :} is skipped
+     * automatically if present. Additional stop characters can be provided to terminate
+     * unquoted argument parsing early.
      *
-     * @param message the provided message
-     * @deprecated This method is deprecated and will be removed in a future release.
+     * @param raw       the raw string to extract arguments from.
+     * @param extraStops additional characters that terminate parsing in an unquoted argument.
+     * @return an array of extracted argument strings.
      */
-    @Deprecated
-    public static String processMessage(final String message) {
-        return Strings.COLOR_SYMBOL_PATTERN.matcher(symbolPrefixPattern.matcher(message).replaceFirst("")).replaceAll("&");
+    public static String[] extractArguments(final String raw, final char... extraStops) {
+        final List<String> args = new ArrayList<>();
+
+        int i = (!raw.isEmpty() && raw.charAt(0) == ':') ? 1 : 0;
+        while (i < raw.length()) {
+            final char delimiter = raw.charAt(i);
+
+            if (delimiter == '"' || delimiter == '\'' || delimiter == '`') {
+                i++; // skip opening quote
+                final int end = raw.indexOf(delimiter, i);
+                if (end == -1) break;
+                args.add(raw.substring(i, end));
+                i = end + 1;
+                if (i < raw.length() && raw.charAt(i) == ':') i++; // skip trailing ':'
+            } else {
+                int end = i;
+                boolean stopped = false;
+                outer:
+                while (end < raw.length()) {
+                    final char c = raw.charAt(end);
+                    if (c == ':' || Character.isWhitespace(c)) break;
+                    for (final char stop : extraStops) {
+                        if (c == stop) { stopped = true; break outer; }
+                    }
+                    end++;
+                }
+                args.add(raw.substring(i, end));
+                if (stopped) break; // abort the entire parse
+                i = end + 1; // skip trailing ':'
+            }
+        }
+
+        return args.toArray(new String[0]);
     }
 
 }

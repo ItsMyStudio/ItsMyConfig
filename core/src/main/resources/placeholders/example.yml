@@ -20,8 +20,8 @@ custom-placeholder:
   # Example of a list placeholder.
   # Lists can hold multiple values.
   example-list:
-    values: 
-      - "Value 1" 
+    values:
+      - "Value 1"
       - "Value 2"
       - "Value 3"
     type: list
