@@ -25,7 +25,8 @@ public enum PLibProcessor implements PacketProcessor<PacketContainer> {
 
         @Override
         public PacketContent<PacketContainer> unpack(PacketContainer container) {
-            if (!Versions.IS_PAPER || Versions.MINOR < 16) {
+            // Paper 26.x uses calendar versions (MAJOR=26, MINOR=2), so never compare MINOR alone.
+            if (!Versions.IS_PAPER || Versions.isBelow(1, 16, 0)) {
                 return null;
             }
 
