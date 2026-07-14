@@ -134,9 +134,36 @@ public final class ItsMyConfig extends JavaPlugin {
             config.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME).removeFilter(this.consoleFilter);
             ctx.updateLoggers();
         }
-        AudienceResolver.close();
+        try {
+            AudienceResolver.close();
+        } catch (final Throwable t) {
+            getLogger().log(java.util.logging.Level.WARNING, "Failed to close AudienceResolver", t);
+        }
         if (this.processorManager != null) {
-            this.processorManager.close();
+            try {
+                this.processorManager.close();
+            } catch (final Throwable t) {
+                getLogger().log(java.util.logging.Level.WARNING, "Failed to close packet processor", t);
+            }
+        }
+        // PacketEvents is always load()'d in onLoad and injects Netty handlers early.
+        // If enable fails (or ProtocolLib is used and PE was never terminate()'d via the
+        // listener), those handlers keep calling into this plugin's classloader after the
+        // jar is closed → "zip file closed" on every connection.
+        terminatePacketEventsQuietly();
+    }
+
+    private void terminatePacketEventsQuietly() {
+        try {
+            final var api = PacketEvents.getAPI();
+            if (api == null || api.isTerminated()) {
+                return;
+            }
+            if (api.isLoaded() || api.isInitialized()) {
+                api.terminate();
+            }
+        } catch (final Throwable t) {
+            getLogger().log(java.util.logging.Level.WARNING, "Failed to terminate PacketEvents cleanly", t);
         }
     }
 

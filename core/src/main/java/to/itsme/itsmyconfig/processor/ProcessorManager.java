@@ -64,11 +64,15 @@ public class ProcessorManager {
     }
 
     public void load() {
-        listener.load();
+        if (listener != null) {
+            listener.load();
+        }
     }
 
     public void close() {
-        listener.close();
+        if (listener != null) {
+            listener.close();
+        }
     }
 
     public PacketListener getListener() {

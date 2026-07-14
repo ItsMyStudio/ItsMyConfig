@@ -119,7 +119,21 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
 
     @Override
     public void close() {
-        PacketEvents.getAPI().getEventManager().unregisterListener(this.common);
-        PacketEvents.getAPI().terminate();
+        try {
+            if (this.common != null) {
+                PacketEvents.getAPI().getEventManager().unregisterListener(this.common);
+                this.common = null;
+            }
+        } catch (final Throwable ignored) {
+            // API may already be half-torn-down during failed enable
+        }
+        try {
+            final var api = PacketEvents.getAPI();
+            if (api != null && !api.isTerminated() && (api.isLoaded() || api.isInitialized())) {
+                api.terminate();
+            }
+        } catch (final Throwable ignored) {
+            // best-effort; ItsMyConfig.onDisable also terminates PE
+        }
     }
 }
