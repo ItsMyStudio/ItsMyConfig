@@ -14,7 +14,7 @@ public class ClickEvent {
 
     public ClickEvent() {}
 
-    public ClickEvent(net.kyori.adventure.text.event.ClickEvent<?> event) {
+    public ClickEvent(net.kyori.adventure.text.event.ClickEvent event) {
         this.action = Action.fromName(event.action().toString());
 
         final Payload payload = event.payload();

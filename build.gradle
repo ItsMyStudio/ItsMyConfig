@@ -4,7 +4,9 @@ allprojects {
     description = "ItsMyConfig"
 
     ext {
-        kyoriVersion = "5.0.1"
+        // Keep aligned with PacketEvents (2.13.x → adventure-api 4.26.1).
+        // Adventure 5.x removed Buildable$Builder; PE still references it at runtime.
+        kyoriVersion = "4.26.1"
         kyoriPlatformVersion = "4.4.1"
 
         kyori = { String module ->
