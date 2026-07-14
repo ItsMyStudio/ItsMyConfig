@@ -105,6 +105,14 @@ processResources {
 
 def shadePath = "to.itsme.itsmyconfig.shade."
 shadowJar {
+    // Our patched dev.velix.imperat.Version must win over the dependency copy.
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    // Project classes are merged after dependencies by default in some Shadow versions;
+    // force the patched Version to be the last write by also re-including main output last.
+    from(sourceSets.main.output) {
+        include 'dev/velix/imperat/Version.class'
+    }
+
     relocate("com.tcoded.folialib", "${shadePath}folialib")
     relocate("redempt.crunch", "${shadePath}crunch")
     relocate("dev.velix.imperat", "${shadePath}imperat")

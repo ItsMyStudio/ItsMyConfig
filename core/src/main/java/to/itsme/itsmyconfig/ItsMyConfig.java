@@ -135,7 +135,9 @@ public final class ItsMyConfig extends JavaPlugin {
             ctx.updateLoggers();
         }
         AudienceResolver.close();
-        this.processorManager.close();
+        if (this.processorManager != null) {
+            this.processorManager.close();
+        }
     }
 
     /**
