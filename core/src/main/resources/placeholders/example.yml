@@ -1,60 +1,198 @@
 custom-placeholder:
 
-  # Example of a color placeholder.
-  # You can use hex codes or color names (e.g., black, red, yellow).
-  example-color:
-    value: "#RRGGBB" # black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple, gold, gray, dark_gray, blue, green, aqua, red, light_purple, yellow, or white.
+  ##########################################################################################
+  # String placeholder returns a simple string value. You can use this to store any text you want.
+
+  example_string:
+    type: string
+    value: "This is a custom string placeholder"
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> returns the value
+  # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> returns the value
+
+  # - <placeholder:{placeholder_name}> -> returns the value
+  # - <placeholder:{placeholder_name}:{arg-1}:{arg-2}> -> returns the value with args
+
+  ##########################################################################################
+  # Color placeholder returns a color value that can be used in MiniMessage or legacy formats. You can specify the color using hex codes or color names.
+
+  example_color:
     type: color
+    value: "#RRGGBB" # black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple, gold, gray, dark_gray, blue, green, aqua, red, light_purple, yellow, or white.
     bold: false
     underlined: false
     italic: false
     strikethrough: false
     obfuscated: false
 
-  # Example of a colored text placeholder.
-  # Use MiniMessage tags to style your text.
-  example-colored-text:
-    value: '<bold><yellow>Text <red>! <yellow>Woo: <p:prefix>'
-    type: colored_text
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> returns the value in MiniMessage format (e.g., <red> for red)
+  # - %itsmyconfig_{placeholder_name}_legacy% -> returns the value in legacy format (e.g., &c for red)
+  # - %itsmyconfig_{placeholder_name}_l% -> returns the value in legacy format (shortcut)
+  # - %itsmyconfig_{placeholder_name}_console% -> returns the value in console format (e.g., §c for red)
+  # - %itsmyconfig_{placeholder_name}_c% -> returns the value in console format (shortcut)
+  # - %itsmyconfig_{placeholder_name}_mini% -> returns the value in MiniMessage format (shortcut)
+  # - %itsmyconfig_{placeholder_name}_mini:{text}% -> returns the value in MiniMessage format with {text} substituted into the value
 
-  # Example of a list placeholder.
-  # Lists can hold multiple values.
-  example-list:
-    values:
-      - "Value 1"
-      - "Value 2"
-      - "Value 3"
-    type: list
+  # - <placeholder:{placeholder_name}> -> MiniMessage tag you can open and close around text (e.g., <placeholder:example-color>Text</placeholder>)
+  # - <p:{placeholder_name}> -> MiniMessage tag shortcut (e.g., <p:example-color>Text</p>)
 
-  # Example of a requirement placeholder.
-  # This checks if a player meets certain conditions.
-  example-requirement:
-    value: "<green>Requirement passed !"
-    type: string # Default type
-    requirements:
-      haveMoney:
-        type: ">="
-        input: "%vault_eco_balance%"
-        output: "100"
-        deny: "<red>Don't have enough money"
+  ##########################################################################################
+  # Animation placeholder cycles through a list of values at a set interval, creating an animated effect.
 
-  # Example of an animation placeholder.
-  # Animations cycle through a list of values at a set interval.
-  example-animation:
-    values: # Note, values not value
-      - "<green>Animation !"
-      - "<yellow>Animation !"
-      - "<gold>Animation !"
-      - "<red>Animation !"
-      - "<pink>Animation !"
+  example_animation:
     type: animation
+    values: # Note, values not value
+      - "Frame 1"
+      - "Frame 2"
+      - "Frame 3"
     interval: 50 # In ticks
 
-  # Example of a random string.
-  # Randomly selects one value from the list each time it's used.
-  example-random:
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> returns the value
+  # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> returns the value
+
+  # - <placeholder:{placeholder_name}> -> returns the value
+  # - <placeholder:{placeholder_name}:{arg-1}:{arg-2}> -> returns the value with args
+
+  ##########################################################################################
+  # Random placeholder selects one value from a list of values at random each time it's used, allowing for dynamic content.
+
+  example_random:
+    type: random
     values: # Note, values not value
       - "Rock"
       - "Paper"
       - "Scissors"
-    type: random
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> returns the value
+  # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> returns the value
+
+  # - <placeholder:{placeholder_name}> -> returns the value
+  # - <placeholder:{placeholder_name}:{arg-1}:{arg-2}> -> returns the value with args
+
+  ##########################################################################################
+  # Colored text placeholder allows you to define a string with MiniMessage formatting, enabling rich text styling.
+
+  example_colored_text:
+    type: colored_text
+    value: '<bold><yellow>Example Colored Text'
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> returns the value in MiniMessage format
+  # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> returns the value in MiniMessage format
+  # - %itsmyconfig_{placeholder_name}_legacy% -> returns the value in legacy format
+  # - %itsmyconfig_{placeholder_name}_legacy:{arg-1}:{arg-2}% -> returns the value in legacy format with args
+  # - %itsmyconfig_{placeholder_name}_l% -> returns the value in legacy format (shortcut)
+  # - %itsmyconfig_{placeholder_name}_l:{arg-1}:{arg-2}% -> returns the value in legacy format with args (shortcut)
+  # - %itsmyconfig_{placeholder_name}_console% -> returns the value in console format
+  # - %itsmyconfig_{placeholder_name}_console:{arg-1}:{arg-2}% -> returns the value in console format with args
+  # - %itsmyconfig_{placeholder_name}_c% -> returns the value in console format (shortcut)
+  # - %itsmyconfig_{placeholder_name}_c:{arg-1}:{arg-2}% -> returns the value in console format with args (shortcut)
+  # - %itsmyconfig_{placeholder_name}_mini% -> returns the value in MiniMessage format
+  # - %itsmyconfig_{placeholder_name}_mini:{arg-1}:{arg-2}% -> returns the value in MiniMessage format
+
+  # - <placeholder:{placeholder_name}> -> MiniMessage tag you can open
+
+  ##########################################################################################
+  # Math placeholder allows you to perform mathematical operations and return the result. You can specify the rounding method and precision for the output.
+
+  example_math:
+    type: math
+    value: "(1 + 3) * 3"
+    rounding: HALF_UP # Supported value: HALF_UP, HALF_DOWN, HALF_EVEN, UP, DOWN, CEILING, FLOOR. Optional
+    precision: 1 # Number of decimal places. Optional
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> Return the result of the math expression.
+  # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> Return the result of the math expression.
+  # - %itsmyconfig_{placeholder_name}_formatted% -> Return the result of the math expression formatted (e.g., 1k instead of 1000).
+  # - %itsmyconfig_{placeholder_name}_formatted:{arg-1}:{arg-2}% -> Return the result of the math expression formatted.
+  # - %itsmyconfig_{placeholder_name}_fixed% -> Return the result of the math expression with a fixed number of decimal places (e.g., 1 instead of 1.0).
+  # - %itsmyconfig_{placeholder_name}_fixed:{arg-1}:{arg-2}% -> Return the result of the math expression with a fixed number of decimal places.
+  # - %itsmyconfig_{placeholder_name}_commas% -> Return the result of the math expression formatted with commas (e.g., 1,000 instead of 1000).
+  # - %itsmyconfig_{placeholder_name}_commas:{arg-1}:{arg-2}% -> Return the result of the math expression formatted with commas
+
+  # - <placeholder:{placeholder_name}> -> Return the result of the math expression.
+  # - <placeholder:{placeholder_name}:{arg-1}:{arg-2}> -> Return the result of the math expression with args.
+  # - <placeholder:{placeholder_name}_formatted> -> Return the result of the math expression formatted.
+  # - <placeholder:{placeholder_name}_formatted:{arg-1}:{arg-2}> -> Return the result of the math expression formatted with args.
+  # - <placeholder:{placeholder_name}_fixed> -> Return the result of the math expression with a fixed number of decimal places.
+  # - <placeholder:{placeholder_name}_fixed:{arg-1}:{arg-2}> -> Return the result of the math expression with a fixed number of decimal places and args.
+  # - <placeholder:{placeholder_name}_commas> -> Return the result of the math expression formatted with commas.
+  # - <placeholder:{placeholder_name}_commas:{arg-1}:{arg-2}> -> Return the result of the math expression formatted with commas and args.
+
+  ##########################################################################################
+  # List placeholder allows you to define a list of values that can be accessed by index. You can retrieve specific items from the list using their index.
+
+  example_list:
+    type: list
+    values:
+      - "Value 1"
+      - "Value 2"
+      - "Value 3"
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}_{index}% -> returns the value at the specified index (starting from 0)
+  # - %itsmyconfig_{placeholder_name}_{index}:{arg-1}:{arg-2}% -> returns the value at the specified index with args
+
+  # - <placeholder:{placeholder_name}_{index}> -> returns the value at the specified index
+  # - <placeholder:{placeholder_name}_{index}:{arg-1}:{arg-2}> -> returns the value at the specified index with args
+
+  ##########################################################################################
+  # Switch placeholder allows you to define multiple cases and return a value based on the input. You can specify a default value if no cases match.
+
+  example_switch:
+    type: switch
+    cases:
+      key1: "Value 1"
+      "test": "Value 2"
+      key3: "Value 3"
+      "": "Value for empty key"
+      "4-10": "Value for range key"
+    default: "&7Unknown"
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}:{key}% -> returns the value for the specified key
+  # - %itsmyconfig_{placeholder_name}:{key}:{arg-1}:{arg-2}% -> returns the value for the specified key with args
+
+  # - <placeholder:{placeholder_name}:{key}> -> returns the value for the specified key
+  # - <placeholder:{placeholder_name}:{key}:{arg-1}:{arg-2}> -> returns the value for the specified key with args
+
+  ##########################################################################################
+  # Progress bar placeholder allows you to create a visual representation of progress using a customizable string. You can define the completed, progress, and remaining colors.
+
+  example_progress_bar:
+    type: progress_bar
+    value: ⦁●⚫●⚫●⚫●⚫●⚫●⚫●⚫●⚫●⚫●⚫●⦁
+    completed-color: '&a'
+    progress-color: '&e'
+    remaining-color: '&7'
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}:{current_value}:{max_value}% -> returns a progress bar with the specified value and max value
+  # - <placeholder:{placeholder_name}:{current_value}:{max_value}> -> returns a progress bar with the specified value and max value
+
+  ##########################################################################################
+  # Conditional placeholder allows you to define conditions and return different values based on whether the condition is met or not. You can specify a true value and a false value.
+
+  example_condition:
+    type: conditional
+    condtions:
+      - type: string equals
+        input: "%itsmyconfig_example-string%"
+        output: "This is a custom string placeholder"
+        false: "&cCondition not met!" # Optional, use the main false value if not specified
+    true: "&aCondition met!"
+    false: "&cCondition not met!"
+
+  # Placeholders
+  # - %itsmyconfig_{placeholder_name}% -> returns the value of the condition (true or false)
+  # - %itsmyconfig_{placeholder_name}:{arg-1}:{arg-2}% -> returns the value of the condition (true or false) with args
+
+  # - <placeholder:{placeholder_name}> -> returns the value of the condition (true or false)
+  # - <placeholder:{placeholder_name}:{arg-1}:{arg-2}> -> returns the value of the condition (true or false) with args
+
+##########################################################################################
