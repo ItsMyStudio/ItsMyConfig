@@ -1,24 +1,28 @@
+
+Save New Duplicate & Edit Just Text Discord
 # You can modify this file to change most of the configurations I sell.
 # Refer to the placeholders/example.yml file for more examples.
-# For the MiniMessage format, check the documentation here: https://docs.advntr.dev/minimessage/format.html.
-# For the plugin documentation, visit: https://docs.itsme.to/itsmyconfig.
-# For support, join our Discord: discord.gg/itsme-to.
-# 
+# For the MiniMessage format, check the documentation here: https://docs.papermc.io/adventure/minimessage/format/.
+# For the plugin documentation, visit: https://itsmy.studio/docs/itsmyconfig.
+# For support, join our Discord: https://itsmy.studio/discord.
+
 # To find all configurations compatible with ItsMyConfig, which adapt directly to the style you have defined,
-# visit: https://builtbybit.com/resources/bundle/itsmyconfig-config.1081/
+# visit: https://builtbybit.com/itsmyconfig-bundle
+
+# We also created on the documentation a live editor where you can test and create your own theme presets, visit: https://itsmy.studio/docs/itsmyconfig/editor
 
 custom-placeholder:
   # colored_text only supports MiniMessage and custom tags like SmallCaps or Placeholder (p)
   server-name:
-    value: "<gradient:#ff0f7b:#f89b29><bold>ServerName</bold></gradient>"
+    value: "<gradient:#ff0f7b:#f89b29><b>ServerName</b></gradient>"
     type: colored_text
   
   # Use MiniMessage here too 
   prefix:
-    value: "<p:server-name> <p:text-color>┃"
+    value: "<gradient:#ff0f7b:#f89b29><b>ServerName</b></gradient> <p:text-color>┃"
   error-prefix:
-    value: "<red><bold>ERROR</bold></red> <p:text-color>┃"
-
+    value: "<red><b>Error</b></red> <p:text-color>┃"
+    
   # Can be #RRGGBB or color names: black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple, gold, gray, dark_gray, blue, green, aqua, red, light_purple, yellow, or white.
   primary-color:
     value: "yellow"
@@ -36,7 +40,7 @@ custom-placeholder:
   darkest-color:
     value: "dark_gray"
     type: color
-
+    
   # Just put the link without https://
   discord:
     value: "discord.gg/example"
@@ -52,10 +56,3 @@ custom-placeholder:
   eco-format:
     value: "<yellow>{0}⛁</yellow>"
     type: colored_text
-  
-  # Modify the economy of the configuration that I sell. You can make it higher or lower. {0} refers to the amount. Making it 10*{0} will make the reward, for example, 10 times bigger.
-  price-modifier:
-    value: "1*{0}"
-    type: math
-    rounding: HALF_UP
-    precision: 1
