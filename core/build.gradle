@@ -119,7 +119,7 @@ processResources {
 }
 
 def shadePath = "to.itsme.itsmyconfig.shade."
-def shadedJarName = "ItsMyConfig-${project.version}.jar"
+def shadedJarName = "ItsMyConfig-${project.version}-shaded.jar"
 shadowJar {
     manifest {
         attributes("paperweight-mappings-namespace": "mojang")
@@ -149,7 +149,7 @@ tasks.named('downgradeBytecode') {
     // The plugin defaults to the thin `jar`; this has to consume the shaded one,
     // relocations and bundled dependencies included.
     dependsOn tasks.named('shadowJar')
-    outputJar = layout.buildDirectory.file("libs/ItsMyConfig-${project.version}-java17.jar")
+    outputJar = layout.buildDirectory.file("libs/ItsMyConfig-${project.version}.jar")
 }
 
 sourceSets {
