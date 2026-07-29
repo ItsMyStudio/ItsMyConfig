@@ -1,7 +1,7 @@
 package to.itsme.itsmyconfig.placeholder.type;
 
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
@@ -19,12 +19,12 @@ public final class SwitchPlaceholder extends Placeholder {
 
     public SwitchPlaceholder(
             final String filePath,
-            final ConfigurationSection section
+            final Section section
     ) {
         super(section, filePath, PlaceholderType.SWITCH, PlaceholderDependancy.NONE);
         this.defaultValue = section.getString("default", "");
 
-        final ConfigurationSection cases = section.getConfigurationSection("cases");
+        final Section cases = section.getSection("cases");
         if (cases == null) {
             this.exactCases = Collections.emptyMap();
             this.rangeStarts = new long[0];
@@ -36,7 +36,7 @@ public final class SwitchPlaceholder extends Placeholder {
         final Map<String, String> exact = new LinkedHashMap<>();
         final List<RangeEntry> ranges = new ArrayList<>();
 
-        for (final String key : cases.getKeys(false)) {
+        for (final String key : cases.getRoutesAsStrings(false)) {
             final Object raw = cases.get(key);
             final String value = raw == null ? "" : String.valueOf(raw);
 

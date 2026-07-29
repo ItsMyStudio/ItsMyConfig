@@ -1,8 +1,8 @@
 package to.itsme.itsmyconfig.placeholder.type;
 
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
@@ -40,7 +40,7 @@ public final class ColoredTextPlaceholder extends Placeholder {
 
     public ColoredTextPlaceholder(
             final String filePath,
-            final ConfigurationSection section
+            final Section section
     ) {
         super(
                 section,

@@ -1,8 +1,8 @@
 package to.itsme.itsmyconfig.placeholder.type;
 
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
@@ -48,7 +48,7 @@ public final class ProgressbarPlaceholder extends Placeholder {
      */
     public ProgressbarPlaceholder(
             final String filePath,
-            final ConfigurationSection section
+            final Section section
     ) {
         super(section, filePath, PlaceholderType.PROGRESS_BAR, PlaceholderDependancy.NONE);
         this.pattern = section.getString("value");
@@ -78,7 +78,7 @@ public final class ProgressbarPlaceholder extends Placeholder {
             final double value,
             final double max
     ) {
-        return buildProgressBar(calculateCompleted(value, max));
+        return buildFullyColoredProgressBar(calculateCompleted(value, max));
     }
 
     /**
@@ -116,6 +116,22 @@ public final class ProgressbarPlaceholder extends Placeholder {
             stringBuilder.append(pattern, completed + 1, pattern.length());
         }
         return stringBuilder.toString();
+    }
+
+    /**
+     * Builds a progress bar based on the specified completion level.
+     * <p>
+     * Unlike {@link #buildProgressBar(int)}, all three color codes are always
+     * included in the result, even when their corresponding segment is empty.
+     *
+     * @param completed The level of completion, represented as an integer between 0 and the length of the pattern.
+     * @return The progress bar as a string, always containing all color codes.
+     */
+    private String buildFullyColoredProgressBar(final int completed) {
+        final int progressEnd = Math.min(completed + 1, pattern.length());
+        return  completedColor + pattern.substring(0, completed) +
+                progressColor + pattern.substring(completed, progressEnd) +
+                remainingColor + pattern.substring(progressEnd);
     }
 
     @Override

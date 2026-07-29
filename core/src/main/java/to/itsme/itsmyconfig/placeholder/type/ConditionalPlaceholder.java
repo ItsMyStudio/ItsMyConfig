@@ -1,8 +1,8 @@
 package to.itsme.itsmyconfig.placeholder.type;
 
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
@@ -23,7 +23,7 @@ public final class ConditionalPlaceholder extends Placeholder {
 
     public ConditionalPlaceholder(
             final String filePath,
-            final ConfigurationSection section
+            final Section section
     ) {
         super(section, filePath, PlaceholderType.CONDITIONAL, PlaceholderDependancy.NONE);
 

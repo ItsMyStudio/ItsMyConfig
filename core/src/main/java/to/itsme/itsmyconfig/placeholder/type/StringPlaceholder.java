@@ -1,7 +1,7 @@
 package to.itsme.itsmyconfig.placeholder.type;
 
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
@@ -25,7 +25,7 @@ public final class StringPlaceholder extends Placeholder {
      */
     public StringPlaceholder(
             final String filePath,
-            final ConfigurationSection section
+            final Section section
     ) {
         super(section, filePath, PlaceholderType.STRING, PlaceholderDependancy.NONE);
         this.message = section.getString("value", "");
@@ -50,7 +50,7 @@ public final class StringPlaceholder extends Placeholder {
      */
     @Override
     public boolean reloadFromSection() {
-        this.message = this.getConfigurationSection().getString("value", "");
+        this.message = this.getConfigSection().getString("value", "");
         return true;
     }
 

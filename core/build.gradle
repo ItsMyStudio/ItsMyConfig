@@ -66,6 +66,10 @@ dependencies {
     implementation "studio.mevera:imperat-core:${imperatVersion}"
     implementation "studio.mevera:imperat-bukkit:${imperatVersion}"
 
+    // imperat ->
+    implementation "dev.dejvokep:boosted-yaml-imc:1.3.7"
+    implementation "dev.dejvokep:boosted-yaml-spigot:1.5"
+
     // other ->
     implementation "org.bstats:bstats-bukkit:3.0.2"
     implementation "com.github.Redempt:Crunch:2.0.3"
@@ -115,14 +119,20 @@ processResources {
 
 def shadePath = "to.itsme.itsmyconfig.shade."
 shadowJar {
-    relocate("com.tcoded.folialib", "${shadePath}folialib")
-    relocate("redempt.crunch", "${shadePath}crunch")
-    relocate("studio.mevera.imperat", "${shadePath}imperat")
-    relocate("org.bstats", "${shadePath}bstats")
+    manifest {
+        attributes("paperweight-mappings-namespace": "mojang")
+    }
     relocate("net.kyori", "${shadePath}kyori")
+    relocate("org.bstats", "${shadePath}bstats")
+    relocate("redempt.crunch", "${shadePath}crunch")
     relocate("com.alessiodp.libby", "${shadePath}libby")
+    relocate("com.tcoded.folialib", "${shadePath}folialib")
+    relocate("studio.mevera.imperat", "${shadePath}imperat")
+    relocate("dev.dejvokep.boostedyaml", "${shadePath}boostedyaml")
     relocate("com.github.retrooper.packetevents", "${shadePath}packetevents")
     relocate("io.github.retrooper.packetevents", "${shadePath}iopacketevents")
+
+    // rename outcome jar
     archiveFileName = "ItsMyConfig-${project.version}.jar"
 }
 

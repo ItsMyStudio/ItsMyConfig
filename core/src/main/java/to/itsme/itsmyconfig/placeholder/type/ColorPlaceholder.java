@@ -1,12 +1,12 @@
 package to.itsme.itsmyconfig.placeholder.type;
 
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderDependancy;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
@@ -77,7 +77,7 @@ public final class ColorPlaceholder extends Placeholder {
      */
     public ColorPlaceholder(
             final String filePath,
-            final ConfigurationSection section
+            final Section section
     ) {
         super(section, filePath, PlaceholderType.COLOR, PlaceholderDependancy.NONE);
         this.value = section.getString("value", "").toLowerCase();
@@ -135,7 +135,7 @@ public final class ColorPlaceholder extends Placeholder {
      *
      * @param configurationSection The ConfigurationSection containing the style properties.
      */
-    private void initializeStyle(ConfigurationSection configurationSection) {
+    private void initializeStyle(Section configurationSection) {
         final StringBuilder propertiesBuilder = new StringBuilder();
         final StringBuilder propertiesPrefixBuilder = new StringBuilder();
         final StringBuilder propertiesSuffixBuilder = new StringBuilder();

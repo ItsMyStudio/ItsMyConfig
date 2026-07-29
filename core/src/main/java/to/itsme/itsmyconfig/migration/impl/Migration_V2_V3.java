@@ -1,14 +1,15 @@
 package to.itsme.itsmyconfig.migration.impl;
 
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
+import dev.dejvokep.boostedyaml.route.Route;
 import to.itsme.itsmyconfig.ItsMyConfig;
+import to.itsme.itsmyconfig.config.IMConfig;
 import to.itsme.itsmyconfig.migration.Migration;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Objects;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public final class Migration_V2_V3 extends Migration {
@@ -19,18 +20,18 @@ public final class Migration_V2_V3 extends Migration {
     }
 
     @Override
-    public boolean migrate(final ItsMyConfig plugin, final FileConfiguration config, final File file) {
+    public boolean migrate(final ItsMyConfig plugin, final YamlDocument config, final File file) {
         if (!isMainConfig(plugin, file)) {
             return false;
         }
 
         boolean changed = false;
-        if (!config.isConfigurationSection("listeners")) {
-            final ConfigurationSection listeners = config.createSection("listeners");
-            final ConfigurationSection packetEvents = listeners.createSection("PacketEvents");
+        if (!config.isSection("listeners")) {
+            final Section listeners = config.createSection("listeners");
+            final Section packetEvents = listeners.createSection("PacketEvents");
             packetEvents.set("priority", 1);
 
-            final ConfigurationSection protocolLib = listeners.createSection("ProtocolLib");
+            final Section protocolLib = listeners.createSection("ProtocolLib");
             protocolLib.set("priority", 2);
             protocolLib.set("cache-processors", false);
 
@@ -41,8 +42,8 @@ public final class Migration_V2_V3 extends Migration {
             changed = true;
         }
 
-        final boolean hasCustomPlaceholder = config.isConfigurationSection("custom-placeholder");
-        final boolean hasCustomProgress = config.isConfigurationSection("custom-progress");
+        final boolean hasCustomPlaceholder = config.isSection("custom-placeholder");
+        final boolean hasCustomProgress = config.isSection("custom-progress");
 
         if (hasCustomPlaceholder || hasCustomProgress) {
             final File directory = plugin.getPlaceholdersFolder();
@@ -56,28 +57,31 @@ public final class Migration_V2_V3 extends Migration {
                     return changed;
                 }
 
-                final YamlConfiguration migratedConf = YamlConfiguration.loadConfiguration(migratedConfig);
-                final ConfigurationSection newSection = migratedConf.createSection("custom-placeholder");
+                final IMConfig migratedConf = new IMConfig(migratedConfig, null, false);
+                final Section newSection = migratedConf.createSection("custom-placeholder");
                 if (hasCustomPlaceholder) {
-                    for (final String name : Objects.requireNonNull(config.getConfigurationSection("custom-placeholder")).getKeys(false)) {
-                        newSection.set(name, config.get("custom-placeholder." + name));
+                    final Section placeholderSection = config.getSection("custom-placeholder");
+                    // copy of the key set — set() moves sections out of the one we iterate
+                    for (final Object name : new ArrayList<>(placeholderSection.getKeys())) {
+                        newSection.set(Route.fromSingleKey(name), placeholderSection.get(Route.fromSingleKey(name)));
                     }
                 }
 
                 if (hasCustomProgress) {
-                    for (final String name : Objects.requireNonNull(config.getConfigurationSection("custom-progress")).getKeys(false)) {
-                        final ConfigurationSection section = config.getConfigurationSection("custom-progress." + name);
+                    final Section progressSection = config.getSection("custom-progress");
+                    for (final Object name : new ArrayList<>(progressSection.getKeys())) {
+                        final Section section = progressSection.getSection(Route.fromSingleKey(name));
                         if (section == null) continue;
                         section.set("value", section.getString("symbol"));
                         section.set("type", "progress_bar");
-                        section.set("symbol", null);
-                        newSection.set(name, section);
+                        section.remove("symbol");
+                        newSection.set(Route.fromSingleKey(name), section);
                     }
                 }
 
-                migratedConf.save(migratedConfig);
-                config.set("custom-progress", null);
-                config.set("custom-placeholder", null);
+                migratedConf.save("Failed to save " + migratedConfig.getAbsolutePath());
+                config.remove("custom-progress");
+                config.remove("custom-placeholder");
                 changed = true;
             } catch (final IOException e) {
                 throw new RuntimeException(e);

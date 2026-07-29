@@ -17,7 +17,7 @@ public class ModifiablePlaceholderProvider implements SuggestionProvider<BukkitC
     public List<String> provide(SuggestionContext<BukkitCommandSource> context, Argument<BukkitCommandSource> argument) {
         return plugin.getPlaceholderManager().getPlaceholdersMap().keySet().stream().filter(name -> {
             final Placeholder data = plugin.getPlaceholderManager().get(name);
-            return data.getConfigurationSection().contains("value");
+            return data.getConfigSection().contains("value");
         }).toList();
     }
 

@@ -1,12 +1,10 @@
 package to.itsme.itsmyconfig.migration;
 
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import to.itsme.itsmyconfig.ItsMyConfig;
+import to.itsme.itsmyconfig.config.IMConfig;
 import to.itsme.itsmyconfig.migration.impl.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,13 +28,13 @@ public final class MigrationManager {
 
             for (final File file : ymlFiles) {
                 try {
-                    final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+                    final IMConfig config = new IMConfig(file, null, false);
                     if (migration.migrate(plugin, config, file)) {
-                        config.save(file);
+                        config.save("Failed to save migrated file " + file.getAbsolutePath());
                         anyChanged = true;
                     }
-                } catch (final IOException e) {
-                    plugin.getLogger().warning("[Migration/" + name + "] failed to save " + file.getName());
+                } catch (final Exception e) {
+                    plugin.getLogger().warning("[Migration/" + name + "] failed to migrate " + file.getName() + ": " + e.getMessage());
                 }
             }
 

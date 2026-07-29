@@ -1,13 +1,12 @@
 package to.itsme.itsmyconfig.command.impl;
 
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.bukkit.configuration.Configuration;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import studio.mevera.imperat.BukkitCommandSource;
@@ -178,7 +177,7 @@ public final class ItsMyConfigCommand {
             @SuggestionProvider(ModifiablePlaceholderProvider.class) final Placeholder placeholder,
             @Named("value") @Greedy final String value
     ) {
-        final ConfigurationSection section = placeholder.getConfigurationSection();
+        final Section section = placeholder.getConfigSection();
         final PlaceholderType type = PlaceholderType.find(section.getString("type"));
         if (type == PlaceholderType.ANIMATION || type == PlaceholderType.RANDOM) {
             AudienceResolver.send(source, Utilities.MM.deserialize("<red>Placeholder <yellow>" + placeholder + "</yellow>'s type is not supported via commands.</red>"));
@@ -186,13 +185,11 @@ public final class ItsMyConfigCommand {
         }
 
         section.set("value", value);
-        final Configuration root = section.getRoot();
-        if (root instanceof YamlConfiguration conf) {
-            try {
-                conf.save(placeholder.getFilePath());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        final YamlDocument root = section.getRoot();
+        try {
+            root.save();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         AudienceResolver.send(source, Utilities.MM.deserialize("<green>Placeholder <yellow>" + section.getName() + "</yellow>'s value was updated successfully!</green>"));

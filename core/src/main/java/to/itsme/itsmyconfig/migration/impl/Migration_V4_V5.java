@@ -1,7 +1,8 @@
 package to.itsme.itsmyconfig.migration.impl;
 
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
+import dev.dejvokep.boostedyaml.route.Route;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.migration.Migration;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
@@ -17,24 +18,24 @@ public final class Migration_V4_V5 extends Migration {
     }
 
     @Override
-    public boolean migrate(final ItsMyConfig plugin, final FileConfiguration config, final File file) {
+    public boolean migrate(final ItsMyConfig plugin, final YamlDocument config, final File file) {
         if (!isMainConfig(plugin, file)) {
             return false;
         }
 
-        if (!config.isConfigurationSection("custom-placeholder")) {
+        if (!config.isSection("custom-placeholder")) {
             return false;
         }
 
         boolean modified = false;
-        final ConfigurationSection configSection = config.getConfigurationSection("custom-placeholder");
+        final Section configSection = config.getSection("custom-placeholder");
         assert configSection != null;
-        for (final String key : configSection.getKeys(false)) {
-            if (!configSection.isConfigurationSection(key)) {
+        for (final Object key : new ArrayList<>(configSection.getKeys())) {
+            if (!configSection.isSection(Route.fromSingleKey(key))) {
                 continue;
             }
 
-            final ConfigurationSection section = configSection.getConfigurationSection(key);
+            final Section section = configSection.getSection(Route.fromSingleKey(key));
             assert section != null;
 
             String typeString = section.getString("type");
@@ -54,22 +55,22 @@ public final class Migration_V4_V5 extends Migration {
             if (PlaceholderType.MATH == type) {
                 if (section.contains("mode")) {
                     section.set("rounding", section.getString("mode"));
-                    section.set("mode", null);
+                    section.remove("mode");
                     modified = true;
                 }
             }
 
-            if (section.isConfigurationSection("requirements")) {
-                final ConfigurationSection requirementsSection = section.getConfigurationSection("requirements");
+            if (section.isSection("requirements")) {
+                final Section requirementsSection = section.getSection("requirements");
                 assert requirementsSection != null;
 
                 final List<Map<String, Object>> conditions = new ArrayList<>();
-                for (final String requirementKey : requirementsSection.getKeys(false)) {
-                    if (!requirementsSection.isConfigurationSection(requirementKey)) {
+                for (final Object requirementKey : new ArrayList<>(requirementsSection.getKeys())) {
+                    if (!requirementsSection.isSection(Route.fromSingleKey(requirementKey))) {
                         continue;
                     }
 
-                    final ConfigurationSection requirementSection = requirementsSection.getConfigurationSection(requirementKey);
+                    final Section requirementSection = requirementsSection.getSection(Route.fromSingleKey(requirementKey));
                     assert requirementSection != null;
 
                     final Map<String, Object> condition = new LinkedHashMap<>();
@@ -84,25 +85,26 @@ public final class Migration_V4_V5 extends Migration {
                     // in-place conversion
                     section.set("type", "conditional");
                     section.set("true", section.getString("value"));
-                    section.set("value", null);
+                    section.remove("value");
                     section.set("false", "");
                     section.set("conditions", conditions);
-                    section.set("requirements", null);
+                    section.remove("requirements");
                 } else {
                     // rename original to a new UUID-based name, conditional takes the original name
                     final String shortId = UUID.randomUUID().toString().substring(0, 8);
                     final String newKey = key + "-" + shortId;
 
                     // copy all values from original section to new key
-                    final ConfigurationSection newSection = configSection.createSection(newKey);
-                    for (final String sectionKey : section.getKeys(false)) {
+                    final Section newSection = configSection.createSection(newKey);
+                    // copy of the key set — set() moves nested sections out of the one we iterate
+                    for (final Object sectionKey : new ArrayList<>(section.getKeys())) {
                         if (sectionKey.equals("requirements")) continue;
-                        newSection.set(sectionKey, section.get(sectionKey));
+                        newSection.set(Route.fromSingleKey(sectionKey), section.get(Route.fromSingleKey(sectionKey)));
                     }
 
                     // clear ALL existing keys before writing conditional fields
-                    for (final String sectionKey : new ArrayList<>(section.getKeys(false))) {
-                        section.set(sectionKey, null);
+                    for (final Object sectionKey : new ArrayList<>(section.getKeys())) {
+                        section.remove(Route.fromSingleKey(sectionKey));
                     }
 
                     // overwrite original with conditional

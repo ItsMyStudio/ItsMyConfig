@@ -1,6 +1,7 @@
 package to.itsme.itsmyconfig.util;
 
-import org.bukkit.configuration.file.YamlConfiguration;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import to.itsme.itsmyconfig.placeholder.PlaceholderManager;
@@ -8,6 +9,9 @@ import to.itsme.itsmyconfig.placeholder.type.ListPlaceholder;
 import to.itsme.itsmyconfig.placeholder.type.ProgressbarPlaceholder;
 import to.itsme.itsmyconfig.placeholder.type.StringPlaceholder;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,14 +24,12 @@ class StringMigratorTest {
     static void beforeAll() {
         manager = new PlaceholderManager(null);
 
-        var config = new YamlConfiguration();
-        var section = config.createSection("mylist");
+        final Section section = section("mylist");
         section.set("type", "list");
         section.set("values", List.of("a", "b", "c"));
         manager.register("mylist", new ListPlaceholder("test.yml", section));
 
-        var config2 = new YamlConfiguration();
-        var section2 = config2.createSection("with_underscore");
+        final Section section2 = section("with_underscore");
         section2.set("type", "list");
         section2.set("values", List.of("x", "y", "z"));
         manager.register("with_underscore", new ListPlaceholder("test.yml", section2));
@@ -42,9 +44,19 @@ class StringMigratorTest {
         registerProgressBar("job-progress");
     }
 
+    /**
+     * Creates a standalone {@link Section} backed by an empty in-memory YAML document.
+     */
+    private static Section section(final String name) {
+        try {
+            return YamlDocument.create(new ByteArrayInputStream(new byte[0])).createSection(name);
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     private static void registerProgressBar(final String name) {
-        final var config = new YamlConfiguration();
-        final var section = config.createSection(name);
+        final Section section = section(name);
         section.set("value", "||||||||||");
         section.set("completed-color", "&a");
         section.set("progress-color", "&e");
@@ -53,8 +65,7 @@ class StringMigratorTest {
     }
 
     private static void registerNonList(final String name) {
-        final var config = new YamlConfiguration();
-        final var section = config.createSection(name);
+        final Section section = section(name);
         section.set("value", name);
         manager.register(name, new StringPlaceholder("test.yml", section));
     }

@@ -1,8 +1,8 @@
 package to.itsme.itsmyconfig.placeholder;
 
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import to.itsme.itsmyconfig.util.Strings;
 
@@ -27,7 +27,7 @@ public abstract class Placeholder {
     /**
      * Represents the config section of the placeholder.
      */
-    private final ConfigurationSection section;
+    private final Section section;
     /**
      * Represents the config section of the placeholder.
      */
@@ -50,7 +50,7 @@ public abstract class Placeholder {
      * Represents a placeholder data object.
      */
     public Placeholder(
-            final ConfigurationSection section,
+            final Section section,
             final String filePath,
             final PlaceholderType type,
             final PlaceholderDependancy... dependancies
@@ -58,7 +58,7 @@ public abstract class Placeholder {
         this.type = type;
         this.section = section;
         this.filePath = filePath;
-        this.key = section.getName();
+        this.key = section.getNameAsString();
         this.dependancies = Set.of(dependancies);
         this.compiledPlaceholders = Set.of(mainCompiledPlaceholder());
     }
@@ -213,9 +213,9 @@ public abstract class Placeholder {
     /**
      * Retrieves a specific section from the YAML document.
      *
-     * @return the {@link ConfigurationSection} object representing the specified section.
+     * @return the {@link Section} object representing the specified section.
      */
-    public ConfigurationSection getConfigurationSection() {
+    public Section getConfigSection() {
         return this.section;
     }
 

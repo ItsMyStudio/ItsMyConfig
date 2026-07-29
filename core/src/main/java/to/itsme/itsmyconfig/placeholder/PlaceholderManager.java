@@ -1,12 +1,13 @@
 package to.itsme.itsmyconfig.placeholder;
 
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import to.itsme.itsmyconfig.ItsMyConfig;
+import to.itsme.itsmyconfig.config.IMConfig;
 import to.itsme.itsmyconfig.placeholder.type.*;
 
 import java.io.File;
 import java.util.*;
+import java.util.logging.Level;
 
 /**
  * The PlaceholderManager class is responsible for managing placeholders.
@@ -167,9 +168,13 @@ public final class PlaceholderManager {
             final File file,
             final Map<String, List<String>> placeholderPaths
     ) {
-        final YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        if (config.isConfigurationSection("custom-placeholder")) {
-            loadPlaceholdersSection(config.getConfigurationSection("custom-placeholder"), file, placeholderPaths);
+        try {
+            final IMConfig config = new IMConfig(file, null, false);
+            if (config.isSection("custom-placeholder")) {
+                loadPlaceholdersSection(config.getSection("custom-placeholder"), file, placeholderPaths);
+            }
+        } catch (final Exception e) {
+            plugin.getLogger().log(Level.SEVERE, String.format("Error occurred while loading YAML file %s", file.getPath()), e);
         }
     }
 
@@ -181,7 +186,7 @@ public final class PlaceholderManager {
      * @param paths   A map of registered placeholders to avoid duplicates.
      */
     private void loadPlaceholdersSection(
-            final ConfigurationSection section,
+            final Section section,
             final File file,
             final Map<String, List<String>> paths
     ) {
@@ -191,13 +196,13 @@ public final class PlaceholderManager {
             return;
         }
 
-        for (final String identifier : section.getKeys(false)) {
+        for (final String identifier : section.getRoutesAsStrings(false)) {
             if (has(identifier)) {
                 paths.get(identifier).add(filePath);
                 continue;
             }
 
-            final ConfigurationSection placeholderSection = section.getConfigurationSection(identifier);
+            final Section placeholderSection = section.getSection(identifier);
             if (placeholderSection == null) {
                 plugin.getLogger().warning(String.format("Invalid placeholder configuration for %s in file %s", identifier, filePath));
                 continue;
@@ -217,7 +222,7 @@ public final class PlaceholderManager {
      * @param section  The configuration section containing the placeholder data.
      * @return The placeholder data object.
      */
-    private Placeholder getPlaceholder(final String filePath, final ConfigurationSection section) {
+    private Placeholder getPlaceholder(final String filePath, final Section section) {
         final PlaceholderType type = PlaceholderType.find(section.getString("type"));
         return switch (type) {
             case MATH -> new MathPlaceholder(filePath, section);

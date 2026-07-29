@@ -1,7 +1,7 @@
 package to.itsme.itsmyconfig.placeholder.type;
 
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import redempt.crunch.CompiledExpression;
 import redempt.crunch.Crunch;
@@ -37,7 +37,7 @@ public final class MathPlaceholder extends Placeholder {
 
     public MathPlaceholder(
             final String filePath,
-            final ConfigurationSection section
+            final Section section
     ) {
         super(section, filePath, PlaceholderType.MATH, PlaceholderDependancy.NONE);
         final String value = section.getString("value", "0");
@@ -169,10 +169,6 @@ public final class MathPlaceholder extends Placeholder {
             }
         }
         return doubleArgs;
-    }
-
-    public int variablesRequired() {
-        return this.variablesRequired;
     }
 
     /**

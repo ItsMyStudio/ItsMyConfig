@@ -1,9 +1,9 @@
 package to.itsme.itsmyconfig.command.impl.migration.file;
 
-import org.bukkit.configuration.file.YamlConfiguration;
 import to.itsme.itsmyconfig.command.impl.migration.FileHandler;
 import to.itsme.itsmyconfig.command.impl.migration.MigrationResult;
 import to.itsme.itsmyconfig.command.impl.migration.MigrationSession;
+import to.itsme.itsmyconfig.config.IMConfig;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -13,16 +13,16 @@ public final class YamlFileHandler implements FileHandler {
 
     @Override
     public MigrationResult migrate(final File file, final MigrationSession session) {
-        final YamlConfiguration config;
+        final IMConfig config;
         try {
-            config = YamlConfiguration.loadConfiguration(file);
+            config = new IMConfig(file, null, false);
         } catch (final Exception e) {
             return MigrationResult.skipped(file, "malformed YAML: " + e.getMessage());
         }
 
         int changed = 0;
 
-        for (final String key : config.getKeys(true)) {
+        for (final String key : config.getRoutesAsStrings(true)) {
             final Object value = config.get(key);
 
             if (value instanceof String s) {
@@ -58,7 +58,7 @@ public final class YamlFileHandler implements FileHandler {
 
         try {
             session.backup(file);
-            config.save(file);
+            config.save("Failed to save migrated file " + file.getAbsolutePath());
         } catch (final Exception e) {
             return MigrationResult.skipped(file, "failed to save: " + e.getMessage());
         }
