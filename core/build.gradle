@@ -4,6 +4,7 @@ plugins {
     id "net.kyori.blossom" version "2.1.0"
     id "com.gradleup.shadow" version "9.0.1"
     id "org.jetbrains.gradle.plugin.idea-ext" version "1.1.9"
+    id "dev.iiahmed.lowbyte" version "1.0.0"
 }
 
 repositories {
@@ -118,6 +119,7 @@ processResources {
 }
 
 def shadePath = "to.itsme.itsmyconfig.shade."
+def shadedJarName = "ItsMyConfig-${project.version}.jar"
 shadowJar {
     manifest {
         attributes("paperweight-mappings-namespace": "mojang")
@@ -133,7 +135,21 @@ shadowJar {
     relocate("io.github.retrooper.packetevents", "${shadePath}iopacketevents")
 
     // rename outcome jar
-    archiveFileName = "ItsMyConfig-${project.version}.jar"
+    archiveFileName = shadedJarName
+}
+
+// Sources are compiled at Java 21, but the plugin has to load on Java 17 servers,
+// so the *shaded* jar is rewritten down to class file version 61.
+lowbyte {
+    targetJavaVersion = 17
+    jarFilePattern = "libs/${shadedJarName}"
+}
+
+tasks.named('downgradeBytecode') {
+    // The plugin defaults to the thin `jar`; this has to consume the shaded one,
+    // relocations and bundled dependencies included.
+    dependsOn tasks.named('shadowJar')
+    outputJar = layout.buildDirectory.file("libs/ItsMyConfig-${project.version}-java17.jar")
 }
 
 sourceSets {

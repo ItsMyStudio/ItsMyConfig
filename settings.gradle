@@ -1,3 +1,13 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven {
+            name = "gravemc"
+            url = "https://repo.gravemc.net/releases/"
+        }
+    }
+}
+
 rootProject.name = 'itsmyconfig'
 
 include 'api'
