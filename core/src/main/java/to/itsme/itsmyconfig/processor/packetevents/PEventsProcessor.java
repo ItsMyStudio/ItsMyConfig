@@ -21,13 +21,16 @@ public class PEventsProcessor {
         @Override
         public void edit(WrapperPlayServerChatMessage wrappedPacket, Component component) {
             ChatMessage chatMessage = wrappedPacket.getMessage();
-            chatMessage.setChatContent(component);
+            if (chatMessage != null) {
+                chatMessage.setChatContent(component);
+            }
         }
 
         @Override
         public @NotNull PacketContent<WrapperPlayServerChatMessage> unpack(WrapperPlayServerChatMessage wrappedPacket) {
-            Component internal = wrappedPacket.getMessage().getChatContent();
-            return new PacketContent<>(wrappedPacket, this, IMCSerializer.toMiniMessage(internal));
+            ChatMessage chatMessage = wrappedPacket.getMessage();
+            Component internal = chatMessage != null ? chatMessage.getChatContent() : null;
+            return new PacketContent<>(wrappedPacket, this, internal != null ? IMCSerializer.toMiniMessage(internal) : "");
         }
     };
 
@@ -45,7 +48,7 @@ public class PEventsProcessor {
         @Override
         public @NotNull PacketContent<WrapperPlayServerSystemChatMessage> unpack(WrapperPlayServerSystemChatMessage wrappedPacket) {
             Component internal = wrappedPacket.getMessage();
-            return new PacketContent<>(wrappedPacket, this, IMCSerializer.toMiniMessage(internal));
+            return new PacketContent<>(wrappedPacket, this, internal != null ? IMCSerializer.toMiniMessage(internal) : "");
         }
     };
 
@@ -63,7 +66,7 @@ public class PEventsProcessor {
         @Override
         public @NotNull PacketContent<WrapperPlayServerDisconnect> unpack(WrapperPlayServerDisconnect wrappedPacket) {
             Component internal = wrappedPacket.getReason();
-            return new PacketContent<>(wrappedPacket, this, IMCSerializer.toMiniMessage(internal));
+            return new PacketContent<>(wrappedPacket, this, internal != null ? IMCSerializer.toMiniMessage(internal) : "");
         }
     };
 }

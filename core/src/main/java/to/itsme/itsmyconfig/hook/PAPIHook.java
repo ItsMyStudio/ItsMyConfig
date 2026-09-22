@@ -2,7 +2,7 @@ package to.itsme.itsmyconfig.hook;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,25 +26,11 @@ public final class PAPIHook extends PlaceholderExpansion {
      * This variable is an instance of the ItsMyConfig class.
      */
     private final ItsMyConfig plugin;
-    /**
-     * ILLEGAL_NUMBER_FORMAT_MSG represents the error message when an illegal number format is encountered.
-     */
     public static final String ILLEGAL_NUMBER_FORMAT_MSG = "Illegal Number Format";
-    /**
-     * ILLEGAL_ARGUMENT_MSG represents a string constant that indicates an illegal argument has been provided.
-     * This constant is used in various methods in the DynamicPlaceHolder class.
-     */
     public static final String ILLEGAL_ARGUMENT_MSG = "Illegal Argument";
-    /**
-     * PLACEHOLDER_NOT_FOUND_MSG is a constant variable that represents the message displayed when a placeholder is not found.
-     */
     public static final String PLACEHOLDER_NOT_FOUND_MSG = "Placeholder not found";
     private final String identifier;
 
-    /**
-     * DynamicPlaceHolder is a class that represents a dynamic placeholder for a placeholder expansion.
-     * It handles different types of placeholders and provides methods to handle font, progress, and custom placeholders.
-     */
     public PAPIHook(final ItsMyConfig plugin, final String identifier) {
         this.plugin = plugin;
         this.identifier = identifier;
@@ -103,15 +89,22 @@ public final class PAPIHook extends PlaceholderExpansion {
      */
     @Override
     public @Nullable String onPlaceholderRequest(final Player player, @NotNull String params) {
+        if (params.isEmpty()) {
+            return this.plugin.getDescription().getVersion();
+        }
+
         params = PlaceholderAPI.setPlaceholders(player, params.replaceAll("\\$\\((.*?)\\)\\$", "%$1%"));
         params = PlaceholderAPI.setBracketPlaceholders(player, params);
 
         final String[] splitParams = params.split("_");
-        if (splitParams.length == 0) {
-            return ILLEGAL_ARGUMENT_MSG;
+        if (splitParams.length == 0 || (splitParams.length == 1 && splitParams[0].isEmpty())) {
+            return this.plugin.getDescription().getVersion();
         }
 
         final String firstParam = splitParams[0].toLowerCase();
+        if ("version".equals(firstParam)) {
+            return this.plugin.getDescription().getVersion();
+        }
         if ("parse".equals(firstParam)) {
             return handleParse(splitParams, player);
         }
@@ -187,8 +180,8 @@ public final class PAPIHook extends PlaceholderExpansion {
             var component = Utilities.translate(processedContent, player);
             
             return switch (format) {
-                case "legacy", "l" -> BukkitComponentSerializer.legacy().serialize(component);
-                case "console", "c" -> BukkitComponentSerializer.legacy().serialize(component);
+                case "legacy", "l" -> LegacyComponentSerializer.legacySection().serialize(component);
+                case "console", "c" -> LegacyComponentSerializer.legacySection().serialize(component);
                 case "mini", "m" -> IMCSerializer.toMiniMessage(component);
                 default -> IMCSerializer.toMiniMessage(component);
             };

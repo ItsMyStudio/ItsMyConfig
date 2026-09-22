@@ -310,6 +310,38 @@ public final class Strings {
      * @return an {@link Optional} containing the processed message if the symbol prefix is found;
      *         otherwise, {@link Optional#empty()}
      */
+    /**
+     * Checks if the message contains a SeriaPrefix tag (<sc:, <seriaprefix:, or <p:).
+     *
+     * @param message the message to check
+     * @return true if the message contains a SeriaPrefix tag
+     */
+    public static boolean hasSeriaTag(final String message) {
+        if (message == null || message.isEmpty()) {
+            return false;
+        }
+        final String lower = message.toLowerCase(Locale.ROOT);
+        return lower.contains("<sc:") || lower.contains("<seriaprefix:") || lower.contains("<p:");
+    }
+
+    /**
+     * Parses a message that starts with a defined symbol prefix, ignoring formatting codes
+     * and legacy MiniMessage-style tags. If the prefix is found, it removes the prefix,
+     * replaces all occurrences of the '§' color symbol with '&', and returns the result.
+     * Also supports messages with SeriaPrefix tags (<sc:tag>, <p:tag>) directly without
+     * needing the symbol prefix.
+     * 
+     * The method skips over:
+     * <ul>
+     *   <li>Legacy formatting codes (e.g., &a or §a)</li>
+     *   <li>MiniMessage-style tags like &lt;bold&gt;</li>
+     *   <li>Leading whitespace</li>
+     * </ul>
+     *
+     * @param message the message to check and process
+     * @return an {@link Optional} containing the processed message if the symbol prefix is found
+     *         or if it contains a SeriaPrefix tag; otherwise, {@link Optional#empty()}
+     */
     public static Optional<String> parsePrefixedMessage(final String message) {
         if (message == null || message.isEmpty()) {
             return Optional.empty();
@@ -335,9 +367,9 @@ public final class Strings {
             }
 
             int prefixLength = -1;
-            if (message.startsWith(symbolPrefix, i)) {
+            if (symbolPrefix != null && !symbolPrefix.isEmpty() && message.startsWith(symbolPrefix, i)) {
                 prefixLength = symbolPrefix.length();
-            } else if (message.startsWith(incognitoPrefix, i)) {
+            } else if (incognitoPrefix != null && !incognitoPrefix.isEmpty() && message.startsWith(incognitoPrefix, i)) {
                 prefixLength = incognitoPrefix.length();
             }
 
@@ -348,10 +380,19 @@ public final class Strings {
                     char c = message.charAt(j);
                     sb.append(c == '§' ? '&' : c);
                 }
-                return Optional.of(sb.toString().replace(incognitoPrefix, ""));
+                return Optional.of(sb.toString().replace(incognitoPrefix != null ? incognitoPrefix : "", ""));
             } else {
-                return Optional.empty();
+                break;
             }
+        }
+
+        if (hasSeriaTag(message)) {
+            StringBuilder sb = new StringBuilder(message.length());
+            for (int j = 0; j < message.length(); j++) {
+                char c = message.charAt(j);
+                sb.append(c == '§' ? '&' : c);
+            }
+            return Optional.of(sb.toString().replace(incognitoPrefix != null ? incognitoPrefix : "", ""));
         }
 
         return Optional.empty();

@@ -49,6 +49,17 @@ class StringsTest {
         // Prefix after tag and/or whitespace
         assertEquals(Optional.of(" <bold>after"), Strings.parsePrefixedMessage(" <bold>$after"));
         assertEquals(Optional.of("  after"), Strings.parsePrefixedMessage("  $after"));
+
+        // Direct SeriaPrefix tags (<sc:...>, <p:...>, <seriaprefix:...>) without symbol prefix
+        assertEquals(Optional.of("<sc:success>"), Strings.parsePrefixedMessage("<sc:success>"));
+        assertEquals(Optional.of("<sc:success> Berhasil!"), Strings.parsePrefixedMessage("<sc:success> Berhasil!"));
+        assertEquals(Optional.of("&aPrefix ┃ <sc:success> Berhasil!"), Strings.parsePrefixedMessage("&aPrefix ┃ <sc:success> Berhasil!"));
+        assertEquals(Optional.of("<p:prefix> Halo"), Strings.parsePrefixedMessage("<p:prefix> Halo"));
+        assertEquals(Optional.of("<seriaprefix:success>"), Strings.parsePrefixedMessage("<seriaprefix:success>"));
+
+        // SeriaPrefix tags with symbol prefix (prefix stripped)
+        assertEquals(Optional.of("<sc:success>"), Strings.parsePrefixedMessage("$<sc:success>"));
+        assertEquals(Optional.of("<sc:success> Berhasil!"), Strings.parsePrefixedMessage("$<sc:success> Berhasil!"));
     }
 
     @Test

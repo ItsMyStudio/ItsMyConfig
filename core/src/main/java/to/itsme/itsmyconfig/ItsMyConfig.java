@@ -5,8 +5,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import com.github.retrooper.packetevents.PacketEvents;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import to.itsme.itsmyconfig.api.ItsMyConfigAPI;
 import to.itsme.itsmyconfig.command.CommandManager;
 import to.itsme.itsmyconfig.processor.PacketListener;
@@ -29,14 +27,12 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * ItsMyConfig class represents the main configuration class for the plugin.
- * It extends the JavaPlugin class and provides methods to manage the plugin configuration.
- * It also holds instances of PlaceholderManager, ProgressBarBucket, RequirementManager, and BukkitAudiences.
+ * SeriaPrefix / ItsMyConfig base class for the plugin.
  */
-public final class ItsMyConfig extends JavaPlugin {
+public class ItsMyConfig extends JavaPlugin {
 
-    private static ItsMyConfig instance;
-    private static ItsMyConfigAPI api;
+    protected static ItsMyConfig instance;
+    protected static ItsMyConfigAPI api;
 
     private final PlaceholderManager placeholderManager = new PlaceholderManager();
     private final RequirementManager requirementManager = new RequirementManager();
@@ -48,7 +44,7 @@ public final class ItsMyConfig extends JavaPlugin {
     private ConsoleFilter consoleFilter;
 
     /**
-     * Gets the instance of ItsMyConfig.
+     * Gets the instance of the plugin.
      *
      * @return The instance of ItsMyConfig.
      */
@@ -57,7 +53,7 @@ public final class ItsMyConfig extends JavaPlugin {
     }
 
     /**
-     * Gets the instance of the default ItsMyConfig api.
+     * Gets the instance of the default api.
      *
      * @return The instance of ItsMyConfigAPI.
      */
@@ -68,13 +64,11 @@ public final class ItsMyConfig extends JavaPlugin {
     @Override
     public void onLoad() {
         instance = this;
-        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
-        PacketEvents.getAPI().load();
     }
 
     @Override
     public void onEnable() {
-        this.getLogger().info("Loading ItsMyConfig...");
+        this.getLogger().info("Loading SeriaPrefix...");
         if (Versions.isBelow(1, 16, 5)) {
             this.getLogger().info("Unsupported version. Please consider updating to 1.16.5+");
             this.getServer().getPluginManager().disablePlugin(this);
@@ -90,7 +84,7 @@ public final class ItsMyConfig extends JavaPlugin {
                 org.bukkit.plugin.ServicePriority.Normal
         );
         AudienceResolver.load(this);
-        List.of("imc", "itsmyconfig").forEach(alias -> new PAPIHook(this, alias).register());
+        List.of("sc", "seriaprefix", "imc", "itsmyconfig").forEach(alias -> new PAPIHook(this, alias).register());
         new CommandManager(this);
 
         this.loadConfig();
@@ -118,43 +112,34 @@ public final class ItsMyConfig extends JavaPlugin {
             ctx.updateLoggers();
         }
 
-        //if (Versions.IS_PAPER && Versions.isOrOver(1, 17, 2) && Versions.isBelow(1, 21, 6)) {
-            //this.getLogger().info("Registering Kick Listener");
-            //this.getServer().getPluginManager().registerEvents(new PlayerListener(),this);
-        //}
-
-        this.getLogger().info("ItsMyConfig loaded in " + (System.currentTimeMillis() - start) + "ms");
+        this.getLogger().info("SeriaPrefix loaded in " + (System.currentTimeMillis() - start) + "ms");
     }
 
     @Override
     public void onDisable() {
         if (this.consoleFilter != null) {
-            final org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
-            final org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
-            config.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME).removeFilter(this.consoleFilter);
-            ctx.updateLoggers();
+            try {
+                final org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
+                final org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
+                config.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME).removeFilter(this.consoleFilter);
+                ctx.updateLoggers();
+            } catch (final Throwable ignored) {
+            }
         }
-        AudienceResolver.close();
-        this.processorManager.close();
+        try {
+            AudienceResolver.close();
+        } catch (final Throwable ignored) {
+        }
+        if (this.processorManager != null) {
+            try {
+                this.processorManager.close();
+            } catch (final Throwable ignored) {
+            }
+        }
     }
 
     /**
-     * The loadConfig method is responsible for loading the configuration file and initializing various settings and data.
-     * It performs the following steps:
-     * <p>
-     * 0. Cache time before loading placeholders.
-     * 1-2. Track previously registered placeholders and progress bars.
-     * 3-4. Clear all registered placeholders and progress bars.
-     * 5. Save the default configuration file if it does not exist
-     * 6. Reload the configuration from the file.
-     * 7. Loads the symbol prefix from the configuration.
-     * 8-9. Maps to keep track of registered placeholders and progress bars to avoid duplicates.
-     * 10-11. Load and register placeholders and progress bars from the main configuration file.
-     * 12. Load and register placeholders and progress bars from additional custom .yml files.
-     * 13 - 14. Print all info about duplicated placeholders and bars.
-     * 15 - 16. Print all info about deleted placeholders and bars.
-     * 17. Clear maps from the cache to save memory.
-     * 18. Send the placeholders loaded message.
+     * Loads the configuration file and initializes various settings and data.
      */
     public void loadConfig() {
         // 0: Cache time before loading placeholders
@@ -173,11 +158,7 @@ public final class ItsMyConfig extends JavaPlugin {
         this.reloadConfigParams();
 
         this.getLogger().info("Using packet serializer: " + IMCSerializer.currentSerializerType().name());
-        /* Disable warning temporarily till MM_COPY is stable
-        if (IMCSerializer.currentSerializerType() != SerializerType.MM_COPY) {
-            this.getLogger().warning("Your server is running with an outdated version of the Adventure library. This may be caused by an old server jar or a plugin that includes Adventure without properly relocating it. This can lead to compatibility issues with serialization.");
-        }*/
-    
+
         // 8 - 9:  Maps to keep track of registered placeholders and progress bars
         final Map<String, List<String>> placeholderPaths = new HashMap<>();
 
@@ -239,10 +220,6 @@ public final class ItsMyConfig extends JavaPlugin {
 
     /**
      * Recursively loads .yml files from the specified folder.
-     * It iterates through the files in the folder, loading each .yml file using the `loadCustomYml` method if it meets the criteria.
-     *
-     * @param folder                 The folder from which to load .yml files.
-     * @param placeholderPaths       A map of registered placeholders to avoid duplicates.
      */
     private void loadFolder(
             final File folder,
@@ -268,18 +245,14 @@ public final class ItsMyConfig extends JavaPlugin {
 
     /**
      * Loads custom data from a .yml file.
-     * It reads the file using `YamlConfiguration` and extracts custom progress bars and placeholders if they exist.
-     *
-     * @param file                   The .yml file to load custom data from.
-     * @param placeholderPaths       A map of registered placeholders to avoid duplicates.
      */
     private void loadYAMLFile(
             final File file,
             final Map<String, List<String>> placeholderPaths
     ) {
-        final YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        if (config.isConfigurationSection("custom-placeholder")) {
-            loadPlaceholdersSection(config.getConfigurationSection("custom-placeholder"), file, placeholderPaths);
+        final YamlConfiguration conf = YamlConfiguration.loadConfiguration(file);
+        if (conf.isConfigurationSection("custom-placeholder")) {
+            loadPlaceholdersSection(conf.getConfigurationSection("custom-placeholder"), file, placeholderPaths);
         }
     }
 
@@ -289,10 +262,6 @@ public final class ItsMyConfig extends JavaPlugin {
             ConfigurationSection listeners = this.config.createSection("listeners");
             ConfigurationSection packetEvents = listeners.createSection("PacketEvents");
             packetEvents.set("priority", 1);
-
-            ConfigurationSection protocolLib = listeners.createSection("ProtocolLib");
-            protocolLib.set("priority", 2);
-            protocolLib.set("cache-processors", false);
             this.saveConfig();
         }
 
@@ -343,21 +312,13 @@ public final class ItsMyConfig extends JavaPlugin {
         }
     }
 
-    /**
-     * Loads custom placeholders from a YAML configuration section.
-     * It iterates over each placeholder defined in the section, constructs a corresponding `PlaceholderData` object, and registers it with the `placeholderManager`.
-     * Additionally, it registers any associated requirements for each placeholder.
-     *
-     * @param section                The YAML configuration section containing placeholder data.
-     * @param paths                  A map of registered placeholders to avoid duplicates.
-     */
     @SuppressWarnings("ConstantConditions")
     private void loadPlaceholdersSection(
             final ConfigurationSection section,
             final File file,
             final Map<String, List<String>> paths
     ) {
-        final String filePath = formatPath("ItsMyConfig\\" + file.getPath().replace("/", "\\").replace(getDataFolder().getPath() + "\\", ""));
+        final String filePath = formatPath("SeriaPrefix\\" + file.getPath().replace("/", "\\").replace(getDataFolder().getPath() + "\\", ""));
         if (section == null) {
             getLogger().warning(String.format("No custom placeholders found in file %s", filePath));
             return;
@@ -375,10 +336,8 @@ public final class ItsMyConfig extends JavaPlugin {
                 continue;
             }
 
-            // Use getPlaceholderData to retrieve PlaceholderData
             final Placeholder placeholder = this.getPlaceholder(file.getPath(), placeholderSection);
 
-            // Load requirements if they exist
             if (placeholderSection.isConfigurationSection("requirements")) {
                 final ConfigurationSection requirementsSection = placeholderSection.getConfigurationSection("requirements");
                 for (final String reqIdentifier : requirementsSection.getKeys(false)) {
@@ -396,13 +355,6 @@ public final class ItsMyConfig extends JavaPlugin {
         }
     }
 
-    /**
-     * Retrieves the placeholder data based on the provided configuration section and identifier.
-     *
-     * @param filePath The path of the file config is from
-     * @param section  The configuration section containing the placeholder data.
-     * @return The placeholder data object.
-     */
     private Placeholder getPlaceholder(String filePath, final ConfigurationSection section) {
         final PlaceholderType type = PlaceholderType.find(section.getString("type"));
         return switch (type) {
@@ -419,12 +371,6 @@ public final class ItsMyConfig extends JavaPlugin {
         };
     }
 
-    /**
-     * Formats a file path to start with "ItsMyConfig" and shortens it if it contains more than 5 directories.
-     *
-     * @param path The original file path.
-     * @return The formatted file path.
-     */
     private String formatPath(final String path) {
         final String separator = File.separator;
         final String normalizedPath = path.replace("/", separator).replace("\\", separator);
@@ -441,59 +387,27 @@ public final class ItsMyConfig extends JavaPlugin {
         return path;
     }
 
-    /**
-     * Retrieves the symbol prefix.
-     *
-     * @return The symbol prefix used in messages or text.
-     */
     public String getSymbolPrefix() {
         return this.symbolPrefix;
     }
 
-    /**
-     * Retrieves whether debug is enabled or not.
-     *
-     * @return The debug boolean used for debug checks.
-     */
     public boolean isDebug() {
         return this.debug;
     }
 
-    /**
-     * Sets the debug mode for the plugin.
-     *
-     * @param debug The boolean value to set debug mode.
-     */
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
 
-    /**
-     * Toggles the debug mode for the plugin.
-     * If debug is currently enabled, it will be disabled, and vice versa.
-     *
-     * @return The new state of debug mode after toggling.
-     */
     public boolean toggleDebug() {
         this.setDebug(!this.isDebug());
         return this.debug;
     }
 
-    /**
-     * Retrieves the PlaceholderManager instance.
-     *
-     * @return The PlaceholderManager instance.
-     */
     public PlaceholderManager getPlaceholderManager() {
         return this.placeholderManager;
     }
 
-    /**
-     * Returns the RequirementManager object. The RequirementManager class is responsible for managing requirements
-     * and validating them.
-     *
-     * @return the RequirementManager object
-     */
     public RequirementManager getRequirementManager() {
         return this.requirementManager;
     }

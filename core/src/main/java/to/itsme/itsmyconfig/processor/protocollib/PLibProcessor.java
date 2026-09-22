@@ -80,9 +80,9 @@ public enum PLibProcessor implements PacketProcessor<PacketContainer> {
 
         @Override
         public void edit(PacketContainer container, Component component) {
-            container.getModifier().withType(TextComponent.class).write(0, new TextComponent(
-                    Utilities.BUNGEE_SERIALIZER.serialize(component)
-            ));
+            final String json = Utilities.GSON_SERIALIZER.serialize(component);
+            final BaseComponent[] baseComponents = net.md_5.bungee.chat.ComponentSerializer.parse(json);
+            container.getModifier().withType(TextComponent.class).write(0, new TextComponent(baseComponents));
         }
 
         @Override
@@ -95,7 +95,9 @@ public enum PLibProcessor implements PacketProcessor<PacketContainer> {
         }
 
         private String processBaseComponents(final BaseComponent... components) {
-            return IMCSerializer.toMiniMessage(Utilities.BUNGEE_SERIALIZER.deserialize(components));
+            if (components == null || components.length == 0) return "";
+            final String json = net.md_5.bungee.chat.ComponentSerializer.toString(components);
+            return IMCSerializer.toMiniMessage(Utilities.GSON_SERIALIZER.deserialize(json));
         }
 
     },

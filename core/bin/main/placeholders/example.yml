@@ -1,0 +1,60 @@
+custom-placeholder:
+
+  # Example of a color placeholder.
+  # You can use hex codes or color names (e.g., black, red, yellow).
+  example-color:
+    value: "#RRGGBB" # black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple, gold, gray, dark_gray, blue, green, aqua, red, light_purple, yellow, or white.
+    type: color
+    bold: false
+    underlined: false
+    italic: false
+    strikethrough: false
+    obfuscated: false
+
+  # Example of a colored text placeholder.
+  # Use MiniMessage tags to style your text (<sc:tag> or <p:tag>).
+  example-colored-text:
+    value: '<bold><yellow>Text <red>! <yellow>Woo: <sc:prefix>'
+    type: colored_text
+
+  # Example of a list placeholder.
+  # Lists can hold multiple values.
+  example-list:
+    values: 
+      - "Value 1" 
+      - "Value 2"
+      - "Value 3"
+    type: list
+
+  # Example of a requirement placeholder.
+  # This checks if a player meets certain conditions.
+  example-requirement:
+    value: "<green>Requirement passed !"
+    type: string # Default type
+    requirements:
+      haveMoney:
+        type: ">="
+        input: "%vault_eco_balance%"
+        output: "100"
+        deny: "<red>Don't have enough money"
+
+  # Example of an animation placeholder.
+  # Animations cycle through a list of values at a set interval.
+  example-animation:
+    values: # Note, values not value
+      - "<green>Animation !"
+      - "<yellow>Animation !"
+      - "<gold>Animation !"
+      - "<red>Animation !"
+      - "<pink>Animation !"
+    type: animation
+    interval: 50 # In ticks
+
+  # Example of a random string.
+  # Randomly selects one value from the list each time it's used.
+  example-random:
+    values: # Note, values not value
+      - "Rock"
+      - "Paper"
+      - "Scissors"
+    type: random

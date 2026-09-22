@@ -40,7 +40,6 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
 
     @Override
     public void load() {
-        PacketEvents.getAPI().init();
         this.common = PacketEvents.getAPI().getEventManager().registerListener(this, PacketListenerPriority.NORMAL);
     }
 
@@ -77,7 +76,7 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
 
         try {
             packet = ((PacketProcessor<Object>) processor).unpack(wrappedPacket);
-        } catch (final Exception ex) {
+        } catch (final Throwable ex) {
             Utilities.debug(() -> "Exception while unpacking the packet: ", ex);
             Utilities.debug(() -> Strings.DEBUG_HYPHEN);
             return;
@@ -112,14 +111,19 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
         }
 
         Utilities.debug(() -> "Final Product: " + IMCSerializer.toMiniMessage(translated) + "\n" + "Overriding...");
-        event.markForReEncode(true);
-        packet.save(translated);
+        try {
+            event.markForReEncode(true);
+            packet.save(translated);
+        } catch (final Throwable ex) {
+            Utilities.debug(() -> "Exception while saving packet: ", ex);
+        }
         Utilities.debug(() -> Strings.DEBUG_HYPHEN);
     }
 
     @Override
     public void close() {
-        PacketEvents.getAPI().getEventManager().unregisterListener(this.common);
-        PacketEvents.getAPI().terminate();
+        if (this.common != null && PacketEvents.getAPI() != null) {
+            PacketEvents.getAPI().getEventManager().unregisterListener(this.common);
+        }
     }
 }

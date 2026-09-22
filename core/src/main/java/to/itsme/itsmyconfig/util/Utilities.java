@@ -1,7 +1,6 @@
 package to.itsme.itsmyconfig.util;
 
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -9,7 +8,6 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -39,8 +37,7 @@ public final class Utilities {
     private static final ItsMyConfig plugin = ItsMyConfig.getInstance();
 
     public static final MiniMessage MM, EMPTY_MM;
-    public static final GsonComponentSerializer GSON_SERIALIZER = BukkitComponentSerializer.gson();
-    public static final BungeeComponentSerializer BUNGEE_SERIALIZER = BungeeComponentSerializer.get();
+    public static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
 
     private static final TagResolver FONT_RESOLVER;
     private static final Field TEXT_COMPONENT_CONTENT;
@@ -60,14 +57,14 @@ public final class Utilities {
                                 ).build()
                 ).build();
         EMPTY_MM = MiniMessage.builder().tags(TagResolver.empty()).build();
+        Field contentField = null;
         try {
             final Class<?> textComponentImpClazz = Component.empty().getClass(); // Should be net.kyori.adventure.text.TextComponentImpl class
-            final Field contentField = textComponentImpClazz.getDeclaredField("content");
+            contentField = textComponentImpClazz.getDeclaredField("content");
             contentField.setAccessible(true);
-            TEXT_COMPONENT_CONTENT = contentField;
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
+        } catch (Throwable ignored) {
         }
+        TEXT_COMPONENT_CONTENT = contentField;
     }
 
     /**
@@ -175,7 +172,7 @@ public final class Utilities {
      * @return The ItsMyConfig placeholder tag resolver.
      */
     public static TagResolver emptyItsMyConfigTag() {
-        return TagResolver.resolver("p", (argumentQueue, context) -> {
+        return TagResolver.resolver(Set.of("sc", "p", "seriaprefix"), (argumentQueue, context) -> {
             if (!argumentQueue.hasNext()) {
                 return Tag.preProcessParsed("Unknown Placeholder");
             }
@@ -205,13 +202,13 @@ public final class Utilities {
     }
 
     /**
-     * Provides a ItsMyConfig placeholders tag resolver.
+     * Provides a SeriaPrefix placeholders tag resolver.
      *
      * @param player The player for whom the resolver is being created.
-     * @return The ItsMyConfig placeholder tag resolver.
+     * @return The SeriaPrefix placeholder tag resolver.
      */
     public static TagResolver itsMyConfigTag(final OfflinePlayer player) {
-        return TagResolver.resolver("p", (argumentQueue, context) -> {
+        return TagResolver.resolver(Set.of("sc", "p", "seriaprefix"), (argumentQueue, context) -> {
             if (!argumentQueue.hasNext()) {
                 return Tag.preProcessParsed("Unknown Placeholder");
             }
@@ -234,6 +231,14 @@ public final class Utilities {
             final String parsed = data.asString(player, args.toArray(new String[0]));
             return Tag.preProcessParsed((parsed == null ? "" : parsed).replace("§", "&"));
         });
+    }
+
+    public static TagResolver emptySeriaPrefixTag() {
+        return emptyItsMyConfigTag();
+    }
+
+    public static TagResolver seriaPrefixTag(final OfflinePlayer player) {
+        return itsMyConfigTag(player);
     }
 
     /**
@@ -299,10 +304,10 @@ public final class Utilities {
             final @NotNull TextComponent component,
             final @Nullable String content
     ) {
+        if (TEXT_COMPONENT_CONTENT == null) return;
         try {
             TEXT_COMPONENT_CONTENT.set(component, content);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
+        } catch (Throwable ignored) {
         }
     }
 

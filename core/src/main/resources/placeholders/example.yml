@@ -12,9 +12,9 @@ custom-placeholder:
     obfuscated: false
 
   # Example of a colored text placeholder.
-  # Use MiniMessage tags to style your text.
+  # Use MiniMessage tags to style your text (<sc:tag> or <p:tag>).
   example-colored-text:
-    value: '<bold><yellow>Text <red>! <yellow>Woo: <p:prefix>'
+    value: '<bold><yellow>Text <red>! <yellow>Woo: <sc:prefix>'
     type: colored_text
 
   # Example of a list placeholder.

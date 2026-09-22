@@ -1,10 +1,10 @@
 allprojects {
     group = "to.itsme"
     version = "4.3.2"
-    description = "ItsMyConfig"
+    description = "SeriaPrefix"
 
     ext {
-        kyoriVersion = "5.0.1"
+        kyoriVersion = "4.19.0"
         kyoriPlatformVersion = "4.4.1"
 
         kyori = { String module ->
@@ -22,6 +22,7 @@ allprojects {
                 SPONGE           : "platform-spongeapi",
                 MINI_MESSAGE     : "text-minimessage",
                 GSON_SERIALIZER  : "text-serializer-gson",
+                LEGACY_SERIALIZER: "text-serializer-legacy",
                 BUNGEE_SERIALIZER: "text-serializer-bungeecord"
         ]
     }

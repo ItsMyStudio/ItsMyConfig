@@ -8,16 +8,22 @@
 # visit: https://builtbybit.com/resources/bundle/itsmyconfig-config.1081/
 
 custom-placeholder:
-  # colored_text only supports MiniMessage and custom tags like SmallCaps or Placeholder (p)
+  # colored_text supports MiniMessage and custom tags like SmallCaps or Placeholder (sc or p)
   server-name:
     value: "<gradient:#ff0f7b:#f89b29><bold>ServerName</bold></gradient>"
     type: colored_text
   
-  # Use MiniMessage here too 
+  # Use MiniMessage here too (<sc:...> or <p:...>)
   prefix:
-    value: "<p:server-name> <p:text-color>┃"
+    value: "<sc:server-name> <sc:text-color>┃"
+  success:
+    value: "<green><bold>SUCCESS</bold></green> <sc:text-color>┃"
+    type: colored_text
+  success-prefix:
+    value: "<green><bold>SUCCESS</bold></green> <sc:text-color>┃"
+    type: colored_text
   error-prefix:
-    value: "<red><bold>ERROR</bold></red> <p:text-color>┃"
+    value: "<red><bold>ERROR</bold></red> <sc:text-color>┃"
     
   # Can be #RRGGBB or color names: black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple, gold, gray, dark_gray, blue, green, aqua, red, light_purple, yellow, or white.
   primary-color:

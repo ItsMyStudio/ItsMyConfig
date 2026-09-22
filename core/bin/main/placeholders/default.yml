@@ -1,0 +1,67 @@
+# You can modify this file to change most of the configurations I sell.
+# Refer to the placeholders/example.yml file for more examples.
+# For the MiniMessage format, check the documentation here: https://docs.advntr.dev/minimessage/format.html.
+# For the plugin documentation, visit: https://docs.itsme.to/itsmyconfig.
+# For support, join our Discord: discord.gg/itsme-to.
+# 
+# To find all configurations compatible with ItsMyConfig, which adapt directly to the style you have defined,
+# visit: https://builtbybit.com/resources/bundle/itsmyconfig-config.1081/
+
+custom-placeholder:
+  # colored_text supports MiniMessage and custom tags like SmallCaps or Placeholder (sc or p)
+  server-name:
+    value: "<gradient:#ff0f7b:#f89b29><bold>ServerName</bold></gradient>"
+    type: colored_text
+  
+  # Use MiniMessage here too (<sc:...> or <p:...>)
+  prefix:
+    value: "<sc:server-name> <sc:text-color>┃"
+  success:
+    value: "<green><bold>SUCCESS</bold></green> <sc:text-color>┃"
+    type: colored_text
+  success-prefix:
+    value: "<green><bold>SUCCESS</bold></green> <sc:text-color>┃"
+    type: colored_text
+  error-prefix:
+    value: "<red><bold>ERROR</bold></red> <sc:text-color>┃"
+    
+  # Can be #RRGGBB or color names: black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple, gold, gray, dark_gray, blue, green, aqua, red, light_purple, yellow, or white.
+  primary-color:
+    value: "yellow"
+    type: color
+    bold: false
+  secondary-color:
+    value: "gold"
+    type: color
+  text-color:
+    value: "white"
+    type: color
+  dark-color:
+    value: "gray"
+    type: color
+  darkest-color:
+    value: "dark_gray"
+    type: color
+    
+  # Just put the link without https://
+  discord:
+    value: "discord.gg/example"
+  store:
+    value: "store.servername.net"
+  ip:
+    value: "play.servername.net"
+  
+  # Use MiniMessage here too, {0} refers to the amount
+  exp-format:
+    value: "<#F15BB5>{0}◎</#F15BB5>"
+    type: colored_text
+  eco-format:
+    value: "<yellow>{0}⛁</yellow>"
+    type: colored_text
+  
+  # Modify the economy of the configuration that I sell. You can make it higher or lower. {0} refers to the amount. Making it 10*{0} will make the reward, for example, 10 times bigger.
+  price-modifier:
+    value: "1*{0}"
+    type: math
+    rounding: HALF_UP
+    precision: 1

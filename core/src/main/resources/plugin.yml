@@ -1,11 +1,10 @@
-name: ItsMyConfig
+name: SeriaPrefix
 version: ${version}
-authors: [ iiAhmedYT, RealAlphaUA ]
+authors: [ iiAhmedYT, RealAlphaUA, Seria ]
 website: https://builtbybit.com/resources/24606/
-main: to.itsme.itsmyconfig.ItsMyConfig
+main: to.itsme.itsmyconfig.SeriaPrefix
 api-version: 1.16
 folia-supported: true
 depend:
   - PlaceholderAPI
-softdepend:
-  - ProtocolLib
+  - packetevents

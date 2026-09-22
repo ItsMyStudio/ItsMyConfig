@@ -1,15 +1,13 @@
 # ################################################################################################
 #
-#    ██╗████████╗███████╗███╗   ███╗██╗   ██╗ ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗
-#    ██║╚══██╔══╝██╔════╝████╗ ████║╚██╗ ██╔╝██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔════╝
-#    ██║   ██║   ███████╗██╔████╔██║ ╚████╔╝ ██║     ██║   ██║██╔██╗ ██║█████╗  ██║██║  ███╗
-#    ██║   ██║   ╚════██║██║╚██╔╝██║  ╚██╔╝  ██║     ██║   ██║██║╚██╗██║██╔══╝  ██║██║   ██║
-#    ██║   ██║   ███████║██║ ╚═╝ ██║   ██║   ╚██████╗╚██████╔╝██║ ╚████║██║     ██║╚██████╔╝
-#    ╚═╝   ╚═╝   ╚══════╝╚═╝     ╚═╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝
+#    ███████╗███████╗██████╗ ██╗ █████╗ ██████╗ ██████╗ ███████╗███████╗██╗██╗  ██╗
+#    ██╔════╝██╔════╝██╔══██╗██║██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔════╝██║╚██╗██╔╝
+#    ███████╗█████╗  ██████╔╝██║███████║██████╔╝██████╔╝█████╗  █████╗  ██║ ╚███╔╝ 
+#    ╚════██║██╔══╝  ██╔══██╗██║██╔══██║██╔═══╝ ██╔══██╗██╔══╝  ██╔══╝  ██║ ██╔██╗ 
+#    ███████║███████╗██║  ██║██║██║  ██║██║     ██║  ██║███████╗██║     ██║██╔╝ ██╗
+#    ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝╚═╝  ╚═╝
 #
-#      Contact: @itsme.to
-#      Support: https://itsmy.studio/discord
-#      Documentation: https://itsmy.studio/docs/itsmyconfig
+#      SeriaPrefix Plugin
 #
 # ################################################################################################
 
@@ -17,7 +15,8 @@
 debug: false
 
 # The symbol prefix to use for the config.
-# This is used to identify the config symbols in the code.
+# This is used to identify the config symbols in the code (e.g. $message).
+# Note: You can also use tags directly like <sc:success> without needing this prefix!
 symbol-prefix: $
 
 # If true, all console messages will be translated using the translation system.
@@ -26,17 +25,14 @@ translate-console: false
 
 listeners:
   PacketEvents:
-    priority: 1 # Lower number = higher priority. This will run before ProtocolLib.
-  ProtocolLib:
-    priority: 2
-    cache-processors: false # Not recommended (buggy), but will improve performance with ProtocolLib if it works right for you.
+    priority: 1
 
 messages:
   invalid-use:
     - "<red><bold>ERROR</bold></red> <white>┃ Invalid use"
     - "  <yellow>/<usage>"
   reload:
-    - "<green><bold>SUCCESS</bold></green> <white>┃ ItsmyConfig reloaded !"
+    - "<green><bold>SUCCESS</bold></green> <white>┃ SeriaPrefix reloaded !"
   no-permission:
     - "<red><bold>ERROR</bold></red> <white>┃ You don't have permission"
   message-sent:

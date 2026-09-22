@@ -30,8 +30,8 @@ public class ProcessorManager {
 
         final Map<String, Integer> availableListeners = new HashMap<>();
 
-        if (Reflections.findClass("to{}itsme{}itsmyconfig{}shade{}packetevents.PacketEvents")) {
-            int priority = configSection.getInt("PacketEvents.priority", Integer.MAX_VALUE);
+        if (manager.getPlugin("packetevents") != null || manager.getPlugin("PacketEvents") != null || Reflections.findClass("com{}github{}retrooper{}packetevents{}PacketEvents")) {
+            int priority = configSection.getInt("PacketEvents.priority", 1);
             availableListeners.put("PacketEvents", priority);
         }
 

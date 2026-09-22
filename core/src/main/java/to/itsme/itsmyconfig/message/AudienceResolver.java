@@ -7,41 +7,61 @@ import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.ComponentLike;
 import org.bukkit.command.CommandSender;
 import to.itsme.itsmyconfig.ItsMyConfig;
+import to.itsme.itsmyconfig.util.Versions;
 
 public class AudienceResolver {
 
-    private static final Resolver AUDIENCE_RESOLVER = new BukkitResolver();
+    private static Resolver AUDIENCE_RESOLVER;
 
     /**
-     * Dummy method to load resolvers onEnable, and just logs it.
+     * Loads resolvers onEnable, and logs it.
      */
-    @SuppressWarnings("all")
     public static void load(final ItsMyConfig plugin) {
-        plugin.getLogger().fine("Loaded " + AUDIENCE_RESOLVER.getClass().getSimpleName() + "successfully!");
+        if (AUDIENCE_RESOLVER == null) {
+            AUDIENCE_RESOLVER = createResolver();
+        }
+        plugin.getLogger().fine("Loaded " + AUDIENCE_RESOLVER.getClass().getSimpleName() + " successfully!");
+    }
+
+    private static Resolver getResolver() {
+        if (AUDIENCE_RESOLVER == null) {
+            AUDIENCE_RESOLVER = createResolver();
+        }
+        return AUDIENCE_RESOLVER;
+    }
+
+    private static Resolver createResolver() {
+        if (Versions.IS_PAPER) {
+            return new PaperResolver();
+        }
+        return new BukkitResolver();
     }
 
     public static Audience resolve(final CommandSender sender) {
-        return AUDIENCE_RESOLVER.resolve(sender);
+        return getResolver().resolve(sender);
     }
 
     public static Audience resolve(final Source source) {
-        return AUDIENCE_RESOLVER.resolve((BukkitSource) source);
+        return getResolver().resolve((BukkitSource) source);
     }
 
     public static Audience resolve(final BukkitSource source) {
-        return AUDIENCE_RESOLVER.resolve(source);
+        return getResolver().resolve(source);
     }
 
     public static void send(final CommandSender sender, final ComponentLike component) {
-        AUDIENCE_RESOLVER.resolve(sender).sendMessage(component);
+        getResolver().resolve(sender).sendMessage(component);
     }
 
     public static void send(final BukkitSource source, final ComponentLike component) {
-        AUDIENCE_RESOLVER.resolve(source).sendMessage(component);
+        getResolver().resolve(source).sendMessage(component);
     }
 
     public static void close() {
-        AUDIENCE_RESOLVER.close();
+        if (AUDIENCE_RESOLVER != null) {
+            AUDIENCE_RESOLVER.close();
+            AUDIENCE_RESOLVER = null;
+        }
     }
 
     public sealed interface Resolver permits BukkitResolver, PaperResolver {
@@ -58,20 +78,32 @@ public class AudienceResolver {
 
     public static final class BukkitResolver implements Resolver {
 
-        private final BukkitAudiences audiences;
+        private BukkitAudiences audiences;
 
-        {
-            audiences = BukkitAudiences.create(ItsMyConfig.getInstance());
+        public BukkitResolver() {
+            final ItsMyConfig plugin = ItsMyConfig.getInstance();
+            if (plugin != null && plugin.isEnabled()) {
+                this.audiences = BukkitAudiences.create(plugin);
+            }
         }
 
         @Override
         public Audience resolve(final CommandSender sender) {
-            return audiences.sender(sender);
+            if (this.audiences == null) {
+                final ItsMyConfig plugin = ItsMyConfig.getInstance();
+                if (plugin != null && plugin.isEnabled()) {
+                    this.audiences = BukkitAudiences.create(plugin);
+                }
+            }
+            return this.audiences != null ? this.audiences.sender(sender) : (sender instanceof Audience audience ? audience : Audience.empty());
         }
 
         @Override
         public void close() {
-            this.audiences.close();
+            if (this.audiences != null) {
+                this.audiences.close();
+                this.audiences = null;
+            }
         }
 
     }

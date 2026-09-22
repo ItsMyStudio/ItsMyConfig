@@ -1,4 +1,4 @@
-rootProject.name = 'itsmyconfig'
+rootProject.name = 'seriaprefix'
 
 include 'api'
 include 'core'

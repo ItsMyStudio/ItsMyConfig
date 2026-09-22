@@ -4,7 +4,8 @@ import dev.velix.imperat.BukkitImperat;
 import dev.velix.imperat.exception.PermissionDeniedException;
 import dev.velix.imperat.resolvers.SuggestionResolver;
 import to.itsme.itsmyconfig.ItsMyConfig;
-import to.itsme.itsmyconfig.command.impl.ItsMyConfigCommand;
+import to.itsme.itsmyconfig.SeriaPrefix;
+import to.itsme.itsmyconfig.command.impl.SeriaPrefixCommand;
 import to.itsme.itsmyconfig.command.parameter.PlaceholderParameter;
 import to.itsme.itsmyconfig.command.parameter.SelectorParameter;
 import to.itsme.itsmyconfig.command.util.PlayerSelector;
@@ -37,7 +38,7 @@ public final class CommandManager {
     }
 
     public void registerCommands() {
-        this.handler.registerCommands(new ItsMyConfigCommand(this.plugin));
+        this.handler.registerCommands(new SeriaPrefixCommand(this.plugin));
     }
 
 }

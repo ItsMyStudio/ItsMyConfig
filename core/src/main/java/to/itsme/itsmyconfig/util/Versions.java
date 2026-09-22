@@ -6,17 +6,50 @@ import to.itsme.itsmyconfig.util.reflect.Reflections;
 @SuppressWarnings("unused")
 public final class Versions {
 
-    public static final String VERSION_EXACT = Bukkit.getBukkitVersion().split("-")[0];
+    public static final String VERSION_EXACT;
     public static final boolean IS_FOLIA = Reflections.findClass("io.papermc.paper.threadedregions.RegionizedServer");
-    public static final boolean IS_PAPER = Reflections.findClass("com.destroystokyo.paper.PaperConfig", "io.papermc.paper.configuration.Configuration");
+    public static final boolean IS_PAPER = Reflections.findClass("com.destroystokyo.paper.PaperConfig", "io.papermc.paper.configuration.Configuration", "io.papermc.paper.plugin.configuration.PluginMeta");
 
     public static final int MAJOR, MINOR, PATCH;
 
     static {
+        String versionStr = "";
+        try {
+            if (Bukkit.getServer() != null) {
+                try {
+                    final Object mcVer = Bukkit.getServer().getClass().getMethod("getMinecraftVersion").invoke(Bukkit.getServer());
+                    if (mcVer instanceof String s && !s.isEmpty()) {
+                        versionStr = s;
+                    }
+                } catch (final Throwable ignored) {
+                }
+
+                if (versionStr.isEmpty()) {
+                    versionStr = Bukkit.getBukkitVersion().split("-")[0];
+                }
+            }
+        } catch (final Throwable ignored) {
+        }
+        if (versionStr.isEmpty()) {
+            versionStr = "1.20.4";
+        }
+
+        VERSION_EXACT = versionStr;
+
         final String[] versions = VERSION_EXACT.split("\\.");
-        MAJOR = Integer.parseInt(versions[0]);
-        MINOR = Integer.parseInt(versions[1]);
-        PATCH = versions.length > 2 ? Integer.parseInt(versions[2]) : 0;
+        int maj = 1, min = 16, pat = 5;
+        if (versions.length > 0) {
+            maj = Strings.intOrDefault(versions[0], 1);
+        }
+        if (versions.length > 1) {
+            min = Strings.intOrDefault(versions[1], 16);
+        }
+        if (versions.length > 2) {
+            pat = Strings.intOrDefault(versions[2], 0);
+        }
+        MAJOR = maj;
+        MINOR = min;
+        PATCH = pat;
     }
 
     public static boolean is(final int major, final int minor, final int patch) {

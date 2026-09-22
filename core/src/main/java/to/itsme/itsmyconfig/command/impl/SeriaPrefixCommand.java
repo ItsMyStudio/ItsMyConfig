@@ -13,6 +13,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import to.itsme.itsmyconfig.ItsMyConfig;
+import to.itsme.itsmyconfig.SeriaPrefix;
 import to.itsme.itsmyconfig.command.util.PlayerSelector;
 import to.itsme.itsmyconfig.message.AudienceResolver;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
@@ -22,14 +23,14 @@ import to.itsme.itsmyconfig.util.Utilities;
 
 import java.io.IOException;
 
-@Command("itsmyconfig")
-@Permission("itsmyconfig.admin")
+@Command({"seriaprefix", "sc", "sp", "itsmyconfig"})
+@Permission("seriaprefix.admin")
 @SuppressWarnings("deprecation")
-public final class ItsMyConfigCommand {
+public final class SeriaPrefixCommand {
 
     private final ItsMyConfig plugin;
 
-    public ItsMyConfigCommand(final ItsMyConfig plugin) {
+    public SeriaPrefixCommand(final ItsMyConfig plugin) {
         this.plugin = plugin;
     }
 
@@ -37,64 +38,42 @@ public final class ItsMyConfigCommand {
     @SubCommand("help")
     public void usage(final BukkitSource source) {
         final String message = """
-                  <gold><plugin></gold> | Config has never been easier
+                  <gold><plugin></gold> | Custom Placeholders and Message Formatting
                 
-                    <gray>• <white>/itsmyconfig reload
-                    <gray>• <white>/itsmyconfig parse <gold><target> <message>
-                    <gray>• <white>/itsmyconfig message <gold><target> <message>
-                    <gray>• <white>/itsmyconfig config <gold><placeholder> <value>
+                    <gray>• <white>/sc reload
+                    <gray>• <white>/sc parse <gold><target> <message>
+                    <gray>• <white>/sc message <gold><target> <message>
+                    <gray>• <white>/sc config <gold><placeholder> <value>
                 
-                  <gray>• <white>Project: <aqua>ItsMe.to
-                  <gray>• <white>Support: <click:open_url:'https://discord.gg/itsme-to'><green>discord.gg/itsme-to</click>
-                  <gray>• <white>Developer: <yellow><author> <gray>(%s)
+                  <gray>• <white>Placeholders: <aqua>%sc_<placeholder>%</aqua>
+                  <gray>• <white>Tags: <green><sc:tag></green> <gray>(direct in messages)
+                  <gray>• <white>Version: <yellow>%s</yellow>
                 
                 """.formatted(plugin.getDescription().getVersion());
 
-        AudienceResolver.send(source, Utilities.MM.deserialize(message, pluginInfo(), authorInfo()));
+        AudienceResolver.send(source, Utilities.MM.deserialize(message, pluginInfo()));
     }
 
     private TagResolver pluginInfo() {
         final PluginDescriptionFile description = plugin.getDescription();
 
-        // Create a text block for the hover message
         final String hoverMessage = """
             <white>Name: <gold>%s
             <white>Version: <gold>%s
-            <white>Support Server: <gold>https://discord.gg/itsme-to
             """.formatted(description.getName(), description.getVersion());
 
-        // Return the TagResolver with the plugin information
         return TagResolver.resolver("plugin", (argumentQueue, context) -> {
-            assert description.getWebsite() != null;
             return Tag.selfClosingInserting(
                     Component.text()
                             .content(description.getName())
                             .decorate(TextDecoration.BOLD)
                             .hoverEvent(Utilities.MM.deserialize(hoverMessage))
-                            .clickEvent(ClickEvent.openUrl(description.getWebsite()))
             );
         });
     }
 
-    private TagResolver authorInfo() {
-        // Create a text block for the hover message
-        final String hoverMessage = """
-            <white>Discord: <aqua>@iiAhmedYT</aqua>
-            <white>Github: <aqua>https://github.com/iiAhmedYT</aqua>
-            """;
-
-        // Return the TagResolver with the author information
-        return TagResolver.resolver("author", (argumentQueue, context) -> Tag.selfClosingInserting(
-                Component.text()
-                        .content("iiAhmedYT")
-                        .decorate(TextDecoration.UNDERLINED)
-                        .hoverEvent(Utilities.MM.deserialize(hoverMessage))
-                        .clickEvent(ClickEvent.openUrl("https://github.com/iiAhmedYT"))
-        ));
-    }
-
     @SubCommand("reload")
-    @Permission("itsmyconfig.reload")
+    @Permission("seriaprefix.reload")
     @Description("Reloads the plugin config")
     public void reload(final BukkitSource source) {
         plugin.loadConfig();
@@ -102,7 +81,7 @@ public final class ItsMyConfigCommand {
     }
 
     @SubCommand("messagedirectly")
-    @Permission("itsmyconfig.message")
+    @Permission("seriaprefix.message")
     @Description("Sends messages to players")
     public void messageDirectly(
             final BukkitSource source,
@@ -119,7 +98,7 @@ public final class ItsMyConfigCommand {
     }
 
     @SubCommand("message")
-    @Permission("itsmyconfig.message")
+    @Permission("seriaprefix.message")
     @Description("Sends messages to players")
     public void message(
             final BukkitSource source,
@@ -138,9 +117,8 @@ public final class ItsMyConfigCommand {
         }
     }
 
-
     @SubCommand("parse")
-    @Permission("itsmyconfig.parse")
+    @Permission("seriaprefix.parse")
     @Description("Parse messages as players")
     public void parse(
             final BukkitSource source,
@@ -160,7 +138,7 @@ public final class ItsMyConfigCommand {
     }
 
     @SubCommand("debug")
-    @Permission("itsmyconfig.debug")
+    @Permission("seriaprefix.debug")
     @Description("Toggles debug mode for messages (not permanent)")
     public void debug(final BukkitSource source) {
         final boolean debug = plugin.toggleDebug();
@@ -174,7 +152,7 @@ public final class ItsMyConfigCommand {
     }
 
     @SubCommand("config")
-    @Permission("itsmyconfig.config")
+    @Permission("seriaprefix.config")
     @Description("Sets config values for placeholder")
     public void config(
             final BukkitSource source,
@@ -203,7 +181,7 @@ public final class ItsMyConfigCommand {
     }
 
     @Command("message")
-    @Permission("itsmyconfig.message")
+    @Permission("seriaprefix.message")
     public void msgCommand(
             final BukkitSource source,
             final @Named("target") PlayerSelector players,
@@ -213,7 +191,7 @@ public final class ItsMyConfigCommand {
     }
 
     @Command("config")
-    @Permission("itsmyconfig.config")
+    @Permission("seriaprefix.config")
     public void configCommand(
             final BukkitSource source,
             @SuggestionProvider("ModifiablePlaceholder") final Placeholder placeholder,
