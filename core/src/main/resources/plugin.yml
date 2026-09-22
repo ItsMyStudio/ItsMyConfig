@@ -7,4 +7,12 @@ api-version: 1.16
 folia-supported: true
 depend:
   - PlaceholderAPI
+<<<<<<< HEAD
+=======
+softdepend:
+  - ProtocolLib
+# register channel before server's packetevents
+# so plugins like Typewriter read the packet post-modification
+loadbefore:
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
   - packetevents

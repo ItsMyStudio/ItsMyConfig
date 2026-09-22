@@ -2,8 +2,8 @@ package to.itsme.itsmyconfig.component.impl;
 
 import net.kyori.adventure.text.Component;
 import to.itsme.itsmyconfig.component.AbstractComponent;
-import to.itsme.itsmyconfig.util.Utilities;
 import to.itsme.itsmyconfig.util.MMSerializer;
+import to.itsme.itsmyconfig.util.Utilities;
 
 public final class PseudoComponent extends AbstractComponent {
 
@@ -20,7 +20,7 @@ public final class PseudoComponent extends AbstractComponent {
 
     @Override
     public String toMiniMessage() {
-        return MMSerializer.serialize(component,null, false);
+        return MMSerializer.serialize(component, null, false);
     }
 
 }

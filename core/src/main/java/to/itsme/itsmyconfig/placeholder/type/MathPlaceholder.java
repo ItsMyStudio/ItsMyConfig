@@ -1,7 +1,7 @@
 package to.itsme.itsmyconfig.placeholder.type;
 
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import redempt.crunch.CompiledExpression;
 import redempt.crunch.Crunch;
@@ -14,7 +14,10 @@ import to.itsme.itsmyconfig.util.Utilities;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Set;
+import java.util.TreeMap;
 
 public final class MathPlaceholder extends Placeholder {
 
@@ -26,6 +29,58 @@ public final class MathPlaceholder extends Placeholder {
         UPDATE_FORMATTINGS();
     }
 
+    private final CompiledExpression expression;
+    private final int variablesRequired;
+
+    private final int precision;
+    private final RoundingMode roundingMode;
+
+    public MathPlaceholder(
+            final String filePath,
+            final Section section
+    ) {
+        super(section, filePath, PlaceholderType.MATH, PlaceholderDependancy.NONE);
+        final String value = section.getString("value", "0");
+        this.registerArguments(value);
+
+        this.precision = section.getInt("precision");
+        this.roundingMode = RoundingMode.valueOf(section.getString("rounding", section.getString("mode", "HALF_UP")));
+
+        /*
+         * Crunch uses {@code $1, $2, ...} for variable references while this
+         * placeholder uses {@code {0}, {1}, ...}. This block remaps:
+         * <pre>{@code {n} -> $(n+1)}</pre>
+         */
+        String copy = value;
+        for (final int argument : this.arguments) {
+            copy = copy.replace("{" + argument + "}", "$" + (argument + 1));
+        }
+
+        this.expression = Crunch.compileExpression(copy);
+        this.variablesRequired = this.expression.getVariableCount();
+
+        this.compiledPlaceholders = Set.of(
+                mainCompiledPlaceholder(),
+                this.compileVariant("commas", this::getCommasResult, this.variablesRequired, this.variablesRequired),
+                this.compileVariant("fixed", this::getFixedResult, this.variablesRequired, this.variablesRequired),
+                this.compileVariant("formatted", this::getFormattedResult, this.variablesRequired, this.variablesRequired)
+        );
+    }
+
+    /**
+     * Reloads the global number suffix mappings from the config file.
+     *
+     * <p>Called on plugin startup and on {@code /itsmyconfig reload}.</p>
+     *
+     * <p>Reads the following keys from {@code formatting.*}:
+     * <ul>
+     *   <li>{@code thousands}    → {@code k}</li>
+     *   <li>{@code millions}     → {@code M}</li>
+     *   <li>{@code billions}     → {@code B}</li>
+     *   <li>{@code trillions}    → {@code T}</li>
+     *   <li>{@code quadrillions} → {@code Q}</li>
+     * </ul>
+     */
     public static void UPDATE_FORMATTINGS() {
         final FileConfiguration config = ItsMyConfig.getInstance().getConfig();
         GLOBAL_SUFFIXES.put(1_000L, config.getString("formatting.thousands", "k"));
@@ -35,30 +90,14 @@ public final class MathPlaceholder extends Placeholder {
         GLOBAL_SUFFIXES.put(1_000_000_000_000_000L, config.getString("formatting.quadrillions", "Q"));
     }
 
-    private final CompiledExpression expression;
-    private final int variablesRequired;
+    @Override
+    public int minArgs() {
+        return this.variablesRequired;
+    }
 
-    private final int precision;
-    private final RoundingMode mode;
-
-    public MathPlaceholder(
-            final String filePath,
-            final ConfigurationSection section
-    ) {
-        super(section, filePath, PlaceholderType.MATH, PlaceholderDependancy.NONE);
-        final String value = section.getString("value", "0");
-        this.registerArguments(value);
-
-        this.precision = section.getInt("precision");
-        this.mode = RoundingMode.valueOf(section.getString("mode", "HALF_UP"));
-
-        String copy = value;
-        for (final int argument : this.arguments) {
-            copy = copy.replace("{" + argument + "}", "$" + (argument + 1));
-        }
-
-        this.expression = Crunch.compileExpression(copy);
-        this.variablesRequired = this.expression.getVariableCount();
+    @Override
+    public int maxArgs() {
+        return this.variablesRequired;
     }
 
     @Override
@@ -66,42 +105,62 @@ public final class MathPlaceholder extends Placeholder {
             final OfflinePlayer player,
             final String[] args
     ) {
-        final boolean prefixed = this.isPrefixed(args);
-        final int providedArgs = prefixed ? args.length - 1 : args.length;
-        if (providedArgs < variablesRequired) {
-            return String.format("Invalid variable count, provided: %d, required: %d", providedArgs, variablesRequired);
+        final Double result = this.evaluate(args);
+        if (result == null) {
+            return this.invalidResult(args);
         }
-
-        final double[] vals = this.convertArray(args, variablesRequired, prefixed);
-        if (vals == null) {
-            return "One of the arguments is an invalid number";
-        }
-
-        final double result = expression.evaluate(vals);
-        if (prefixed) {
-            final String prefix = args[0];
-            if (prefix.endsWith("dp")) {
-                try {
-                    final double nearest = Double.parseDouble(prefix.substring(0, prefix.length() - 2));
-                    return String.valueOf(Math.round(result / nearest));
-                } catch (final Throwable ignored) { return "Invalid DP calculation"; }
-            } else switch (prefix) {
-                case "commas":
-                    return COMMAS_FORMAT.format(result);
-                case "fixed":
-                    return FIXED_FORMAT.format(result);
-                case "formatted":
-                    return formatNumber((long) result);
-            }
-        }
-
-        return new BigDecimal(result).setScale(this.precision, this.mode).stripTrailingZeros().toPlainString();
+        return new BigDecimal(result).setScale(this.precision, this.roundingMode).stripTrailingZeros().toPlainString();
     }
 
-    public double[] convertArray(final String[] args, final int limit, final boolean prefixed) {
+    private String getCommasResult(final OfflinePlayer player, final String[] args) {
+        final Double result = this.evaluate(args);
+        return this.asVariantString(player, result == null ? this.invalidResult(args) : COMMAS_FORMAT.format(result));
+    }
+
+    private String getFixedResult(final OfflinePlayer player, final String[] args) {
+        final Double result = this.evaluate(args);
+        return this.asVariantString(player, result == null ? this.invalidResult(args) : FIXED_FORMAT.format(result));
+    }
+
+    private String getFormattedResult(final OfflinePlayer player, final String[] args) {
+        final Double result = this.evaluate(args);
+        return this.asVariantString(player, result == null ? this.invalidResult(args) : formatNumber(result.longValue()));
+    }
+
+    private Double evaluate(final String[] args) {
+        if (args.length < variablesRequired) {
+            return null;
+        }
+
+        final double[] vals = this.convertArray(args, variablesRequired);
+        if (vals == null) {
+            return null;
+        }
+
+        return expression.evaluate(vals);
+    }
+
+    private String invalidResult(final String[] args) {
+        if (args.length < variablesRequired) {
+            return String.format("Invalid variable count, provided: %d, required: %d", args.length, variablesRequired);
+        }
+        return "One of the arguments is an invalid number";
+    }
+
+    /**
+     * Parses the first {@code limit} arguments as {@code double} values.
+     *
+     * <p>Returns {@code null} if any argument is not a valid number —
+     * the caller is responsible for handling the fallback.</p>
+     *
+     * @param args  the raw string arguments
+     * @param limit how many arguments to parse
+     * @return an array of parsed doubles, or {@code null} on failure
+     */
+    public double[] convertArray(final String[] args, final int limit) {
         final double[] doubleArgs = new double[limit];
         for (int i = 0; i < limit; i++) {
-            final String arg = args[prefixed ? i + 1 : i];
+            final String arg = args[i];
             try {
                 doubleArgs[i] = Double.parseDouble(arg);
             } catch (final NumberFormatException e) {
@@ -112,6 +171,12 @@ public final class MathPlaceholder extends Placeholder {
         return doubleArgs;
     }
 
+    /**
+     * Formats a large number with a configurable suffix (e.g. {@code 1_500 → "1.5k"}).
+     *
+     * <p>Shows one decimal place only when the truncated value is less than 100
+     * and the decimal part is non-zero; otherwise displays an integer plus suffix.</p>
+     */
     @SuppressWarnings("all")
     private String formatNumber(long balance) {
         if (balance == Long.MIN_VALUE) {
@@ -132,20 +197,6 @@ public final class MathPlaceholder extends Placeholder {
         final long truncated = balance / (divideBy / 10);
         boolean hasDecimal = truncated < 100 && (truncated / 10d) != (truncated / 10);
         return hasDecimal ? (truncated / 10d) + suffix : (truncated / 10) + suffix;
-    }
-
-    private boolean isPrefixed(final String[] args) {
-        if (args.length == 0) return false;
-
-        final String arg = args[0].toLowerCase(Locale.ENGLISH);
-        if (arg.endsWith("dp")) {
-            return true;
-        }
-
-        return switch (arg) {
-            case "commas", "fixed", "formatted" -> true;
-            default -> false;
-        };
     }
 
 }

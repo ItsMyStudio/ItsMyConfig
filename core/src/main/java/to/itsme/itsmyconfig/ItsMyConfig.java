@@ -1,46 +1,57 @@
 package to.itsme.itsmyconfig;
 
+<<<<<<< HEAD
 import org.bstats.bukkit.Metrics;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+=======
+import com.github.retrooper.packetevents.PacketEvents;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.bstats.bukkit.Metrics;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.ServicePriority;
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
 import org.bukkit.plugin.java.JavaPlugin;
 import to.itsme.itsmyconfig.api.ItsMyConfigAPI;
 import to.itsme.itsmyconfig.command.CommandManager;
-import to.itsme.itsmyconfig.processor.PacketListener;
-import to.itsme.itsmyconfig.processor.ProcessorManager;
 import to.itsme.itsmyconfig.hook.PAPIHook;
 import to.itsme.itsmyconfig.message.AudienceResolver;
-import to.itsme.itsmyconfig.placeholder.Placeholder;
+import to.itsme.itsmyconfig.migration.MigrationManager;
 import to.itsme.itsmyconfig.placeholder.PlaceholderManager;
-import to.itsme.itsmyconfig.placeholder.PlaceholderType;
 import to.itsme.itsmyconfig.placeholder.type.*;
-import to.itsme.itsmyconfig.placeholder.type.ProgressbarPlaceholder;
-import to.itsme.itsmyconfig.requirement.RequirementManager;
+import to.itsme.itsmyconfig.processor.ConsoleFilter;
+import to.itsme.itsmyconfig.processor.PacketListener;
+import to.itsme.itsmyconfig.processor.ProcessorManager;
 import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Versions;
-import to.itsme.itsmyconfig.processor.ConsoleFilter;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 /**
+<<<<<<< HEAD
  * SeriaPrefix / ItsMyConfig base class for the plugin.
+=======
+ * ItsMyConfig class represents the main configuration class for the plugin.
+ * It extends the JavaPlugin class and provides methods to manage the plugin configuration.
+ * It also holds a PlaceholderManager instance.
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
  */
 public class ItsMyConfig extends JavaPlugin {
 
     protected static ItsMyConfig instance;
     protected static ItsMyConfigAPI api;
 
-    private final PlaceholderManager placeholderManager = new PlaceholderManager();
-    private final RequirementManager requirementManager = new RequirementManager();
+    private final PlaceholderManager placeholderManager = new PlaceholderManager(this);
+    ProcessorManager processorManager;
     private FileConfiguration config;
+    private File placeholdersFolder;
     private String symbolPrefix;
     private boolean debug;
-
-    ProcessorManager processorManager;
     private ConsoleFilter consoleFilter;
 
     /**
@@ -76,17 +87,32 @@ public class ItsMyConfig extends JavaPlugin {
         }
 
         final long start = System.currentTimeMillis();
+        if (!this.init()) {
+            this.getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        this.getLogger().info("ItsMyConfig loaded in " + (System.currentTimeMillis() - start) + "ms");
+    }
+
+    /**
+     * Initializes the plugin, registering services, loading configuration,
+     * and setting up packet listeners and metrics.
+     *
+     * @return {@code true} if initialization succeeded, {@code false} otherwise.
+     */
+    private boolean init() {
         api = new DefaultIMCAPI(this);
         this.getServer().getServicesManager().register(
                 ItsMyConfigAPI.class,
                 api,
                 this,
-                org.bukkit.plugin.ServicePriority.Normal
+                ServicePriority.Normal
         );
         AudienceResolver.load(this);
         List.of("sc", "seriaprefix", "imc", "itsmyconfig").forEach(alias -> new PAPIHook(this, alias).register());
         new CommandManager(this);
 
+        this.placeholdersFolder = new File(this.getDataFolder(), "placeholders");
         this.loadConfig();
 
         new Metrics(this, 21713);
@@ -96,8 +122,7 @@ public class ItsMyConfig extends JavaPlugin {
         final PacketListener listener = this.processorManager.getListener();
         if (listener == null) {
             this.getLogger().warning("No suitable packet listener found. Disabling plugin...");
-            this.getServer().getPluginManager().disablePlugin(this);
-            return;
+            return false;
         }
 
         this.getLogger().info("Using packet listener: " + listener.name());
@@ -106,18 +131,23 @@ public class ItsMyConfig extends JavaPlugin {
         if (getConfig().getBoolean("translate-console")) {
             // Register Console Filter
             this.consoleFilter = new ConsoleFilter();
-            final org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
-            final org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
-            config.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME).addFilter(this.consoleFilter);
+            final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+            final var config = ctx.getConfiguration();
+            config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME).addFilter(this.consoleFilter);
             ctx.updateLoggers();
         }
 
+<<<<<<< HEAD
         this.getLogger().info("SeriaPrefix loaded in " + (System.currentTimeMillis() - start) + "ms");
+=======
+        return true;
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
     }
 
     @Override
     public void onDisable() {
         if (this.consoleFilter != null) {
+<<<<<<< HEAD
             try {
                 final org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
                 final org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
@@ -135,6 +165,12 @@ public class ItsMyConfig extends JavaPlugin {
                 this.processorManager.close();
             } catch (final Throwable ignored) {
             }
+=======
+            final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+            final var config = ctx.getConfiguration();
+            config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME).removeFilter(this.consoleFilter);
+            ctx.updateLoggers();
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
         }
     }
 
@@ -158,20 +194,26 @@ public class ItsMyConfig extends JavaPlugin {
         this.reloadConfigParams();
 
         this.getLogger().info("Using packet serializer: " + IMCSerializer.currentSerializerType().name());
+<<<<<<< HEAD
+=======
+        /* Disable warning temporarily till MM_COPY is stable
+        if (IMCSerializer.currentSerializerType() != SerializerType.MM_COPY) {
+            this.getLogger().warning("Your server is running with an outdated version of the Adventure library. This may be caused by an old server jar or a plugin that includes Adventure without properly relocating it. This can lead to compatibility issues with serialization.");
+        }*/
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
 
         // 8 - 9:  Maps to keep track of registered placeholders and progress bars
         final Map<String, List<String>> placeholderPaths = new HashMap<>();
 
         // 10 - 11: Load and register placeholders and progress bars from the main configuration file
         // 12: Load and register placeholders and progress bars from additional custom .yml files
-        final File folder = new File(this.getDataFolder(), "placeholders");
-        if (folder.mkdirs()) {
+        if (placeholdersFolder.mkdirs()) {
             this.saveResource("placeholders/default.yml", false);
             this.saveResource("placeholders/example.yml", false);
         }
-        
-        this.migrateConfig(folder);
-        this.loadFolder(folder, placeholderPaths);
+
+        new MigrationManager(this).migrate();
+        this.placeholderManager.loadFolder(placeholdersFolder, placeholderPaths);
 
         // 13 - 14: Print all info about duplicated placeholders and bars
         final String listSeparator = "\n   - ";
@@ -200,11 +242,11 @@ public class ItsMyConfig extends JavaPlugin {
 
         // 18: Send the placeholders loaded message
         this.getLogger().info(
-                 String.format(
-                         "Loaded all %d Placeholders in %dms",
-                         placeholderManager.getPlaceholderKeys().size(),
-                         System.currentTimeMillis() - time
-                 )
+                String.format(
+                        "Loaded all %d Placeholders in %dms",
+                        placeholderManager.getPlaceholderKeys().size(),
+                        System.currentTimeMillis() - time
+                )
         );
     }
 
@@ -219,6 +261,7 @@ public class ItsMyConfig extends JavaPlugin {
     }
 
     /**
+<<<<<<< HEAD
      * Recursively loads .yml files from the specified folder.
      */
     private void loadFolder(
@@ -387,6 +430,12 @@ public class ItsMyConfig extends JavaPlugin {
         return path;
     }
 
+=======
+     * Retrieves the symbol prefix.
+     *
+     * @return The symbol prefix used in messages or text.
+     */
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
     public String getSymbolPrefix() {
         return this.symbolPrefix;
     }
@@ -408,8 +457,17 @@ public class ItsMyConfig extends JavaPlugin {
         return this.placeholderManager;
     }
 
+<<<<<<< HEAD
     public RequirementManager getRequirementManager() {
         return this.requirementManager;
+=======
+    /**
+     * Retrieves the folder used to store custom placeholder .yml files.
+     *
+     * @return The placeholders folder (e.g. /plugins/ItsMyConfig/placeholders).
+     */
+    public File getPlaceholdersFolder() {
+        return placeholdersFolder;
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
     }
-
 }

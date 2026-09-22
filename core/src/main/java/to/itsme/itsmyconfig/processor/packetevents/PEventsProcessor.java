@@ -1,23 +1,13 @@
 package to.itsme.itsmyconfig.processor.packetevents;
 
-import com.github.retrooper.packetevents.protocol.chat.message.ChatMessage;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChatMessage;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDisconnect;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSystemChatMessage;
-import net.kyori.adventure.text.Component;
-import org.jetbrains.annotations.NotNull;
-import to.itsme.itsmyconfig.processor.PacketContent;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
 import to.itsme.itsmyconfig.processor.PacketProcessor;
-import to.itsme.itsmyconfig.util.IMCSerializer;
 
-public class PEventsProcessor {
+public interface PEventsProcessor extends PacketProcessor {
 
-    public static final PacketProcessor<WrapperPlayServerChatMessage> CHAT_MESSAGE = new PacketProcessor<>() {
-        @Override
-        public String name() {
-            return "CHAT_MESSAGE";
-        }
+    void process(PacketSendEvent event);
 
+<<<<<<< HEAD
         @Override
         public void edit(WrapperPlayServerChatMessage wrappedPacket, Component component) {
             ChatMessage chatMessage = wrappedPacket.getMessage();
@@ -69,4 +59,6 @@ public class PEventsProcessor {
             return new PacketContent<>(wrappedPacket, this, internal != null ? IMCSerializer.toMiniMessage(internal) : "");
         }
     };
+=======
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
 }

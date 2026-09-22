@@ -52,9 +52,7 @@ public class ConsoleFilter extends AbstractFilter {
                 // Translate the parsed message (which has the prefix removed)
                 Component translated = Utilities.translate(parsed.get());
 
-                // Use AudienceResolver on both Paper and Spigot
-                // Note: Gradients will be converted to single colors in console output
-                // This is a limitation of how BukkitAudiences handles console rendering
+                // Console output is flattened to legacy text, so gradients are not preserved there.
                 AudienceResolver.resolve(org.bukkit.Bukkit.getConsoleSender()).sendMessage(translated);
 
                 // Deny the original message to prevent it from being logged in its raw form

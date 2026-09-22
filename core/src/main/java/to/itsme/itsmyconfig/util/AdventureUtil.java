@@ -1,6 +1,7 @@
 package to.itsme.itsmyconfig.util;
 
 import net.kyori.adventure.text.Component;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -22,8 +23,7 @@ public final class AdventureUtil {
             Class<?> gsonSerializerClass = Class.forName("net{}kyori{}adventure{}text{}serializer{}gson{}GsonComponentSerializer".replace("{}", "."));
             Method gsonMethod = gsonSerializerClass.getMethod("gson");
             gsonSerializer = gsonMethod.invoke(null);
-            serialize = Class.forName("net{}kyori{}adventure{}text{}serializer{}gson{}GsonComponentSerializer".replace("{}", "."))
-                .getMethod("serialize", componentClass);
+            serialize = gsonSerializerClass.getMethod("serialize", componentClass);
             deserialize = gsonSerializer.getClass().getMethod("deserialize", String.class);
             serialize.setAccessible(true);
             deserialize.setAccessible(true);

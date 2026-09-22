@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public final class Reflections {
@@ -13,8 +12,8 @@ public final class Reflections {
     /**
      * Retrieve a field accessor for a specific field type and name.
      *
-     * @param target - the target type.
-     * @param name - the name of the field, or NULL to ignore.
+     * @param target    - the target type.
+     * @param name      - the name of the field, or NULL to ignore.
      * @param fieldType - a compatible field type.
      * @return The field accessor.
      */
@@ -26,7 +25,7 @@ public final class Reflections {
      * Retrieve a field accessor for a specific field type and name.
      *
      * @param className - lookup name of the class, see {@link #getClass(String)}.
-     * @param name - the name of the field, or NULL to ignore.
+     * @param name      - the name of the field, or NULL to ignore.
      * @param fieldType - a compatible field type.
      * @return The field accessor.
      */
@@ -37,7 +36,7 @@ public final class Reflections {
     /**
      * Retrieve a field accessor for a specific field type and name.
      *
-     * @param target - the target type.
+     * @param target    - the target type.
      * @param fieldType - a compatible field type.
      * @return The field accessor.
      */
@@ -48,9 +47,9 @@ public final class Reflections {
     /**
      * Retrieve a field accessor for a specific field type and name.
      *
-     * @param target - the target type.
+     * @param target    - the target type.
      * @param fieldType - a compatible field type.
-     * @param index - the number of compatible fields to skip.
+     * @param index     - the number of compatible fields to skip.
      * @return The field accessor.
      */
     public static <T> FieldAccessor<T> getField(Class<?> target, Class<T> fieldType, int index) {
@@ -62,7 +61,7 @@ public final class Reflections {
      *
      * @param className - lookup name of the class, see {@link #getClass(String)}.
      * @param fieldType - a compatible field type.
-     * @param index - the number of compatible fields to skip.
+     * @param index     - the number of compatible fields to skip.
      * @return The field accessor.
      */
     public static <T> FieldAccessor<T> getField(String className, Class<T> fieldType, int index) {

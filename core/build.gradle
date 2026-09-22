@@ -4,11 +4,16 @@ plugins {
     id "net.kyori.blossom" version "2.1.0"
     id "com.gradleup.shadow" version "9.0.1"
     id "org.jetbrains.gradle.plugin.idea-ext" version "1.1.9"
+    id "dev.iiahmed.lowbyte" version "1.0.0"
 }
 
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        name = "central-snapshots"
+        url = "https://central.sonatype.com/repository/maven-snapshots/"
+    }
     maven {
         name = "codemc"
         url = "https://repo.codemc.io/repository/maven-releases/"
@@ -37,9 +42,13 @@ repositories {
         name = "jitpack"
         url = "https://jitpack.io"
     }
+    maven {
+        name = "gravemc"
+        url = "https://repo.gravemc.net/releases/"
+    }
 }
 
-def imperatVersion = "1.9.6"
+def imperatVersion = "4.0.0-SNAPSHOT"
 dependencies {
     // api ->
     implementation project(":api")
@@ -47,34 +56,48 @@ dependencies {
     //adventure ->
     implementation "${kyori(KyoriModule.MINI_MESSAGE)}"
     implementation "${kyori(KyoriModule.GSON_SERIALIZER)}"
+<<<<<<< HEAD
     implementation "${kyori(KyoriModule.LEGACY_SERIALIZER)}"
     
+=======
+    implementation "${kyori(KyoriModule.PLAIN_SERIALIZER)}"
+    implementation "${kyori(KyoriModule.LEGACY_SERIALIZER)}"
+    implementation "${kyori(KyoriModule.LEGACY_SERIALIZER_IMPL)}"
+
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
     implementation "${kyoriPlatform(KyoriModule.BUKKIT)}"
 
     // imperat ->
-    implementation "dev.velix:imperat-core:${imperatVersion}"
-    implementation "dev.velix:imperat-bukkit:${imperatVersion}"
+    implementation "studio.mevera:imperat-core:${imperatVersion}"
+    implementation "studio.mevera:imperat-bukkit:${imperatVersion}"
+
+    // imperat ->
+    implementation "dev.dejvokep:boosted-yaml-imc:1.3.7"
+    implementation "dev.dejvokep:boosted-yaml-spigot:1.5"
 
     // other ->
     implementation "org.bstats:bstats-bukkit:3.0.2"
     implementation "com.github.Redempt:Crunch:2.0.3"
     implementation "com.github.technicallycoded:FoliaLib:0.4.3"
     implementation "com.alessiodp.libby:libby-bukkit:2.0.0-SNAPSHOT"
+<<<<<<< HEAD
     compileOnly "com.github.retrooper:packetevents-spigot:2.13.0"
     testImplementation "com.github.retrooper:packetevents-spigot:2.13.0"
+=======
+    implementation "com.github.retrooper:packetevents-spigot:2.13.0"
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
 
     compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
     compileOnly "org.apache.logging.log4j:log4j-core:2.17.1"
     compileOnly "net.dmulloy2:ProtocolLib:5.4.0"
     compileOnly "me.clip:placeholderapi:2.11.6"
-    
+
     testImplementation("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     testImplementation("${kyori(KyoriModule.MINI_MESSAGE)}")
-    testImplementation("${kyoriPlatform(KyoriModule.BUKKIT)}")
 
     testImplementation(platform('org.junit:junit-bom:5.13.4'))
-	testImplementation('org.junit.jupiter:junit-jupiter')
-	testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -91,8 +114,8 @@ tasks.named('shadowJar') {
 test {
     useJUnitPlatform()
     testLogging {
-		events "passed", "skipped", "failed"
-	}
+        events "passed", "skipped", "failed"
+    }
 }
 
 processResources {
@@ -105,13 +128,46 @@ processResources {
 }
 
 def shadePath = "to.itsme.itsmyconfig.shade."
+def shadedJarName = "ItsMyConfig-${project.version}-shaded.jar"
 shadowJar {
+<<<<<<< HEAD
     relocate("com.tcoded.folialib", "${shadePath}folialib")
     relocate("redempt.crunch", "${shadePath}crunch")
     relocate("dev.velix.imperat", "${shadePath}imperat")
     relocate("org.bstats", "${shadePath}bstats")
     relocate("com.alessiodp.libby", "${shadePath}libby")
     archiveFileName = "SeriaPrefix-${project.version}.jar"
+=======
+    manifest {
+        attributes("paperweight-mappings-namespace": "mojang")
+    }
+    relocate("net.kyori", "${shadePath}kyori")
+    relocate("org.bstats", "${shadePath}bstats")
+    relocate("redempt.crunch", "${shadePath}crunch")
+    relocate("com.alessiodp.libby", "${shadePath}libby")
+    relocate("com.tcoded.folialib", "${shadePath}folialib")
+    relocate("studio.mevera.imperat", "${shadePath}imperat")
+    relocate("dev.dejvokep.boostedyaml", "${shadePath}boostedyaml")
+    relocate("com.github.retrooper.packetevents", "${shadePath}packetevents")
+    relocate("io.github.retrooper.packetevents", "${shadePath}iopacketevents")
+
+    // rename outcome jar
+    archiveFileName = shadedJarName
+}
+
+// Sources are compiled at Java 21, but the plugin has to load on Java 17 servers,
+// so the *shaded* jar is rewritten down to class file version 61.
+lowbyte {
+    targetJavaVersion = 17
+    jarFilePattern = "libs/${shadedJarName}"
+}
+
+tasks.named('downgradeBytecode') {
+    // The plugin defaults to the thin `jar`; this has to consume the shaded one,
+    // relocations and bundled dependencies included.
+    dependsOn tasks.named('shadowJar')
+    outputJar = layout.buildDirectory.file("libs/ItsMyConfig-${project.version}.jar")
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
 }
 
 sourceSets {

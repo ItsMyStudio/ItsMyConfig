@@ -24,6 +24,13 @@ public abstract class FontImpl implements Font {
         return component.replaceText(config);
     }
 
+    /**
+     * Constructs a {@link TextReplacementConfig} that matches each letter
+     * individually via {@link Strings#LETTERS_PATTERN} and replaces it using
+     * this font's {@link #apply(String)} transformation.
+     *
+     * <p>Non-letter characters pass through unchanged.</p>
+     */
     private TextReplacementConfig createConfig() {
         final TextReplacementConfig.Builder config = TextReplacementConfig.builder();
         config.match(Strings.LETTERS_PATTERN).replacement((matchResult, builder) -> {

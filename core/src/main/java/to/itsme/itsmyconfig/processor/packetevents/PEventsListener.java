@@ -6,32 +6,29 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChatMessage;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDisconnect;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSystemChatMessage;
-import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Player;
-import to.itsme.itsmyconfig.processor.PacketContent;
 import to.itsme.itsmyconfig.processor.PacketListener;
-import to.itsme.itsmyconfig.processor.PacketProcessor;
-import to.itsme.itsmyconfig.util.IMCSerializer;
-import to.itsme.itsmyconfig.util.Strings;
-import to.itsme.itsmyconfig.util.Utilities;
+import to.itsme.itsmyconfig.processor.packetevents.packet.ActionbarProcessor;
+import to.itsme.itsmyconfig.processor.packetevents.packet.BossBarProcessor;
+import to.itsme.itsmyconfig.processor.packetevents.packet.DisconnectProcessor;
+import to.itsme.itsmyconfig.processor.packetevents.packet.SystemChatMessageProcessor;
+import to.itsme.itsmyconfig.processor.packetevents.packet.title.SubtitleProcessor;
+import to.itsme.itsmyconfig.processor.packetevents.packet.title.TitleProcessor;
 
 import java.util.Map;
-import java.util.Optional;
 
 public class PEventsListener implements PacketListener, com.github.retrooper.packetevents.event.PacketListener {
 
-    private PacketListenerCommon common;
-    private static final String FAIL_MESSAGE_PREFIX = "<color:red><lang:multiplayer.message_not_delivered:";
+    private final Map<PacketType.Play.Server, PEventsProcessor> packetHandlerMap = Map.of(
+            PacketType.Play.Server.SYSTEM_CHAT_MESSAGE, SystemChatMessageProcessor.INSTANCE,
+            PacketType.Play.Server.DISCONNECT, DisconnectProcessor.INSTANCE,
+            PacketType.Play.Server.ACTION_BAR, ActionbarProcessor.INSTANCE,
+            PacketType.Play.Server.BOSS_BAR, BossBarProcessor.INSTANCE,
 
-    /* Cache packet processors for quick access */
-    private final Map<PacketType.Play.Server, PacketProcessor<?>> packetTypeMap = Map.of(
-            /*PacketType.Play.Server.CHAT_MESSAGE, PEventsProcessor.CHAT_MESSAGE,*/
-            PacketType.Play.Server.SYSTEM_CHAT_MESSAGE, PEventsProcessor.SYSTEM_CHAT_MESSAGE,
-            PacketType.Play.Server.DISCONNECT, PEventsProcessor.DISCONNECT
+            // titles
+            PacketType.Play.Server.SET_TITLE_TEXT, TitleProcessor.INSTANCE,
+            PacketType.Play.Server.SET_TITLE_SUBTITLE, SubtitleProcessor.INSTANCE
     );
+    private PacketListenerCommon common;
 
     @Override
     public String name() {
@@ -44,7 +41,6 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void onPacketSend(final PacketSendEvent event) {
         final PacketTypeCommon type = event.getPacketType();
 
@@ -52,11 +48,12 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
             return;
         }
 
-        final PacketProcessor<?> processor = packetTypeMap.get(server);
-        if (processor == null) {
+        final PEventsProcessor handler = packetHandlerMap.get(server);
+        if (handler == null) {
             return;
         }
 
+<<<<<<< HEAD
         Utilities.debug(() -> "################# CHAT PACKET #################\nProcessing packet " + server.name());
 
         // Convert to wrapped packet only once
@@ -118,6 +115,9 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
             Utilities.debug(() -> "Exception while saving packet: ", ex);
         }
         Utilities.debug(() -> Strings.DEBUG_HYPHEN);
+=======
+        handler.process(event);
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
     }
 
     @Override
@@ -126,4 +126,5 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
             PacketEvents.getAPI().getEventManager().unregisterListener(this.common);
         }
     }
+
 }

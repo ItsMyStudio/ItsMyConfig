@@ -1,8 +1,15 @@
 package to.itsme.itsmyconfig.component.event;
 
 import com.google.gson.*;
+<<<<<<< HEAD
 import java.lang.reflect.Type;
+=======
+import net.kyori.adventure.nbt.api.BinaryTagHolder;
+import net.kyori.adventure.text.event.ClickEvent.Payload;
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
 import to.itsme.itsmyconfig.util.Versions;
+
+import java.lang.reflect.Type;
 
 public class ClickEvent {
 
@@ -14,7 +21,27 @@ public class ClickEvent {
     @SuppressWarnings("deprecation")
     public ClickEvent(net.kyori.adventure.text.event.ClickEvent event) {
         this.action = Action.fromName(event.action().toString());
+<<<<<<< HEAD
         this.value = event.value();
+=======
+
+        final Payload payload = event.payload();
+        switch (payload) {
+            case Payload.Text textPayload -> this.value = textPayload.value();
+            case Payload.Int intPayload -> this.value = String.valueOf(intPayload.integer());
+            case Payload.Dialog dialogPayload -> this.value = String.valueOf(dialogPayload.dialog()); // incorrect handling, but prevents errors
+            case Payload.Custom customPayload -> {
+                final BinaryTagHolder holder = customPayload.nbt();
+                if (holder == null) {
+                    this.value = "";
+                } else {
+                    this.value = holder.string();
+                }
+            }
+            default ->
+                    this.value = event.payload().toString(); // another incorrect handling, but should never reach here anyway
+        }
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
     }
 
     public String toMiniMessage() {
@@ -39,14 +66,6 @@ public class ClickEvent {
             this.field = field;
         }
 
-        public String getName() {
-            return name;
-        }
-
-        public String getField() {
-            return field;
-        }
-
         public static Action fromName(String name) {
             for (Action action : values()) {
                 if (action.name.equalsIgnoreCase(name)) {
@@ -54,6 +73,14 @@ public class ClickEvent {
                 }
             }
             return UNKNOWN;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getField() {
+            return field;
         }
     }
 

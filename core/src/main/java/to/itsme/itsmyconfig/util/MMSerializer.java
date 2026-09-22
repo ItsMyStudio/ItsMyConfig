@@ -23,21 +23,17 @@
  */
 package to.itsme.itsmyconfig.util;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.minimessage.internal.parser.TokenParser;
+import net.kyori.adventure.text.minimessage.internal.serializer.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.minimessage.internal.parser.TokenParser;
-import net.kyori.adventure.text.minimessage.internal.serializer.ClaimConsumer;
-import net.kyori.adventure.text.minimessage.internal.serializer.Emitable;
-import net.kyori.adventure.text.minimessage.internal.serializer.QuotingOverride;
-import net.kyori.adventure.text.minimessage.internal.serializer.SerializableResolver;
-import net.kyori.adventure.text.minimessage.internal.serializer.TokenEmitter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static java.util.Objects.requireNonNull;
 
@@ -90,18 +86,6 @@ public final class MMSerializer {
     }
 
     static final class Collector implements TokenEmitter, ClaimConsumer {
-        enum TagState {
-            TEXT(false),
-            MID(true),
-            MID_SELF_CLOSING(true);
-
-            final boolean isTag;
-
-            TagState(final boolean isTag) {
-                this.isTag = isTag;
-            }
-        }
-
         /**
          * mark tag boundaries within the stack, without needing to mess with typing too much.
          */
@@ -110,10 +94,11 @@ public final class MMSerializer {
         private static final char[] TAG_TOKENS = {TokenParser.TAG_END, TokenParser.SEPARATOR};
         private static final char[] SINGLE_QUOTED_ESCAPES = {TokenParser.ESCAPE, '\''};
         private static final char[] DOUBLE_QUOTED_ESCAPES = {TokenParser.ESCAPE, '"'};
-
+        final Set<String> claimedStyleElements = new HashSet<>();
         private final SerializableResolver resolver;
         private final boolean strict;
         private final StringBuilder consumer;
+        @Nullable Emitable componentClaim;
         private String[] activeTags = new String[4];
         private int tagLevel = 0;
         private TagState tagState = TagState.TEXT;
@@ -122,6 +107,37 @@ public final class MMSerializer {
             this.resolver = resolver;
             this.strict = strict;
             this.consumer = consumer;
+        }
+
+        static void appendEscaping(final StringBuilder builder, final String text, final char[] escapeChars, final boolean allowEscapes) {
+            int startIdx = 0;
+            boolean unescapedFound = false;
+
+            for (int i = 0; i < text.length(); i++) {
+                final char test = text.charAt(i);
+                boolean escaped = false;
+                for (final char c : escapeChars) {
+                    if (test == c) {
+                        if (!allowEscapes) {
+                            throw new IllegalArgumentException("Invalid escapable character '" + test + "' found at index " + i + " in string '" + text + "'");
+                        }
+                        escaped = true;
+                        break;
+                    }
+                }
+
+                if (escaped) {
+                    if (unescapedFound) builder.append(text, startIdx, i);
+                    startIdx = i + 1;
+                    builder.append(TokenParser.ESCAPE).append(test);
+                } else {
+                    unescapedFound = true;
+                }
+            }
+
+            if (startIdx < text.length() && unescapedFound) {
+                builder.append(text, startIdx, text.length());
+            }
         }
 
         // state tracking
@@ -157,6 +173,8 @@ public final class MMSerializer {
             }
         }
 
+        // TokenEmitter
+
         void popAll() {
             while (this.tagLevel > 0) {
                 final String tag = this.activeTags[--this.tagLevel];
@@ -172,8 +190,6 @@ public final class MMSerializer {
                 this.tagState = TagState.TEXT;
             }
         }
-
-        // TokenEmitter
 
         @Override
         public @NotNull Collector tag(final @NotNull String token) {
@@ -261,42 +277,13 @@ public final class MMSerializer {
             }
         }
 
-        static void appendEscaping(final StringBuilder builder, final String text, final char[] escapeChars, final boolean allowEscapes) {
-            int startIdx = 0;
-            boolean unescapedFound = false;
-
-            for (int i = 0; i < text.length(); i++) {
-                final char test = text.charAt(i);
-                boolean escaped = false;
-                for (final char c : escapeChars) {
-                    if (test == c) {
-                        if (!allowEscapes) {
-                            throw new IllegalArgumentException("Invalid escapable character '" + test + "' found at index " + i + " in string '" + text + "'");
-                        }
-                        escaped = true;
-                        break;
-                    }
-                }
-
-                if (escaped) {
-                    if (unescapedFound) builder.append(text, startIdx, i);
-                    startIdx = i + 1;
-                    builder.append(TokenParser.ESCAPE).append(test);
-                } else {
-                    unescapedFound = true;
-                }
-            }
-
-            if (startIdx < text.length() && unescapedFound) {
-                builder.append(text, startIdx, text.length());
-            }
-        }
-
         @Override
         public @NotNull Collector pop() {
             this.emitClose(this.popTag(false));
             return this;
         }
+
+        // ClaimCollector
 
         private void emitClose(final @NotNull String tag) {
             // currently: we don't keep any arguments, does it ever make sense to?
@@ -313,11 +300,6 @@ public final class MMSerializer {
                 this.consumer.append(TokenParser.TAG_END);
             }
         }
-
-        // ClaimCollector
-
-        @Nullable Emitable componentClaim;
-        final Set<String> claimedStyleElements = new HashSet<>();
 
         @Override
         public void style(final @NotNull String claimKey, final @NotNull Emitable styleClaim) {
@@ -358,6 +340,18 @@ public final class MMSerializer {
             }
             this.claimedStyleElements.clear();
             return ret;
+        }
+
+        enum TagState {
+            TEXT(false),
+            MID(true),
+            MID_SELF_CLOSING(true);
+
+            final boolean isTag;
+
+            TagState(final boolean isTag) {
+                this.isTag = isTag;
+            }
         }
     }
 

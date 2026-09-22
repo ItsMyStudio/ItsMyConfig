@@ -1,13 +1,9 @@
 package to.itsme.itsmyconfig.processor.protocollib;
 
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.reflect.StructureModifier;
-import com.comphenix.protocol.wrappers.AdventureComponentConverter;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
-import net.kyori.adventure.text.Component;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
+import com.comphenix.protocol.events.PacketEvent;
 import to.itsme.itsmyconfig.processor.PacketProcessor;
+<<<<<<< HEAD
 import to.itsme.itsmyconfig.processor.PacketContent;
 import to.itsme.itsmyconfig.util.*;
 
@@ -123,5 +119,10 @@ public enum PLibProcessor implements PacketProcessor<PacketContainer> {
     PacketContent<PacketContainer> of(final PacketContainer container, final String message) {
         return new PacketContent<>(container, this, message);
     }
+=======
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
 
+public interface PLibProcessor extends PacketProcessor {
+    boolean canHandle(PacketContainer container);
+    void process(PacketEvent event);
 }

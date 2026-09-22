@@ -1,30 +1,45 @@
 package to.itsme.itsmyconfig.command.impl;
 
-import dev.velix.imperat.BukkitSource;
-import dev.velix.imperat.annotations.*;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.bukkit.configuration.Configuration;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
+import studio.mevera.imperat.BukkitCommandSource;
+import studio.mevera.imperat.annotations.types.*;
 import to.itsme.itsmyconfig.ItsMyConfig;
+<<<<<<< HEAD:core/src/main/java/to/itsme/itsmyconfig/command/impl/SeriaPrefixCommand.java
 import to.itsme.itsmyconfig.SeriaPrefix;
+=======
+import to.itsme.itsmyconfig.command.impl.migration.MigrationResult;
+import to.itsme.itsmyconfig.command.impl.migration.MigrationSession;
+import to.itsme.itsmyconfig.command.suggest.MigrationTargetProvider;
+import to.itsme.itsmyconfig.command.suggest.ModifiablePlaceholderProvider;
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5:core/src/main/java/to/itsme/itsmyconfig/command/impl/ItsMyConfigCommand.java
 import to.itsme.itsmyconfig.command.util.PlayerSelector;
 import to.itsme.itsmyconfig.message.AudienceResolver;
+import to.itsme.itsmyconfig.message.Message;
 import to.itsme.itsmyconfig.placeholder.Placeholder;
 import to.itsme.itsmyconfig.placeholder.PlaceholderType;
-import to.itsme.itsmyconfig.message.Message;
+import to.itsme.itsmyconfig.util.Scheduler;
+import to.itsme.itsmyconfig.util.StringMigrator;
 import to.itsme.itsmyconfig.util.Utilities;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
+<<<<<<< HEAD:core/src/main/java/to/itsme/itsmyconfig/command/impl/SeriaPrefixCommand.java
 @Command({"seriaprefix", "sc", "sp", "itsmyconfig"})
 @Permission("seriaprefix.admin")
+=======
+@RootCommand("itsmyconfig")
+@Permission("itsmyconfig.admin")
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5:core/src/main/java/to/itsme/itsmyconfig/command/impl/ItsMyConfigCommand.java
 @SuppressWarnings("deprecation")
 public final class SeriaPrefixCommand {
 
@@ -34,9 +49,9 @@ public final class SeriaPrefixCommand {
         this.plugin = plugin;
     }
 
-    @Usage
+    @Execute
     @SubCommand("help")
-    public void usage(final BukkitSource source) {
+    public void usage(final BukkitCommandSource source) {
         final String message = """
                   <gold><plugin></gold> | Custom Placeholders and Message Formatting
                 
@@ -45,9 +60,16 @@ public final class SeriaPrefixCommand {
                     <gray>• <white>/sc message <gold><target> <message>
                     <gray>• <white>/sc config <gold><placeholder> <value>
                 
+<<<<<<< HEAD:core/src/main/java/to/itsme/itsmyconfig/command/impl/SeriaPrefixCommand.java
                   <gray>• <white>Placeholders: <aqua>%sc_<placeholder>%</aqua>
                   <gray>• <white>Tags: <green><sc:tag></green> <gray>(direct in messages)
                   <gray>• <white>Version: <yellow>%s</yellow>
+=======
+                  <gray>• <white>Project: <aqua>ItsMyStudio
+                  <gray>• <white>Support: <click:open_url:'https://itsmy.studio/discord'><green>itsmy.studio/discord</click>
+                  <gray>• <white>Documentation: <click:open_url:'https://itsmy.studio/docs/itsmyconfig'><green>itsmy.studio/docs/itsmyconfig</click>
+                  <gray>• <white>Developer: <yellow><author> <gray>(%s)
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5:core/src/main/java/to/itsme/itsmyconfig/command/impl/ItsMyConfigCommand.java
                 
                 """.formatted(plugin.getDescription().getVersion());
 
@@ -58,9 +80,16 @@ public final class SeriaPrefixCommand {
         final PluginDescriptionFile description = plugin.getDescription();
 
         final String hoverMessage = """
+<<<<<<< HEAD:core/src/main/java/to/itsme/itsmyconfig/command/impl/SeriaPrefixCommand.java
             <white>Name: <gold>%s
             <white>Version: <gold>%s
             """.formatted(description.getName(), description.getVersion());
+=======
+                <white>Name: <gold>%s
+                <white>Version: <gold>%s
+                <white>Support Server: <gold>https://discord.gg/itsme-to
+                """.formatted(description.getName(), description.getVersion());
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5:core/src/main/java/to/itsme/itsmyconfig/command/impl/ItsMyConfigCommand.java
 
         return TagResolver.resolver("plugin", (argumentQueue, context) -> {
             return Tag.selfClosingInserting(
@@ -72,14 +101,35 @@ public final class SeriaPrefixCommand {
         });
     }
 
+<<<<<<< HEAD:core/src/main/java/to/itsme/itsmyconfig/command/impl/SeriaPrefixCommand.java
+=======
+    private TagResolver authorInfo() {
+        // Create a text block for the hover message
+        final String hoverMessage = """
+                <white>Discord: <aqua>@iiAhmedYT</aqua>
+                <white>Github: <aqua>https://github.com/iiAhmedYT</aqua>
+                """;
+
+        // Return the TagResolver with the author information
+        return TagResolver.resolver("author", (argumentQueue, context) -> Tag.selfClosingInserting(
+                Component.text()
+                        .content("iiAhmedYT")
+                        .decorate(TextDecoration.UNDERLINED)
+                        .hoverEvent(Utilities.MM.deserialize(hoverMessage))
+                        .clickEvent(ClickEvent.openUrl("https://github.com/iiAhmedYT"))
+        ));
+    }
+
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5:core/src/main/java/to/itsme/itsmyconfig/command/impl/ItsMyConfigCommand.java
     @SubCommand("reload")
     @Permission("seriaprefix.reload")
     @Description("Reloads the plugin config")
-    public void reload(final BukkitSource source) {
+    public void reload(final BukkitCommandSource source) {
         plugin.loadConfig();
         Message.RELOAD.send(source);
     }
 
+<<<<<<< HEAD:core/src/main/java/to/itsme/itsmyconfig/command/impl/SeriaPrefixCommand.java
     @SubCommand("messagedirectly")
     @Permission("seriaprefix.message")
     @Description("Sends messages to players")
@@ -97,15 +147,22 @@ public final class SeriaPrefixCommand {
         }
     }
 
+=======
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5:core/src/main/java/to/itsme/itsmyconfig/command/impl/ItsMyConfigCommand.java
     @SubCommand("message")
     @Permission("seriaprefix.message")
     @Description("Sends messages to players")
     public void message(
-            final BukkitSource source,
+            final BukkitCommandSource source,
             final @Named("target") PlayerSelector players,
+            final @Switch("direct") boolean direct,
             final @Named("message") @Greedy String message
     ) {
-        for (final Player player : players) {
+        if (direct) {
+            for (final Player player : players) {
+                player.sendMessage(this.plugin.getSymbolPrefix() + message);
+            }
+        } else for (final Player player : players) {
             final Component component = Utilities.translate(message, player);
             if (!Component.empty().equals(component)) {
                 AudienceResolver.resolve(player).sendMessage(component);
@@ -121,7 +178,7 @@ public final class SeriaPrefixCommand {
     @Permission("seriaprefix.parse")
     @Description("Parse messages as players")
     public void parse(
-            final BukkitSource source,
+            final BukkitCommandSource source,
             final @Named("target") PlayerSelector players,
             final @Named("message") @Greedy String message
     ) {
@@ -140,7 +197,7 @@ public final class SeriaPrefixCommand {
     @SubCommand("debug")
     @Permission("seriaprefix.debug")
     @Description("Toggles debug mode for messages (not permanent)")
-    public void debug(final BukkitSource source) {
+    public void debug(final BukkitCommandSource source) {
         final boolean debug = plugin.toggleDebug();
         final String message = debug ? "<green>Debug mode enabled!</green>" : "<red>Debug mode disabled!</red>";
         AudienceResolver.send(source, Utilities.MM.deserialize(message));
@@ -155,11 +212,11 @@ public final class SeriaPrefixCommand {
     @Permission("seriaprefix.config")
     @Description("Sets config values for placeholder")
     public void config(
-            final BukkitSource source,
-            @SuggestionProvider("ModifiablePlaceholder") final Placeholder placeholder,
+            final BukkitCommandSource source,
+            @SuggestionProvider(ModifiablePlaceholderProvider.class) final Placeholder placeholder,
             @Named("value") @Greedy final String value
     ) {
-        final ConfigurationSection section = placeholder.getConfigurationSection();
+        final Section section = placeholder.getConfigSection();
         final PlaceholderType type = PlaceholderType.find(section.getString("type"));
         if (type == PlaceholderType.ANIMATION || type == PlaceholderType.RANDOM) {
             AudienceResolver.send(source, Utilities.MM.deserialize("<red>Placeholder <yellow>" + placeholder + "</yellow>'s type is not supported via commands.</red>"));
@@ -167,34 +224,111 @@ public final class SeriaPrefixCommand {
         }
 
         section.set("value", value);
-        final Configuration root = section.getRoot();
-        if (root instanceof YamlConfiguration conf) {
-            try {
-                conf.save(placeholder.getFilePath());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        final YamlDocument root = section.getRoot();
+        try {
+            root.save();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         AudienceResolver.send(source, Utilities.MM.deserialize("<green>Placeholder <yellow>" + section.getName() + "</yellow>'s value was updated successfully!</green>"));
         if (!placeholder.reloadFromSection()) this.reload(source);
     }
 
+<<<<<<< HEAD:core/src/main/java/to/itsme/itsmyconfig/command/impl/SeriaPrefixCommand.java
     @Command("message")
     @Permission("seriaprefix.message")
     public void msgCommand(
             final BukkitSource source,
             final @Named("target") PlayerSelector players,
             final @Named("message") @Greedy String message
+=======
+    @SubCommand("migrate")
+    @Permission("itsmyconfig.migrate")
+    @Description("Migrates old placeholders to new format")
+    public void migrate(
+            final BukkitCommandSource source,
+            final @SuggestionProvider(MigrationTargetProvider.class)
+            @Named("target") @Greedy String target,
+            @Switch("shallow") boolean shallow
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5:core/src/main/java/to/itsme/itsmyconfig/command/impl/ItsMyConfigCommand.java
     ) {
-        this.message(source, players, message);
+        Scheduler.runAsync(wrappedTask -> {
+            final File pluginsDir = plugin.getDataFolder().getParentFile();
+            final File resolved = new File(pluginsDir, target);
+
+            if (!resolved.exists()) {
+                AudienceResolver.send(source, Utilities.MM.deserialize(
+                        "<red>Target not found: <yellow>" + target + "</yellow></red>"
+                ));
+                return;
+            }
+
+            AudienceResolver.send(source, Utilities.MM.deserialize(
+                    "<gray>Starting migration for <yellow>" + target + "</yellow>...</gray>"
+            ));
+
+            final StringMigrator migrator = new StringMigrator(plugin.getPlaceholderManager());
+            final MigrationSession session = new MigrationSession(migrator, pluginsDir);
+            final List<MigrationResult> results = session.run(target, !shallow);
+
+            // tally
+            int totalChanged = 0;
+            int totalFiles = 0;
+            int totalSkipped = 0;
+
+            for (final MigrationResult result : results) {
+                if (result.skipped()) {
+                    totalSkipped++;
+                    // always warn about skipped files
+                    AudienceResolver.send(source, Utilities.MM.deserialize(
+                            "<red>Skipped <yellow>" + result.file().getName() +
+                                    "</yellow>: " + result.skipReason() + "</red>"
+                    ));
+                } else {
+                    if (result.stringsChanged() > 0) {
+                        totalFiles++;
+                        totalChanged += result.stringsChanged();
+                    }
+                    if (plugin.isDebug()) {
+                        final String msg = result.stringsChanged() > 0
+                                ? "<gray>Migrated <white>" + result.stringsChanged() +
+                                "</white> string(s) in <yellow>" + result.file().getName() + "</yellow></gray>"
+                                : "<dark_gray>No changes in " + result.file().getName() + "</dark_gray>";
+                        AudienceResolver.send(source, Utilities.MM.deserialize(msg));
+                    }
+                }
+            }
+
+            AudienceResolver.send(source, Utilities.MM.deserialize(
+                    "<green>Migration complete!</green> <gray>Changed <white>" + totalChanged +
+                            "</white> string(s) across <white>" + totalFiles +
+                            "</white> file(s), skipped <white>" + totalSkipped + "</white>.</gray>"
+            ));
+        });
     }
 
+<<<<<<< HEAD:core/src/main/java/to/itsme/itsmyconfig/command/impl/SeriaPrefixCommand.java
     @Command("config")
     @Permission("seriaprefix.config")
+=======
+    @RootCommand("message")
+    @Permission("itsmyconfig.message")
+    public void msgCommand(
+            final BukkitCommandSource source,
+            final @Named("target") PlayerSelector players,
+            final @Switch("direct") boolean direct,
+            final @Named("message") @Greedy String message
+    ) {
+        this.message(source, players, direct, message);
+    }
+
+    @RootCommand("config")
+    @Permission("itsmyconfig.config")
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5:core/src/main/java/to/itsme/itsmyconfig/command/impl/ItsMyConfigCommand.java
     public void configCommand(
-            final BukkitSource source,
-            @SuggestionProvider("ModifiablePlaceholder") final Placeholder placeholder,
+            final BukkitCommandSource source,
+            @SuggestionProvider(ModifiablePlaceholderProvider.class) final Placeholder placeholder,
             @Named("value") @Greedy final String value
     ) {
         this.config(source, placeholder, value);
