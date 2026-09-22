@@ -1,4 +1,18 @@
+<<<<<<< HEAD
 rootProject.name = 'seriaprefix'
+=======
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven {
+            name = "gravemc"
+            url = "https://repo.gravemc.net/releases/"
+        }
+    }
+}
+
+rootProject.name = 'itsmyconfig'
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
 
 include 'api'
 include 'core'

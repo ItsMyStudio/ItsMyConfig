@@ -1,37 +1,21 @@
 package to.itsme.itsmyconfig.processor;
 
-import net.kyori.adventure.text.Component;
-import org.jetbrains.annotations.Nullable;
-
 /**
- * Represents a packet that has been unpacked.
- *
- * @param <C> The packet container type.
+ * Base interface for all packet processors.
+ * <p>
+ * Each packet type that can be intercepted and modified must have a corresponding
+ * implementation of this interface. Implementations should be stateless singletons
+ * exposing a {@code public static final} {@code INSTANCE} field.
  */
-public interface PacketProcessor<C> {
+public interface PacketProcessor {
 
     /**
-     * Gets the name of the packet processor.
+     * Returns a human-readable identifier for this processor.
+     * <p>
+     * Used in debug output and for diagnostic purposes.
      *
-     * @return The name.
+     * @return the processor name (e.g. {@code "SYSTEM_CHAT_MESSAGE"}, {@code "TITLE"})
      */
     String name();
-
-    /**
-     * Edits the packet container with the given component.
-     *
-     * @param container The packet container.
-     * @param component The component to edit with.
-     */
-    void edit(final C container, final Component component);
-
-    /**
-     * Unpacks the packet container into a {@link PacketContent}.
-     *
-     * @param container The packet container.
-     * @return The unpacked packet.
-     */
-    @Nullable
-    PacketContent<C> unpack(final C container);
 
 }

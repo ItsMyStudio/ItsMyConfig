@@ -1,6 +1,8 @@
 # ItsMyConfig ![Minecraft Version](https://img.shields.io/badge/Minecraft-1.16.5+-blue.svg) ![Plugin Version](https://img.shields.io/badge/version-4.2.0-green.svg)
 
-Welcome to the official GitHub repository for the ItsMyConfig plugin! This plugin is designed to enhance your Minecraft server configuration, offering extensive support for MiniMessage, PlaceholderAPI, and Custom Tags across any message within your plugins.
+Welcome to the official GitHub repository for the ItsMyConfig plugin! This plugin is designed to enhance your Minecraft
+server configuration, offering extensive support for MiniMessage, PlaceholderAPI, and Custom Tags across any message
+within your plugins.
 
 ## :sparkles: Features
 
@@ -20,7 +22,8 @@ After downloading, add the plugin to your server's plugin directory.
 
 ## :wrench: Configuration
 
-Begin by setting the `symbol-prefix` in `config.yml` (default is `$`). This prefix will allow ItsMyConfig to recognize and enhance messages with the desired features.
+Begin by setting the `symbol-prefix` in `config.yml` (default is `$`). This prefix will allow ItsMyConfig to recognize
+and enhance messages with the desired features.
 
 Examples of configuration can be found in the provided YAML snippets throughout the documentation.
 
@@ -41,12 +44,15 @@ For support, suggestions, or feature requests, visit our support channel:
 
 [Get Support](https://itsmy.studio/discord)
 
-Interested in contributing? We welcome contributions of all forms. Please feel free to fork the repository, make changes, and submit a pull request. Your contributions help make ItsMyConfig even better!
+Interested in contributing? We welcome contributions of all forms. Please feel free to fork the repository, make
+changes, and submit a pull request. Your contributions help make ItsMyConfig even better!
 
 ## :clap: Acknowledgements
 
-A big thank you to everyone who has contributed to the development and advancement of ItsMyConfig. Your support and contributions make this project possible!
+A big thank you to everyone who has contributed to the development and advancement of ItsMyConfig. Your support and
+contributions make this project possible!
 
 ---
 
-We are always open to feedback and suggestions to improve the plugin. Don't hesitate to reach out or contribute to the repository!
+We are always open to feedback and suggestions to improve the plugin. Don't hesitate to reach out or contribute to the
+repository!

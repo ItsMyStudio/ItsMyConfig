@@ -1,21 +1,31 @@
 allprojects {
     group = "to.itsme"
+<<<<<<< HEAD
     version = "4.3.2"
     description = "SeriaPrefix"
 
     ext {
         kyoriVersion = "4.19.0"
         kyoriPlatformVersion = "4.4.1"
+=======
+    version = "5.0.0"
+    description = "ItsMyConfig"
+
+    ext {
+        kyoriVersion = "5.2.0"
+        kyoriPlatformVersion = "1.0.2"
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
 
         kyori = { String module ->
             return "net.kyori:adventure-" + module + ":" + kyoriVersion
         }
 
         kyoriPlatform = { String module ->
-            return "net.kyori:adventure-" + module + ":" + kyoriPlatformVersion
+            return "studio.mevera.adventure:adventure-" + module + ":" + kyoriPlatformVersion
         }
 
         KyoriModule = [
+<<<<<<< HEAD
                 API              : "api",
                 BUKKIT           : "platform-bukkit",
                 BUNGEE           : "platform-bungeecord",
@@ -24,6 +34,18 @@ allprojects {
                 GSON_SERIALIZER  : "text-serializer-gson",
                 LEGACY_SERIALIZER: "text-serializer-legacy",
                 BUNGEE_SERIALIZER: "text-serializer-bungeecord"
+=======
+                API                   : "api",
+                BUKKIT                : "platform-bukkit",
+                BUNGEE                : "platform-bungeecord",
+                SPONGE                : "platform-spongeapi",
+                MINI_MESSAGE          : "text-minimessage",
+                GSON_SERIALIZER       : "text-serializer-gson",
+                PLAIN_SERIALIZER      : "text-serializer-plain",
+                LEGACY_SERIALIZER     : "text-serializer-legacy",
+                BUNGEE_SERIALIZER     : "text-serializer-bungeecord",
+                LEGACY_SERIALIZER_IMPL: "text-serializer-json-legacy-impl"
+>>>>>>> 39afa1f44463bd1462b2497b6820e2ee86437eb5
         ]
     }
 }
