@@ -67,7 +67,7 @@ dependencies {
     implementation "studio.mevera:imperat-core:${imperatVersion}"
     implementation "studio.mevera:imperat-bukkit:${imperatVersion}"
 
-    // imperat ->
+    // boosted yaml ->
     implementation "dev.dejvokep:boosted-yaml-imc:1.3.7"
     implementation "dev.dejvokep:boosted-yaml-spigot:1.5"
 
