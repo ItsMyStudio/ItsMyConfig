@@ -20,6 +20,9 @@ public class SubtitleProcessor implements PEventsProcessor {
     @Override
     public void process(final PacketSendEvent event) {
         PacketUtil.startDebug(this);
+        if (!PacketUtil.mayNeedProcessing(event)) {
+            return;
+        }
         final WrapperPlayServerSetTitleSubtitle wrapper = new WrapperPlayServerSetTitleSubtitle(event);
         final Component result = PacketUtil.processComponent(event.getPlayer(), wrapper.getSubtitle());
         if (result == null) {

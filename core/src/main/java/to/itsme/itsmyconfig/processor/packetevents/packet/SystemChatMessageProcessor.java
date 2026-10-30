@@ -20,6 +20,9 @@ public class SystemChatMessageProcessor implements PEventsProcessor {
     @Override
     public void process(final PacketSendEvent event) {
         PacketUtil.startDebug(this);
+        if (!PacketUtil.mayNeedProcessing(event)) {
+            return;
+        }
         final WrapperPlayServerSystemChatMessage wrapper = new WrapperPlayServerSystemChatMessage(event);
         final Component result = PacketUtil.processComponent(event.getPlayer(), wrapper.getMessage());
 
