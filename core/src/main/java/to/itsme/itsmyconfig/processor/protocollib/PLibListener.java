@@ -15,6 +15,7 @@ import to.itsme.itsmyconfig.processor.protocollib.packet.WrappedComponentProcess
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Utilities;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,11 +39,29 @@ public final class PLibListener extends PacketAdapter implements PacketListener 
         super(
                 plugin,
                 ListenerPriority.NORMAL,
-                PacketType.Play.Server.CHAT,
-                PacketType.Play.Server.SYSTEM_CHAT,
-                PacketType.Play.Server.KICK_DISCONNECT
+                supportedTypes(
+                        PacketType.Play.Server.CHAT,
+                        PacketType.Play.Server.SYSTEM_CHAT,
+                        PacketType.Play.Server.KICK_DISCONNECT,
+                        // 1.17+ split these out of the old TITLE packet. Each one
+                        // carries a single text component, so the existing
+                        // processors handle them as they are.
+                        PacketType.Play.Server.SET_ACTION_BAR_TEXT,
+                        PacketType.Play.Server.SET_TITLE_TEXT,
+                        PacketType.Play.Server.SET_SUBTITLE_TEXT
+                )
         );
         this.cacheProcessors = cacheProcessors;
+    }
+
+    private static List<PacketType> supportedTypes(final PacketType... types) {
+        final List<PacketType> supported = new ArrayList<>(types.length);
+        for (final PacketType type : types) {
+            if (type.isSupported()) {
+                supported.add(type);
+            }
+        }
+        return supported;
     }
 
     @Override
