@@ -6,6 +6,8 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
+import org.bukkit.plugin.Plugin;
 import to.itsme.itsmyconfig.processor.PacketListener;
 import to.itsme.itsmyconfig.processor.packetevents.packet.ActionbarProcessor;
 import to.itsme.itsmyconfig.processor.packetevents.packet.BossBarProcessor;
@@ -28,7 +30,26 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
             PacketType.Play.Server.SET_TITLE_TEXT, TitleProcessor.INSTANCE,
             PacketType.Play.Server.SET_TITLE_SUBTITLE, SubtitleProcessor.INSTANCE
     );
+    private final Plugin plugin;
     private PacketListenerCommon common;
+
+    public PEventsListener(final Plugin plugin) {
+        this.plugin = plugin;
+    }
+
+    /**
+     * Creates and loads the shaded PacketEvents instance, once.
+     * <p>
+     * Loading injects netty handlers into the server channel (and so into every
+     * new connection), so only call this when PacketEvents is the listener that
+     * will actually be used. Normally called from {@code onLoad}.
+     */
+    public static void loadPacketEvents(final Plugin plugin) {
+        if (PacketEvents.getAPI() == null) {
+            PacketEvents.setAPI(SpigotPacketEventsBuilder.build(plugin));
+        }
+        PacketEvents.getAPI().load();
+    }
 
     @Override
     public String name() {
@@ -37,6 +58,9 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
 
     @Override
     public void load() {
+        // Normally already done in onLoad. This covers a listener choice that
+        // changed between onLoad and onEnable (for example a config migration).
+        loadPacketEvents(plugin);
         PacketEvents.getAPI().init();
         this.common = PacketEvents.getAPI().getEventManager().registerListener(this, PacketListenerPriority.NORMAL);
     }
