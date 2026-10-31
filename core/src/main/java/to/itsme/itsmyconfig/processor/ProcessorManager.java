@@ -5,7 +5,6 @@ import org.bukkit.plugin.PluginManager;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.processor.packetevents.PEventsListener;
 import to.itsme.itsmyconfig.processor.protocollib.PLibListener;
-import to.itsme.itsmyconfig.util.reflect.Reflections;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +32,7 @@ public class ProcessorManager {
 
         final Map<String, Integer> availableListeners = new HashMap<>();
 
-        if (Reflections.findClass("to{}itsme{}itsmyconfig{}shade{}packetevents.PacketEvents")) {
+        if (manager.getPlugin("packetevents") != null) {
             int priority = configSection.getInt("PacketEvents.priority", Integer.MAX_VALUE);
             availableListeners.put("PacketEvents", priority);
         }

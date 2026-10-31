@@ -37,8 +37,8 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
 
     @Override
     public void load() {
-        PacketEvents.getAPI().init();
-        this.common = PacketEvents.getAPI().getEventManager().registerListener(this, PacketListenerPriority.NORMAL);
+        // LOWEST runs first, so listeners of other plugins see the translated text
+        this.common = PacketEvents.getAPI().getEventManager().registerListener(this, PacketListenerPriority.LOWEST);
     }
 
     @Override
@@ -60,7 +60,6 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
     @Override
     public void close() {
         PacketEvents.getAPI().getEventManager().unregisterListener(this.common);
-        PacketEvents.getAPI().terminate();
     }
 
 }
