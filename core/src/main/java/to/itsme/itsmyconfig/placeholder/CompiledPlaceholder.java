@@ -9,8 +9,11 @@ public record CompiledPlaceholder(
 ) {
 
     public boolean accepts(final int arguments) {
-        return arguments >= this.minArguments
-                && (this.maxArguments == -1 || arguments <= this.maxArguments);
+        return arguments >= this.minArguments && (this.maxArguments == -1 || arguments <= this.maxArguments);
+    }
+
+    public boolean denies(final int arguments) {
+        return !this.accepts(arguments);
     }
 
     public String invalidArgumentsMessage(final int arguments) {

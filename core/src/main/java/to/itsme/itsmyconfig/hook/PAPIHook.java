@@ -227,14 +227,14 @@ public final class PAPIHook extends PlaceholderExpansion {
         }
 
         if (colonIndex == -1) {
-            if (!compiled.accepts(0)) {
+            if (compiled.denies(0)) {
                 return compiled.invalidArgumentsMessage(0);
             }
             return compiled.caller().call(player);
         }
 
         final String[] args = Strings.extractArguments(params.substring(colonIndex + 1));
-        if (!compiled.accepts(args.length)) {
+        if (compiled.denies(args.length)) {
             return compiled.invalidArgumentsMessage(args.length);
         }
 

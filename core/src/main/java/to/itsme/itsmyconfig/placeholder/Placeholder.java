@@ -8,7 +8,6 @@ import to.itsme.itsmyconfig.util.Strings;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * The PlaceholderData class is an abstract class that represents the basic structure of a placeholder data object.
@@ -193,8 +192,8 @@ public abstract class Placeholder {
         for (final Integer argument : this.arguments) {
             final int index = argument + skippedParams;
             if (index >= params.length) continue;
-            // Dollar signs are quoted before using replaceAll
-            output = output.replaceAll(Pattern.quote("{" + argument + "}"), params[index].replace("$", "\\$"));
+            // String.replace is literal, so no regex quoting or replacement escaping is needed
+            output = output.replace("{" + argument + "}", params[index]);
         }
 
         return output;

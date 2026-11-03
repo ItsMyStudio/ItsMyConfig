@@ -4,12 +4,10 @@ import net.kyori.adventure.text.Component;
 import to.itsme.itsmyconfig.component.AbstractComponent;
 
 import java.util.function.Function;
-import java.util.regex.Pattern;
 
 @SuppressWarnings("all")
 public class IMCSerializer {
 
-    private static final Pattern CLOSE_COLOR_TAG = Pattern.compile("(</#[0-9A-Fa-f]{6}>)+$");
     /**
      * A serializer that converts a JSON String to MiniMessage format.
      */
@@ -51,8 +49,53 @@ public class IMCSerializer {
         return sanitize(COMPONENT_SERIALIZER.apply(component));
     }
 
-    private static String sanitize(final String input) {
-        return CLOSE_COLOR_TAG.matcher(input).replaceAll("");
+    /**
+     * Removes trailing MiniMessage hex-color closing tags ({@code </#RRGGBB>}) from
+     * the serialized output.
+     * <p>
+     * Equivalent to the previous regex-based implementation
+     * ({@code CLOSE_COLOR_TAG.matcher(input).replaceAll("")}), but without allocating
+     * a {@link java.util.regex.Matcher} or entering the regex engine for the common
+     * case of an input that has no trailing color tag.
+     *
+     * @param input the serialized component
+     * @return the input without its trailing hex-color closing tags
+     */
+    static String sanitize(final String input) {
+        if (input == null) {
+            return null;
+        }
+
+        int cut = input.length();
+        while (cut >= 10) {
+            if (input.charAt(cut - 1) != '>'
+                    || input.charAt(cut - 10) != '<'
+                    || input.charAt(cut - 9) != '/'
+                    || input.charAt(cut - 8) != '#') {
+                break;
+            }
+
+            boolean hex = true;
+            for (int i = cut - 7; i <= cut - 2; i++) {
+                if (!isHex(input.charAt(i))) {
+                    hex = false;
+                    break;
+                }
+            }
+            if (!hex) {
+                break;
+            }
+
+            cut -= 10;
+        }
+
+        return cut == input.length() ? input : input.substring(0, cut);
+    }
+
+    private static boolean isHex(final char character) {
+        return (character >= '0' && character <= '9')
+                || (character >= 'a' && character <= 'f')
+                || (character >= 'A' && character <= 'F');
     }
 
     private static Function<String, String> createJsonSerializer(final SerializerType serializerType) {
