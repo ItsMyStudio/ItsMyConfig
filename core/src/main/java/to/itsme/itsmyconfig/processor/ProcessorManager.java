@@ -2,6 +2,7 @@ package to.itsme.itsmyconfig.processor;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
 import to.itsme.itsmyconfig.ItsMyConfig;
 import to.itsme.itsmyconfig.processor.packetevents.PEventsListener;
 import to.itsme.itsmyconfig.processor.protocollib.PLibListener;
@@ -23,6 +24,39 @@ public class ProcessorManager {
     }
 
     public PacketListener decideHandler() {
+        final String chosenPlugin = chooseListener(plugin);
+        if (chosenPlugin == null) {
+            return null;
+        }
+        plugin.getLogger().info("Using packet listener: " + chosenPlugin);
+
+        final ConfigurationSection configSection = plugin.getConfig().getConfigurationSection("listeners");
+        return switch (chosenPlugin) {
+            case "ProtocolLib" -> new PLibListener(
+                    plugin,
+                    configSection != null && configSection.getBoolean("ProtocolLib.cache-processors", false)
+            );
+            case "PacketEvents" -> new PEventsListener(plugin);
+            default -> {
+                plugin.getLogger().warning("Unknown plugin handler: " + chosenPlugin);
+                yield null;
+            }
+        };
+    }
+
+    /**
+     * Picks the packet library to use, from the {@code listeners} section of
+     * config.yml and the libraries that are available.
+     * <p>
+     * It only reads the config and looks up classes and plugins, so it is safe
+     * to call from {@code onLoad}. This lets the plugin skip loading its shaded
+     * PacketEvents when ProtocolLib is chosen: PacketEvents' {@code load()}
+     * injects netty handlers right away when the server is already bound
+     * (Paper binds the port before plugins load).
+     *
+     * @return "PacketEvents", "ProtocolLib", or {@code null} if neither is available
+     */
+    public static String chooseListener(final JavaPlugin plugin) {
         final PluginManager manager = plugin.getServer().getPluginManager();
         final ConfigurationSection configSection = plugin.getConfig().getConfigurationSection("listeners");
 
@@ -49,21 +83,7 @@ public class ProcessorManager {
 
         final List<Map.Entry<String, Integer>> sorted = new ArrayList<>(availableListeners.entrySet());
         sorted.sort(Map.Entry.comparingByValue());
-
-        final String chosenPlugin = sorted.getFirst().getKey();
-        plugin.getLogger().info("Using packet listener: " + chosenPlugin);
-
-        return switch (chosenPlugin) {
-            case "ProtocolLib" -> new PLibListener(
-                    plugin,
-                    configSection.getBoolean("ProtocolLib.cache-processors", false)
-            );
-            case "PacketEvents" -> new PEventsListener();
-            default -> {
-                plugin.getLogger().warning("Unknown plugin handler: " + chosenPlugin);
-                yield null;
-            }
-        };
+        return sorted.getFirst().getKey();
     }
 
     public void load() {

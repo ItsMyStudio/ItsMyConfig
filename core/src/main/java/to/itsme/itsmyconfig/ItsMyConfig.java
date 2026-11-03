@@ -1,7 +1,5 @@
 package to.itsme.itsmyconfig;
 
-import com.github.retrooper.packetevents.PacketEvents;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.bstats.bukkit.Metrics;
@@ -18,6 +16,7 @@ import to.itsme.itsmyconfig.placeholder.type.*;
 import to.itsme.itsmyconfig.processor.ConsoleFilter;
 import to.itsme.itsmyconfig.processor.PacketListener;
 import to.itsme.itsmyconfig.processor.ProcessorManager;
+import to.itsme.itsmyconfig.processor.packetevents.PEventsListener;
 import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Versions;
@@ -64,8 +63,14 @@ public final class ItsMyConfig extends JavaPlugin {
     @Override
     public void onLoad() {
         instance = this;
-        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
-        PacketEvents.getAPI().load();
+        // Only load the shaded PacketEvents when it is the listener we will use.
+        // Its load() injects into the netty pipeline right away when the server
+        // is already bound (Paper binds the port before plugins load), so
+        // loading it unconditionally added an extra encoder and decoder to every
+        // connection even when ProtocolLib was selected.
+        if ("PacketEvents".equals(ProcessorManager.chooseListener(this))) {
+            PEventsListener.loadPacketEvents(this);
+        }
     }
 
     @Override
