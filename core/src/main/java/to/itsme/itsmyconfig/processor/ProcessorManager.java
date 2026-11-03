@@ -28,7 +28,6 @@ public class ProcessorManager {
         if (chosenPlugin == null) {
             return null;
         }
-        plugin.getLogger().info("Using packet listener: " + chosenPlugin);
 
         final ConfigurationSection configSection = plugin.getConfig().getConfigurationSection("listeners");
         return switch (chosenPlugin) {
