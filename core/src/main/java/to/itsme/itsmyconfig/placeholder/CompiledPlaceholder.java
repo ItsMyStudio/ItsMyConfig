@@ -5,8 +5,19 @@ public record CompiledPlaceholder(
         Placeholder placeholder,
         PlaceholderCaller caller,
         int minArguments,
-        int maxArguments
+        int maxArguments,
+        boolean main
 ) {
+
+    CompiledPlaceholder(
+            String key,
+            Placeholder placeholder,
+            PlaceholderCaller caller,
+            int minArguments,
+            int maxArguments
+    ) {
+        this(key, placeholder, caller, minArguments, maxArguments, key.equals(placeholder.key));
+    }
 
     public boolean accepts(final int arguments) {
         return arguments >= this.minArguments && (this.maxArguments == -1 || arguments <= this.maxArguments);

@@ -195,7 +195,7 @@ public final class Utilities {
                 return Tag.preProcessParsed("Unknown Placeholder");
             }
 
-            if (plugin.getPlaceholderManager().get(name) instanceof ColorPlaceholder colorPlaceholder) {
+            if (compiled.main() && compiled.placeholder() instanceof ColorPlaceholder colorPlaceholder) {
                 return colorPlaceholder.getStyle();
             }
 
