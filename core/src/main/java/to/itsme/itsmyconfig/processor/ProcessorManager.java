@@ -66,7 +66,7 @@ public class ProcessorManager {
 
         final Map<String, Integer> availableListeners = new HashMap<>();
 
-        if (Reflections.findClass("to{}itsme{}itsmyconfig{}shade{}packetevents.PacketEvents")) {
+        if (hasBundledPacketEvents() || manager.getPlugin("packetevents") != null) {
             int priority = configSection.getInt("PacketEvents.priority", Integer.MAX_VALUE);
             availableListeners.put("PacketEvents", priority);
         }
@@ -83,6 +83,14 @@ public class ProcessorManager {
         final List<Map.Entry<String, Integer>> sorted = new ArrayList<>(availableListeners.entrySet());
         sorted.sort(Map.Entry.comparingByValue());
         return sorted.getFirst().getKey();
+    }
+
+    /**
+     * Whether this jar ships its own (shaded) PacketEvents. The jar built with
+     * {@code -PexternalPacketEvents} does not, and uses the PacketEvents plugin instead.
+     */
+    public static boolean hasBundledPacketEvents() {
+        return Reflections.findClass("to{}itsme{}itsmyconfig{}shade{}packetevents.PacketEvents");
     }
 
     public void load() {

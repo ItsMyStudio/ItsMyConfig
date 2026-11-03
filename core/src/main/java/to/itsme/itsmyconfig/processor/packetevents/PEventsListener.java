@@ -9,6 +9,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.bukkit.plugin.Plugin;
 import to.itsme.itsmyconfig.processor.PacketListener;
+import to.itsme.itsmyconfig.processor.ProcessorManager;
 import to.itsme.itsmyconfig.processor.packetevents.packet.ActionbarProcessor;
 import to.itsme.itsmyconfig.processor.packetevents.packet.BossBarProcessor;
 import to.itsme.itsmyconfig.processor.packetevents.packet.DisconnectProcessor;
@@ -45,6 +46,10 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
      * will actually be used. Normally called from {@code onLoad}.
      */
     public static void loadPacketEvents(final Plugin plugin) {
+        // the PacketEvents plugin loads and inits its own instance
+        if (!ProcessorManager.hasBundledPacketEvents()) {
+            return;
+        }
         if (PacketEvents.getAPI() == null) {
             PacketEvents.setAPI(SpigotPacketEventsBuilder.build(plugin));
         }
@@ -62,6 +67,12 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
         // Normally already done in onLoad. This covers a listener choice that
         // changed between onLoad and onEnable (for example a config migration).
         loadPacketEvents(plugin);
+        if (!ProcessorManager.hasBundledPacketEvents()) {
+            // The instance is shared with other plugins, so leave its settings alone.
+            // LOWEST runs first, so listeners of other plugins see the translated text.
+            this.common = PacketEvents.getAPI().getEventManager().registerListener(this, PacketListenerPriority.LOWEST);
+            return;
+        }
         // Unmodified packets must pass through untouched; processors opt in with markForReEncode(true).
         PacketEvents.getAPI().getSettings().reEncodeByDefault(false);
         PacketEvents.getAPI().init();
@@ -87,7 +98,9 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
     @Override
     public void close() {
         PacketEvents.getAPI().getEventManager().unregisterListener(this.common);
-        PacketEvents.getAPI().terminate();
+        if (ProcessorManager.hasBundledPacketEvents()) {
+            PacketEvents.getAPI().terminate();
+        }
     }
 
 }
