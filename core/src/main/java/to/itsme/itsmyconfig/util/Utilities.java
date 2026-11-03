@@ -27,12 +27,13 @@ import to.itsme.itsmyconfig.tag.TagManager;
 import to.itsme.itsmyconfig.tag.adventure.FontTag;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 /**
  * The Utilities class provides various utility methods for performing common tasks.
@@ -194,7 +195,7 @@ public final class Utilities {
                 return Tag.preProcessParsed("Unknown Placeholder");
             }
 
-            if (plugin.getPlaceholderManager().get(name) instanceof ColorPlaceholder colorPlaceholder) {
+            if (compiled.main() && compiled.placeholder() instanceof ColorPlaceholder colorPlaceholder) {
                 return colorPlaceholder.getStyle();
             }
 
@@ -208,7 +209,7 @@ public final class Utilities {
             }
 
             final String[] parsedArgs = args.toArray(new String[0]);
-            if (!compiled.accepts(parsedArgs.length)) {
+            if (compiled.denies(parsedArgs.length)) {
                 return Tag.preProcessParsed(compiled.invalidArgumentsMessage(parsedArgs.length));
             }
 
@@ -241,16 +242,38 @@ public final class Utilities {
     public static Component cleanUp(final Component component) {
         // Clean decorations at this level
         final Map<TextDecoration, TextDecoration.State> decorations = component.decorations();
-        final Map<TextDecoration, TextDecoration.State> cleanedDecorations = decorations.entrySet().stream()
-                .filter(entry -> entry.getValue() != TextDecoration.State.FALSE)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<TextDecoration, TextDecoration.State> cleanedDecorations = decorations;
+        boolean changed = false;
+
+        for (final TextDecoration.State state : decorations.values()) {
+            if (state == TextDecoration.State.FALSE) {
+                cleanedDecorations = new EnumMap<>(TextDecoration.class);
+                for (final Map.Entry<TextDecoration, TextDecoration.State> entry : decorations.entrySet()) {
+                    if (entry.getValue() != TextDecoration.State.FALSE) {
+                        cleanedDecorations.put(entry.getKey(), entry.getValue());
+                    }
+                }
+                changed = true;
+                break;
+            }
+        }
 
         // Recursively clean children
-        final List<Component> cleanedChildren = component.children().stream()
-                .map(Utilities::cleanUp)
-                .collect(Collectors.toList());
+        final List<Component> children = component.children();
+        List<Component> cleanedChildren = children;
+        for (int i = 0; i < children.size(); i++) {
+            final Component child = children.get(i);
+            final Component cleanedChild = cleanUp(child);
+            if (cleanedChild != child) {
+                if (cleanedChildren == children) {
+                    cleanedChildren = new ArrayList<>(children);
+                }
+                cleanedChildren.set(i, cleanedChild);
+                changed = true;
+            }
+        }
 
-        return component.decorations(cleanedDecorations).children(cleanedChildren);
+        return changed ? component.decorations(cleanedDecorations).children(cleanedChildren) : component;
     }
 
     /**
