@@ -125,3 +125,13 @@ jobs:
           name: itsmyconfig-${{ env.PLUGIN_VERSION }}-${{ env.COMMIT_HASH }}
           path: core/build/libs/*.jar
           retention-days: 30
+
+      - name: Build without PacketEvents
+        run: ./gradlew shadowJar -PexternalPacketEvents
+
+      - name: Upload JAR without PacketEvents
+        uses: actions/upload-artifact@v4
+        with:
+          name: itsmyconfig-${{ env.PLUGIN_VERSION }}-${{ env.COMMIT_HASH }}-external-packetevents
+          path: core/build/libs/*-external-packetevents*.jar
+          retention-days: 30

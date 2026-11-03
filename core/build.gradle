@@ -49,6 +49,9 @@ repositories {
 }
 
 def imperatVersion = "4.0.0-SNAPSHOT"
+// -PexternalPacketEvents builds a jar without PacketEvents, for servers that run the PacketEvents plugin
+def bundlePacketEvents = !project.hasProperty("externalPacketEvents")
+
 dependencies {
     // api ->
     implementation project(":api")
@@ -76,7 +79,11 @@ dependencies {
     implementation "com.github.Redempt:Crunch:2.0.3"
     implementation "com.github.technicallycoded:FoliaLib:0.4.3"
     implementation "com.alessiodp.libby:libby-bukkit:2.0.0-SNAPSHOT"
-    implementation "com.github.retrooper:packetevents-spigot:2.14.0"
+    if (bundlePacketEvents) {
+        implementation "com.github.retrooper:packetevents-spigot:2.14.0"
+    } else {
+        compileOnly "com.github.retrooper:packetevents-spigot:2.14.0"
+    }
 
     compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
     compileOnly "org.apache.logging.log4j:log4j-core:2.17.1"
@@ -110,7 +117,7 @@ test {
 }
 
 processResources {
-    def props = [version: version]
+    def props = [version: version, bundlePacketEvents: bundlePacketEvents]
     inputs.properties props
     filteringCharset 'UTF-8'
     filesMatching('plugin.yml') {
@@ -119,7 +126,8 @@ processResources {
 }
 
 def shadePath = "to.itsme.itsmyconfig.shade."
-def shadedJarName = "ItsMyConfig-${project.version}-shaded.jar"
+def jarSuffix = bundlePacketEvents ? "" : "-external-packetevents"
+def shadedJarName = "ItsMyConfig-${project.version}${jarSuffix}-shaded.jar"
 shadowJar {
     manifest {
         attributes("paperweight-mappings-namespace": "mojang")
@@ -131,8 +139,10 @@ shadowJar {
     relocate("com.tcoded.folialib", "${shadePath}folialib")
     relocate("studio.mevera.imperat", "${shadePath}imperat")
     relocate("dev.dejvokep.boostedyaml", "${shadePath}boostedyaml")
-    relocate("com.github.retrooper.packetevents", "${shadePath}packetevents")
-    relocate("io.github.retrooper.packetevents", "${shadePath}iopacketevents")
+    if (bundlePacketEvents) {
+        relocate("com.github.retrooper.packetevents", "${shadePath}packetevents")
+        relocate("io.github.retrooper.packetevents", "${shadePath}iopacketevents")
+    }
 
     // rename outcome jar
     archiveFileName = shadedJarName
@@ -149,7 +159,7 @@ tasks.named('downgradeBytecode') {
     // The plugin defaults to the thin `jar`; this has to consume the shaded one,
     // relocations and bundled dependencies included.
     dependsOn tasks.named('shadowJar')
-    outputJar = layout.buildDirectory.file("libs/ItsMyConfig-${project.version}.jar")
+    outputJar = layout.buildDirectory.file("libs/ItsMyConfig-${project.version}${jarSuffix}.jar")
 }
 
 sourceSets {
