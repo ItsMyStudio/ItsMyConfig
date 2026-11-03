@@ -36,7 +36,9 @@ public class PEventsListener implements PacketListener, com.github.retrooper.pac
     }
 
     @Override
+    @SuppressWarnings("UnstableApiUsage")
     public void load() {
+        PacketEvents.getAPI().getSettings().reEncodeByDefault(false);
         PacketEvents.getAPI().init();
         this.common = PacketEvents.getAPI().getEventManager().registerListener(this, PacketListenerPriority.NORMAL);
     }
