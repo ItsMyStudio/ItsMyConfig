@@ -36,28 +36,6 @@ public final class PacketUtil {
     }
 
     /**
-     * Processes an intercepted {@link Component} through the common
-     * translation pipeline.
-     * <p>
-     * The pipeline performs, in order:
-     * <ol>
-     *   <li>MiniMessage serialisation of the input component</li>
-     *   <li>Null / empty guard</li>
-     *   <li>Undeliverable-message prefix guard (cancellation signal)</li>
-     *   <li>Symbol-prefix scan ({@link Strings#parsePrefixedMessage})</li>
-     *   <li>Placeholder / tag translation via {@link Utilities#translate}</li>
-     *   <li>Empty-result guard (cancellation signal)</li>
-     * </ol>
-     * <p>
-     * All intermediate steps produce debug output through {@link Utilities#debug}.
-     *
-     * @param player    the player who will receive the packet
-     * @param component the component extracted from the raw packet
-     * @return {@code null} if the packet should be left untouched,
-     *         {@link Component#empty()} if the packet should be canceled,
-     *         or the translated component that should replace the original
-     */
-    /**
      * Cheap check on the raw packet bytes before decoding its text.
      * <p>
      * {@link #processComponent} only acts when the text contains the symbol prefix
@@ -74,11 +52,16 @@ public final class PacketUtil {
         if (prefix == null || prefix.isEmpty()) {
             return true;
         }
-        if (!prefix.equals(rawPrefix)) {
-            rawPrefixBytes = escapeFree(prefix) ? prefix.getBytes(StandardCharsets.UTF_8) : null;
-            rawPrefix = prefix;
+        PrefixCache cache = prefixCache;
+        if (cache == null || !prefix.equals(cache.prefix())) {
+            cache = new PrefixCache(
+                    prefix,
+                    escapeFree(prefix) ? prefix.getBytes(StandardCharsets.UTF_8) : null
+            );
+            prefixCache = cache;
         }
-        final byte[] prefixBytes = rawPrefixBytes;
+
+        final byte[] prefixBytes = cache.bytes();
         if (prefixBytes == null) {
             return true;
         }
@@ -89,14 +72,23 @@ public final class PacketUtil {
     }
 
     private static final byte[] FAIL_KEY = "message_not_delivered".getBytes(StandardCharsets.UTF_8);
-    private static volatile String rawPrefix;
-    private static volatile byte[] rawPrefixBytes;
+
+    /**
+     * Immutable snapshot of the prefix bytes, so the prefix and its encoded form
+     * can never be observed out of sync during a configuration reload.
+     */
+    private record PrefixCache(String prefix, byte[] bytes) {}
+
+    private static volatile PrefixCache prefixCache;
 
     // Characters a JSON encoder may escape, and characters whose encoded form is not plain UTF-8.
     private static boolean escapeFree(final String text) {
         for (int i = 0; i < text.length(); i++) {
             final char c = text.charAt(i);
-            if (c < 0x20 || c == 0x7f || "\"\\<>&='".indexOf(c) >= 0 || Character.isSurrogate(c)) {
+            // Only printable ASCII is guaranteed to appear verbatim: a JSON encoder may
+            // escape non-ASCII (Gson always escapes U+2028/U+2029), so fall back to
+            // decoding for anything else.
+            if (c < 0x20 || c > 0x7e || "\"\\<>&='".indexOf(c) >= 0) {
                 return false;
             }
         }
@@ -120,6 +112,28 @@ public final class PacketUtil {
         return false;
     }
 
+    /**
+     * Processes an intercepted {@link Component} through the common
+     * translation pipeline.
+     * <p>
+     * The pipeline performs, in order:
+     * <ol>
+     *   <li>MiniMessage serialisation of the input component</li>
+     *   <li>Null / empty guard</li>
+     *   <li>Undeliverable-message prefix guard (cancellation signal)</li>
+     *   <li>Symbol-prefix scan ({@link Strings#parsePrefixedMessage})</li>
+     *   <li>Placeholder / tag translation via {@link Utilities#translate}</li>
+     *   <li>Empty-result guard (cancellation signal)</li>
+     * </ol>
+     * <p>
+     * All intermediate steps produce debug output through {@link Utilities#debug}.
+     *
+     * @param player    the player who will receive the packet
+     * @param component the component extracted from the raw packet
+     * @return {@code null} if the packet should be left untouched,
+     *         {@link Component#empty()} if the packet should be canceled,
+     *         or the translated component that should replace the original
+     */
     @Nullable
     public static Component processComponent(final Player player, final Component component) {
         final String message = IMCSerializer.toMiniMessage(component);
