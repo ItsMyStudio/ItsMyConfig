@@ -54,29 +54,31 @@ public final class Strings {
      * @return A string with escaped tags based on the given text.
      */
     public static String quote(final String text) {
+        if (!text.contains("<quote")) {
+            return text;
+        }
+
         final Matcher matcher = QUOTE_PATTERN.matcher(text);
         if (!matcher.find()) {
             return text;
         }
 
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder(text.length() + 32);
         int lastEnd = 0;
 
-        matcher.reset();
-        while (matcher.find()) {
+        do { // reuse the find() above instead of reset() + rescanning
             builder.append(text, lastEnd, matcher.start());
 
-            final String propertyString = matcher.group(1) != null ? matcher.group(1) : "";
-            final Set<String> properties = propertyString.isEmpty() ? Collections.emptySet() : Set.of(propertyString.toLowerCase().split(":"));
-            final String content = matcher.group(2) != null ? matcher.group(2) : "";
+            final String propertyString = matcher.group(1);
+            final Set<String> properties = (propertyString == null || propertyString.isEmpty())
+                    ? Collections.emptySet()
+                    : Set.of(propertyString.toLowerCase(Locale.ROOT).split(":"));
 
-            builder.append(escapeTags(content, properties));
-
+            builder.append(escapeTags(matcher.group(2), properties));
             lastEnd = matcher.end();
-        }
+        } while (matcher.find());
 
-        builder.append(text.substring(lastEnd));
-        return builder.toString();
+        return builder.append(text, lastEnd, text.length()).toString();
     }
 
     /**
@@ -118,35 +120,37 @@ public final class Strings {
      */
     private static String escapeTags(final String text, final Set<String> properties) {
         final Matcher matcher = TAG_PATTERN.matcher(text);
-        StringBuilder builder = new StringBuilder();
-        int lastEnd = 0;
+        if (!matcher.find()) {
+            return text; // nothing to escape, no builder needed
+        }
 
         final boolean ignoreColors = properties.contains("ignorecolors");
         final boolean ignoreDecorations = properties.contains("ignoredecorations");
         final boolean ignoreClickables = properties.contains("ignoreclickables");
-        while (matcher.find()) {
-            final String found = matcher.group();
-            final String content = found.substring(1, found.length() - 1);
+        final boolean anyIgnore = ignoreColors || ignoreDecorations || ignoreClickables;
+
+        final StringBuilder builder = new StringBuilder(text.length() + 16);
+        int lastEnd = 0;
+
+        do {
+            builder.append(text, lastEnd, matcher.start());
 
             boolean skip = false;
-            if (ignoreColors && isColor(content)) {
-                skip = true;
-            } else if (ignoreDecorations && isDecoration(content)) {
-                skip = true;
-            } else if (ignoreClickables && content.toLowerCase().startsWith("click")) {
-                skip = true;
+            if (anyIgnore) { // only build the substring when it's actually needed
+                final String content = text.substring(matcher.start() + 1, matcher.end() - 1);
+                skip = (ignoreColors && isColor(content))
+                        || (ignoreDecorations && isDecoration(content))
+                        || (ignoreClickables && startsWithIgnoreCase(content, "click"));
             }
 
-            builder.append(text, lastEnd, matcher.start());
             if (!skip) {
                 builder.append('\\');
             }
-            builder.append(found);
+            builder.append(text, matcher.start(), matcher.end()); // no group() allocation
             lastEnd = matcher.end();
-        }
+        } while (matcher.find());
 
-        builder.append(text.substring(lastEnd));
-        return builder.toString();
+        return builder.append(text, lastEnd, text.length()).toString();
     }
 
     /**
