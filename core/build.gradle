@@ -51,6 +51,11 @@ repositories {
 def imperatVersion = "4.0.0-SNAPSHOT"
 // -PexternalPacketEvents builds a jar without PacketEvents, for servers that run the PacketEvents plugin
 def bundlePacketEvents = !project.hasProperty("externalPacketEvents")
+// Adventure modules that Paper ships, used from the server in the external build
+def serverAdventure = ["adventure-api", "adventure-key", "adventure-text-minimessage",
+                       "adventure-text-serializer-commons", "adventure-text-serializer-gson",
+                       "adventure-text-serializer-json", "adventure-text-serializer-legacy",
+                       "adventure-text-serializer-plain", "option"]
 
 dependencies {
     // api ->
@@ -132,7 +137,15 @@ shadowJar {
     manifest {
         attributes("paperweight-mappings-namespace": "mojang")
     }
-    relocate("net.kyori", "${shadePath}kyori")
+    if (bundlePacketEvents) {
+        relocate("net.kyori", "${shadePath}kyori")
+    } else {
+        // The PacketEvents plugin passes the server's Adventure types (Component etc.), so this jar
+        // must use the same classes: no relocation, and the modules the server provides are left out.
+        dependencies {
+            serverAdventure.each { exclude(dependency("net.kyori:${it}:.*")) }
+        }
+    }
     relocate("org.bstats", "${shadePath}bstats")
     relocate("redempt.crunch", "${shadePath}crunch")
     relocate("com.alessiodp.libby", "${shadePath}libby")
