@@ -28,6 +28,15 @@ public final class Strings {
     private static final Pattern QUOTE_PATTERN = Pattern.compile("<quote(?::([^>]*))?>(.*)</quote>");
 
     /**
+     * {@code <quote:...>} properties, as bits of a single {@code int}. Parsing them into a
+     * mask keeps the per-block cost allocation-free: no {@code split}, no lowercased copy,
+     * no {@code Set} wrapper.
+     */
+    private static final int PROPERTY_IGNORE_COLORS = 1;
+    private static final int PROPERTY_IGNORE_DECORATIONS = 1 << 1;
+    private static final int PROPERTY_IGNORE_CLICKABLES = 1 << 2;
+
+    /**
      * An array of integer values used for converting numbers to Roman numerals.
      */
     private static final int[] values = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
@@ -69,10 +78,7 @@ public final class Strings {
         do { // reuse the find() above instead of reset() + rescanning
             builder.append(text, lastEnd, matcher.start());
 
-            final String propertyString = matcher.group(1);
-            final Set<String> properties = (propertyString == null || propertyString.isEmpty())
-                    ? Collections.emptySet()
-                    : Set.of(propertyString.toLowerCase(Locale.ROOT).split(":"));
+            final int properties = parseProperties(matcher.group(1));
 
             builder.append(escapeTags(matcher.group(2), properties));
             lastEnd = matcher.end();
@@ -112,22 +118,65 @@ public final class Strings {
     }
 
     /**
+     * Parses the {@code <quote:...>} property list into a bitmask, case-insensitively and
+     * without allocating. Unknown or empty properties are ignored; duplicates are harmless.
+     *
+     * @param properties the raw property string ({@code null} when the tag has no properties)
+     * @return a mask of {@code PROPERTY_*} bits
+     */
+    private static int parseProperties(final String properties) {
+        if (properties == null || properties.isEmpty()) {
+            return 0;
+        }
+
+        int mask = 0;
+        int start = 0;
+        while (start <= properties.length()) {
+            int end = properties.indexOf(':', start);
+            if (end < 0) {
+                end = properties.length();
+            }
+
+            if (isProperty(properties, start, end, "ignorecolors")) {
+                mask |= PROPERTY_IGNORE_COLORS;
+            } else if (isProperty(properties, start, end, "ignoredecorations")) {
+                mask |= PROPERTY_IGNORE_DECORATIONS;
+            } else if (isProperty(properties, start, end, "ignoreclickables")) {
+                mask |= PROPERTY_IGNORE_CLICKABLES;
+            }
+
+            start = end + 1;
+        }
+        return mask;
+    }
+
+    private static boolean isProperty(
+            final String properties,
+            final int start,
+            final int end,
+            final String name
+    ) {
+        return end - start == name.length()
+                && properties.regionMatches(true, start, name, 0, name.length());
+    }
+
+    /**
      * Escapes Tags based on the special properties provided.
      *
      * @param text       The text that contains tags to be escaped.
-     * @param properties The properties that the method should follow.
+     * @param properties The property mask built by {@link #parseProperties(String)}.
      * @return The text after escaping tags.
      */
-    private static String escapeTags(final String text, final Set<String> properties) {
+    private static String escapeTags(final String text, final int properties) {
         final Matcher matcher = TAG_PATTERN.matcher(text);
         if (!matcher.find()) {
             return text; // nothing to escape, no builder needed
         }
 
-        final boolean ignoreColors = properties.contains("ignorecolors");
-        final boolean ignoreDecorations = properties.contains("ignoredecorations");
-        final boolean ignoreClickables = properties.contains("ignoreclickables");
-        final boolean anyIgnore = ignoreColors || ignoreDecorations || ignoreClickables;
+        final boolean ignoreColors = (properties & PROPERTY_IGNORE_COLORS) != 0;
+        final boolean ignoreDecorations = (properties & PROPERTY_IGNORE_DECORATIONS) != 0;
+        final boolean ignoreClickables = (properties & PROPERTY_IGNORE_CLICKABLES) != 0;
+        final boolean anyIgnore = properties != 0;
 
         final StringBuilder builder = new StringBuilder(text.length() + 16);
         int lastEnd = 0;
