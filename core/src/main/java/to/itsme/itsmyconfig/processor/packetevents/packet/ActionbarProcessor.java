@@ -20,6 +20,9 @@ public class ActionbarProcessor implements PEventsProcessor {
     @Override
     public void process(final PacketSendEvent event) {
         PacketUtil.startDebug(this);
+        if (!PacketUtil.mayNeedProcessing(event)) {
+            return;
+        }
         final WrapperPlayServerActionBar wrapper = new WrapperPlayServerActionBar(event);
         final Component result = PacketUtil.processComponent(event.getPlayer(), wrapper.getActionBarText());
         if (result == null) {
