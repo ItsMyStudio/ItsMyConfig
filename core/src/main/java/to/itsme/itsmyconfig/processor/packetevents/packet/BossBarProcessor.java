@@ -19,12 +19,12 @@ public class BossBarProcessor implements PEventsProcessor {
 
     @Override
     public void process(final PacketSendEvent event) {
-        PacketUtil.startDebug(this);
         final WrapperPlayServerBossBar wrapper = new WrapperPlayServerBossBar(event);
         if (wrapper.getAction() != WrapperPlayServerBossBar.Action.ADD && wrapper.getAction() != WrapperPlayServerBossBar.Action.UPDATE_TITLE) {
             return;
         }
 
+        PacketUtil.startDebug(this);
         final Component result = PacketUtil.processComponent(event.getPlayer(), wrapper.getTitle());
         if (result == null) {
             return;
