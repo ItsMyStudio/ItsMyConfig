@@ -25,7 +25,7 @@ public final class Strings {
     private static final Pattern COLOR_FILTER = Pattern.compile("[§&][a-zA-Z0-9]");
     private static final Pattern ARGUMENT_PATTERN = Pattern.compile("\\{([0-9]+)}");
     private static final Pattern DIACRITICAL_MARKS_PATTERN = Pattern.compile("\\p{M}");
-    private static final Pattern QUOTE_PATTERN = Pattern.compile("<quote(?::([^>]*))?>(.*)</quote>");
+    private static final Pattern QUOTE_PATTERN = Pattern.compile("<quote(?::([^>]*))?>(.*)</quote>", Pattern.DOTALL);
 
     /**
      * {@code <quote:...>} properties, as bits of a single {@code int}. Parsing them into a
@@ -58,6 +58,9 @@ public final class Strings {
 
     /**
      * Processes a given text and escapes tags based on specified properties.
+     * <p>
+     * A quote block is delimited by its opening and closing tags, not by line
+     * breaks, so it may span multiple lines.
      *
      * @param text The text to be processed for escaping tags.
      * @return A string with escaped tags based on the given text.

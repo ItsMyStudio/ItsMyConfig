@@ -120,6 +120,30 @@ class StringsTest {
     }
 
     @Test
+    void testQuoteSpansNewlines() {
+        // A quote block is delimited by its tags, not by line breaks.
+        String input = "<quote>first line\n<bold>second line</bold></quote>";
+        assertEquals("first line\n\\<bold>second line</bold>", Strings.quote(input));
+
+        // Properties still apply to the whole block.
+        String colored = "<quote:ignorecolors>first line\n<red>second line</red></quote>";
+        assertEquals("first line\n<red>second line</red>", Strings.quote(colored));
+
+        // Escaping must not be bypassable by inserting a line break inside the block.
+        String injected = "<quote>hello\n<click:run_command:/op me>click</click></quote>";
+        assertTrue(Strings.quote(injected).contains("\\<click:run_command:/op me>"));
+    }
+
+    @Test
+    void testQuoteKeepsInjectedClosingTagInsideTheBlock() {
+        // Greedy matching pairs the opening tag with the LAST closing tag, so a
+        // </quote> injected into the quoted content cannot end the block early
+        // and let the tags that follow it through unescaped.
+        String input = "<quote>hello </quote><click:run_command:/op me>click</click></quote>";
+        assertTrue(Strings.quote(input).contains("\\<click:run_command:/op me>"));
+    }
+
+    @Test
     void testIsColor_and_IsDecoration() {
         assertTrue(Strings.isColor("red"));
         assertFalse(Strings.isColor("bold"));
