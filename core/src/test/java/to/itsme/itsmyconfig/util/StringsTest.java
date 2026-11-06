@@ -144,6 +144,16 @@ class StringsTest {
     }
 
     @Test
+    void testQuoteWithoutClosingTagIsUnchanged() {
+        assertEquals("plain", Strings.quote("plain"));
+        assertEquals("<quote", Strings.quote("<quote"));
+        assertEquals("<quote>a", Strings.quote("<quote>a"));
+        assertEquals("<quote:ignorecolors>a <red>b</red>", Strings.quote("<quote:ignorecolors>a <red>b</red>"));
+        // A closing tag before the opening tag is not a block either.
+        assertEquals("</quote><quote>", Strings.quote("</quote><quote>"));
+    }
+
+    @Test
     void testIsColor_and_IsDecoration() {
         assertTrue(Strings.isColor("red"));
         assertFalse(Strings.isColor("bold"));
