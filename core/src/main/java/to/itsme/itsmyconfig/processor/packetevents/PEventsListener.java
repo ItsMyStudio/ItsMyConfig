@@ -16,25 +16,37 @@ import to.itsme.itsmyconfig.processor.packetevents.packet.SystemChatMessageProce
 import to.itsme.itsmyconfig.processor.packetevents.packet.title.SubtitleProcessor;
 import to.itsme.itsmyconfig.processor.packetevents.packet.title.TitleProcessor;
 
+import java.util.EnumMap;
 import java.util.Map;
 
 public class PEventsListener implements PacketListener, com.github.retrooper.packetevents.event.PacketListener {
 
-    private final Map<PacketType.Play.Server, PEventsProcessor> packetHandlerMap = Map.of(
-            PacketType.Play.Server.SYSTEM_CHAT_MESSAGE, SystemChatMessageProcessor.INSTANCE,
-            PacketType.Play.Server.DISCONNECT, DisconnectProcessor.INSTANCE,
-            PacketType.Play.Server.ACTION_BAR, ActionbarProcessor.INSTANCE,
-            PacketType.Play.Server.BOSS_BAR, BossBarProcessor.INSTANCE,
-
-            // titles
-            PacketType.Play.Server.SET_TITLE_TEXT, TitleProcessor.INSTANCE,
-            PacketType.Play.Server.SET_TITLE_SUBTITLE, SubtitleProcessor.INSTANCE
-    );
     private final Plugin plugin;
     private PacketListenerCommon common;
 
+    /**
+     * {@link PacketType.Play.Server} is an enum, so an {@link EnumMap} indexes by
+     * {@code ordinal()} and avoids hashing the key on every outgoing packet.
+     */
+    private final Map<PacketType.Play.Server, PEventsProcessor> packetHandlerMap = createPacketHandlerMap();
+
     public PEventsListener(final Plugin plugin) {
         this.plugin = plugin;
+    }
+
+    private static Map<PacketType.Play.Server, PEventsProcessor> createPacketHandlerMap() {
+        final EnumMap<PacketType.Play.Server, PEventsProcessor> handlers = new EnumMap<>(PacketType.Play.Server.class);
+
+        handlers.put(PacketType.Play.Server.SYSTEM_CHAT_MESSAGE, SystemChatMessageProcessor.INSTANCE);
+        handlers.put(PacketType.Play.Server.DISCONNECT, DisconnectProcessor.INSTANCE);
+        handlers.put(PacketType.Play.Server.ACTION_BAR, ActionbarProcessor.INSTANCE);
+        handlers.put(PacketType.Play.Server.BOSS_BAR, BossBarProcessor.INSTANCE);
+
+        // titles
+        handlers.put(PacketType.Play.Server.SET_TITLE_TEXT, TitleProcessor.INSTANCE);
+        handlers.put(PacketType.Play.Server.SET_TITLE_SUBTITLE, SubtitleProcessor.INSTANCE);
+
+        return handlers;
     }
 
     /**

@@ -118,8 +118,9 @@ public final class PacketUtil {
      * <p>
      * The pipeline performs, in order:
      * <ol>
+     *   <li>Null / empty component guard</li>
      *   <li>MiniMessage serialisation of the input component</li>
-     *   <li>Null / empty guard</li>
+     *   <li>Null / empty serialized-message guard</li>
      *   <li>Undeliverable-message prefix guard (cancellation signal)</li>
      *   <li>Symbol-prefix scan ({@link Strings#parsePrefixedMessage})</li>
      *   <li>Placeholder / tag translation via {@link Utilities#translate}</li>
@@ -136,6 +137,11 @@ public final class PacketUtil {
      */
     @Nullable
     public static Component processComponent(final Player player, final Component component) {
+        if (component == null || Component.empty().equals(component)) {
+            Utilities.debug(() -> "Component is null or empty\n" + Strings.DEBUG_HYPHEN);
+            return null;
+        }
+
         final String message = IMCSerializer.toMiniMessage(component);
 
         if (message == null || message.isEmpty()) {

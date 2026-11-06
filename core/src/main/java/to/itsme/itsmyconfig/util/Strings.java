@@ -20,12 +20,20 @@ public final class Strings {
 
     public static final Pattern LETTERS_PATTERN = Pattern.compile("[A-Za-zÀ-ÿ]");
     public static final Pattern HEX_PATTERN = Pattern.compile("#[a-fA-F0-9]{6}");
-    public static final Pattern TAG_PATTERN = Pattern.compile("<(\\w+)(?::\"([^\"]*)\"|:([^<]*))*>");
 
     private static final Pattern COLOR_FILTER = Pattern.compile("[§&][a-zA-Z0-9]");
     private static final Pattern ARGUMENT_PATTERN = Pattern.compile("\\{([0-9]+)}");
     private static final Pattern DIACRITICAL_MARKS_PATTERN = Pattern.compile("\\p{M}");
-    private static final Pattern QUOTE_PATTERN = Pattern.compile("<quote(?::([^>]*))?>(.*)</quote>");
+    private static final Pattern ESCAPE_TAG_PATTERN = Pattern.compile("<\\w+(?::\"[^\"]*\"|:[^<]*)*>");
+
+    /**
+     * {@code <quote:...>} properties, as bits of a single {@code int}. Parsing them into a
+     * mask keeps the per-block cost allocation-free: no {@code split}, no lowercased copy,
+     * no {@code Set} wrapper.
+     */
+    private static final int PROPERTY_IGNORE_COLORS = 1;
+    private static final int PROPERTY_IGNORE_DECORATIONS = 1 << 1;
+    private static final int PROPERTY_IGNORE_CLICKABLES = 1 << 2;
 
     /**
      * An array of integer values used for converting numbers to Roman numerals.
@@ -49,34 +57,52 @@ public final class Strings {
 
     /**
      * Processes a given text and escapes tags based on specified properties.
+     * <p>
+     * A quote block is delimited by its opening and closing tags, not by line
+     * breaks, so it may span multiple lines.
      *
      * @param text The text to be processed for escaping tags.
      * @return A string with escaped tags based on the given text.
      */
     public static String quote(final String text) {
-        final Matcher matcher = QUOTE_PATTERN.matcher(text);
-        if (!matcher.find()) {
+        int open = text.indexOf("<quote");
+        if (open < 0) {
             return text;
         }
 
-        StringBuilder builder = new StringBuilder();
-        int lastEnd = 0;
-
-        matcher.reset();
-        while (matcher.find()) {
-            builder.append(text, lastEnd, matcher.start());
-
-            final String propertyString = matcher.group(1) != null ? matcher.group(1) : "";
-            final Set<String> properties = propertyString.isEmpty() ? Collections.emptySet() : Set.of(propertyString.toLowerCase().split(":"));
-            final String content = matcher.group(2) != null ? matcher.group(2) : "";
-
-            builder.append(escapeTags(content, properties));
-
-            lastEnd = matcher.end();
+        final int close = text.lastIndexOf("</quote>");
+        if (close < 0) {
+            return text;
         }
 
-        builder.append(text.substring(lastEnd));
-        return builder.toString();
+        while (open >= 0 && open < close) {
+            final int nameEnd = open + 6; // "<quote".length(); in bounds because a closing tag follows
+            final char next = text.charAt(nameEnd);
+
+            final int tagEnd;
+            final int properties;
+            if (next == '>') {
+                tagEnd = nameEnd;
+                properties = 0;
+            } else if (next == ':') {
+                tagEnd = text.indexOf('>', nameEnd + 1);
+                if (tagEnd < 0 || tagEnd >= close) {
+                    // No '>' before the closing tag: this and every later candidate fails too.
+                    return text;
+                }
+                properties = parseProperties(text.substring(nameEnd + 1, tagEnd));
+            } else {
+                open = text.indexOf("<quote", open + 1); // e.g. <quotes>, not our tag
+                continue;
+            }
+
+            final StringBuilder builder = new StringBuilder(text.length() + 16);
+            builder.append(text, 0, open);
+            escapeTags(builder, text, tagEnd + 1, close, properties);
+            return builder.append(text, close + 8, text.length()).toString(); // 8 = "</quote>".length()
+        }
+
+        return text;
     }
 
     /**
@@ -110,43 +136,111 @@ public final class Strings {
     }
 
     /**
-     * Escapes Tags based on the special properties provided.
+     * Parses the {@code <quote:...>} property list into a bitmask, case-insensitively and
+     * without allocating. Unknown or empty properties are ignored; duplicates are harmless.
      *
-     * @param text       The text that contains tags to be escaped.
-     * @param properties The properties that the method should follow.
-     * @return The text after escaping tags.
+     * @param properties the raw property string ({@code null} when the tag has no properties)
+     * @return a mask of {@code PROPERTY_*} bits
      */
-    private static String escapeTags(final String text, final Set<String> properties) {
-        final Matcher matcher = TAG_PATTERN.matcher(text);
-        StringBuilder builder = new StringBuilder();
-        int lastEnd = 0;
-
-        final boolean ignoreColors = properties.contains("ignorecolors");
-        final boolean ignoreDecorations = properties.contains("ignoredecorations");
-        final boolean ignoreClickables = properties.contains("ignoreclickables");
-        while (matcher.find()) {
-            final String found = matcher.group();
-            final String content = found.substring(1, found.length() - 1);
-
-            boolean skip = false;
-            if (ignoreColors && isColor(content)) {
-                skip = true;
-            } else if (ignoreDecorations && isDecoration(content)) {
-                skip = true;
-            } else if (ignoreClickables && content.toLowerCase().startsWith("click")) {
-                skip = true;
-            }
-
-            builder.append(text, lastEnd, matcher.start());
-            if (!skip) {
-                builder.append('\\');
-            }
-            builder.append(found);
-            lastEnd = matcher.end();
+    private static int parseProperties(final String properties) {
+        if (properties == null || properties.isEmpty()) {
+            return 0;
         }
 
-        builder.append(text.substring(lastEnd));
-        return builder.toString();
+        int mask = 0;
+        int start = 0;
+        while (start <= properties.length()) {
+            int end = properties.indexOf(':', start);
+            if (end < 0) {
+                end = properties.length();
+            }
+
+            if (isProperty(properties, start, end, "ignorecolors")) {
+                mask |= PROPERTY_IGNORE_COLORS;
+            } else if (isProperty(properties, start, end, "ignoredecorations")) {
+                mask |= PROPERTY_IGNORE_DECORATIONS;
+            } else if (isProperty(properties, start, end, "ignoreclickables")) {
+                mask |= PROPERTY_IGNORE_CLICKABLES;
+            }
+
+            start = end + 1;
+        }
+        return mask;
+    }
+
+    private static boolean isProperty(
+            final String properties,
+            final int start,
+            final int end,
+            final String name
+    ) {
+        return end - start == name.length()
+                && properties.regionMatches(true, start, name, 0, name.length());
+    }
+
+    /**
+     * Escapes Tags found in {@code text[from, to)} into {@code out}.
+     *
+     * @param out        the builder receiving the escaped text
+     * @param text       the text that contains tags to be escaped
+     * @param from       start of the region to escape (inclusive)
+     * @param to         end of the region to escape (exclusive)
+     * @param properties the property mask built by {@link #parseProperties(String)}
+     */
+    private static void escapeTags(
+            final StringBuilder out,
+            final String text,
+            final int from,
+            final int to,
+            final int properties
+    ) {
+        final Matcher matcher = ESCAPE_TAG_PATTERN.matcher(text).region(from, to);
+        int lastEnd = from;
+
+        while (matcher.find()) {
+            final int start = matcher.start();
+            final int end = matcher.end();
+
+            out.append(text, lastEnd, start);
+            if (properties == 0 || !shouldSkip(text, start + 1, end - 1, properties)) {
+                out.append('\\');
+            }
+            out.append(text, start, end);
+            lastEnd = end;
+        }
+
+        out.append(text, lastEnd, to);
+    }
+
+    /**
+     * Whether a tag (by its content, between the angle brackets) should be left unescaped.
+     *
+     * @param text       the text containing the tag
+     * @param from       start of the tag content
+     * @param to         end of the tag content
+     * @param properties the property mask built by {@link #parseProperties(String)}
+     * @return {@code true} if the tag is covered by one of the ignore properties
+     */
+    private static boolean shouldSkip(
+            final String text,
+            final int from,
+            final int to,
+            final int properties
+    ) {
+        // Allocation-free check first: the common ignore property is the clickable one.
+        if ((properties & PROPERTY_IGNORE_CLICKABLES) != 0
+                && to - from >= 5
+                && text.regionMatches(true, from, "click", 0, 5)) {
+            return true;
+        }
+
+        if ((properties & (PROPERTY_IGNORE_COLORS | PROPERTY_IGNORE_DECORATIONS)) == 0) {
+            return false;
+        }
+
+        final String content = text.substring(from, to);
+        return ((properties & PROPERTY_IGNORE_COLORS) != 0 && isColor(content))
+                || ((properties & PROPERTY_IGNORE_DECORATIONS) != 0 && isDecoration(content));
     }
 
     /**
