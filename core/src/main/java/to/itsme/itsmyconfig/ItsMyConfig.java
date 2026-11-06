@@ -20,6 +20,7 @@ import to.itsme.itsmyconfig.processor.packetevents.PEventsListener;
 import to.itsme.itsmyconfig.util.IMCSerializer;
 import to.itsme.itsmyconfig.util.Strings;
 import to.itsme.itsmyconfig.util.Versions;
+import to.itsme.itsmyconfig.util.reflect.Reflections;
 
 import java.io.File;
 import java.util.*;
@@ -78,6 +79,14 @@ public final class ItsMyConfig extends JavaPlugin {
         this.getLogger().info("Loading ItsMyConfig...");
         if (Versions.isBelow(1, 16, 5)) {
             this.getLogger().info("Unsupported version. Please consider updating to 1.16.5+");
+            this.getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        // The jar built without PacketEvents uses the server's Adventure, so it needs Paper.
+        if (!ProcessorManager.hasBundledPacketEvents()
+                && !Reflections.findClass("net{}kyori{}adventure{}text{}minimessage{}MiniMessage")) {
+            this.getLogger().severe("This jar is built without PacketEvents and needs a Paper server (it uses the server's Adventure). Use the normal jar instead.");
             this.getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -143,6 +152,10 @@ public final class ItsMyConfig extends JavaPlugin {
             final var config = ctx.getConfiguration();
             config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME).removeFilter(this.consoleFilter);
             ctx.updateLoggers();
+        }
+        // Disabled from onEnable before anything was set up.
+        if (this.processorManager == null) {
+            return;
         }
         AudienceResolver.close();
         this.processorManager.close();

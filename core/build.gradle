@@ -49,6 +49,14 @@ repositories {
 }
 
 def imperatVersion = "4.0.0-SNAPSHOT"
+// -PexternalPacketEvents builds a jar without PacketEvents, for servers that run the PacketEvents plugin
+def bundlePacketEvents = !project.hasProperty("externalPacketEvents")
+// Adventure modules that Paper ships, used from the server in the external build
+def serverAdventure = ["adventure-api", "adventure-key", "adventure-text-minimessage",
+                       "adventure-text-serializer-commons", "adventure-text-serializer-gson",
+                       "adventure-text-serializer-json", "adventure-text-serializer-legacy",
+                       "adventure-text-serializer-plain", "option"]
+
 dependencies {
     // api ->
     implementation project(":api")
@@ -76,7 +84,11 @@ dependencies {
     implementation "com.github.Redempt:Crunch:2.0.3"
     implementation "com.github.technicallycoded:FoliaLib:0.4.3"
     implementation "com.alessiodp.libby:libby-bukkit:2.0.0-SNAPSHOT"
-    implementation "com.github.retrooper:packetevents-spigot:2.14.0"
+    if (bundlePacketEvents) {
+        implementation "com.github.retrooper:packetevents-spigot:2.14.0"
+    } else {
+        compileOnly "com.github.retrooper:packetevents-spigot:2.14.0"
+    }
 
     compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
     compileOnly "org.apache.logging.log4j:log4j-core:2.17.1"
@@ -110,7 +122,7 @@ test {
 }
 
 processResources {
-    def props = [version: version]
+    def props = [version: version, bundlePacketEvents: bundlePacketEvents]
     inputs.properties props
     filteringCharset 'UTF-8'
     filesMatching('plugin.yml') {
@@ -119,20 +131,31 @@ processResources {
 }
 
 def shadePath = "to.itsme.itsmyconfig.shade."
-def shadedJarName = "ItsMyConfig-${project.version}-shaded.jar"
+def jarSuffix = bundlePacketEvents ? "" : "-external-packetevents"
+def shadedJarName = "ItsMyConfig-${project.version}${jarSuffix}-shaded.jar"
 shadowJar {
     manifest {
         attributes("paperweight-mappings-namespace": "mojang")
     }
-    relocate("net.kyori", "${shadePath}kyori")
+    if (bundlePacketEvents) {
+        relocate("net.kyori", "${shadePath}kyori")
+    } else {
+        // The PacketEvents plugin passes the server's Adventure types (Component etc.), so this jar
+        // must use the same classes: no relocation, and the modules the server provides are left out.
+        dependencies {
+            serverAdventure.each { exclude(dependency("net.kyori:${it}:.*")) }
+        }
+    }
     relocate("org.bstats", "${shadePath}bstats")
     relocate("redempt.crunch", "${shadePath}crunch")
     relocate("com.alessiodp.libby", "${shadePath}libby")
     relocate("com.tcoded.folialib", "${shadePath}folialib")
     relocate("studio.mevera.imperat", "${shadePath}imperat")
     relocate("dev.dejvokep.boostedyaml", "${shadePath}boostedyaml")
-    relocate("com.github.retrooper.packetevents", "${shadePath}packetevents")
-    relocate("io.github.retrooper.packetevents", "${shadePath}iopacketevents")
+    if (bundlePacketEvents) {
+        relocate("com.github.retrooper.packetevents", "${shadePath}packetevents")
+        relocate("io.github.retrooper.packetevents", "${shadePath}iopacketevents")
+    }
 
     // rename outcome jar
     archiveFileName = shadedJarName
@@ -149,7 +172,7 @@ tasks.named('downgradeBytecode') {
     // The plugin defaults to the thin `jar`; this has to consume the shaded one,
     // relocations and bundled dependencies included.
     dependsOn tasks.named('shadowJar')
-    outputJar = layout.buildDirectory.file("libs/ItsMyConfig-${project.version}.jar")
+    outputJar = layout.buildDirectory.file("libs/ItsMyConfig-${project.version}${jarSuffix}.jar")
 }
 
 sourceSets {
