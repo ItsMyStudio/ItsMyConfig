@@ -9,6 +9,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import to.itsme.itsmyconfig.api.ItsMyConfigAPI;
 import to.itsme.itsmyconfig.command.CommandManager;
 import to.itsme.itsmyconfig.hook.PAPIHook;
+import to.itsme.itsmyconfig.listener.LoginKickListener;
 import to.itsme.itsmyconfig.message.AudienceResolver;
 import to.itsme.itsmyconfig.migration.MigrationManager;
 import to.itsme.itsmyconfig.placeholder.PlaceholderManager;
@@ -123,6 +124,7 @@ public final class ItsMyConfig extends JavaPlugin {
 
         this.getLogger().info("Using packet listener: " + listener.name());
         this.processorManager.load();
+        this.getServer().getPluginManager().registerEvents(new LoginKickListener(this), this);
 
         if (getConfig().getBoolean("translate-console")) {
             // Register Console Filter
